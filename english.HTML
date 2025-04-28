@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn English</title>
+    <link rel="icon" href="https://cdn-icons-png.freepik.com/256/15718/15718573.png?semt=ais_hybrid">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            color: #333;
+            user-select: none;
+            cursor: default;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        /* Background Video */
+        #video-bg {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        header {
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            background: rgba(65, 105, 225, 0.8);
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 0 1rem;
+            transition: transform 0.2s ease-in-out, color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #87cefa;
+            transform: scale(1.1);
+        }
+
+        main {
+            padding: 2rem;
+        }
+
+        .section {
+            margin: 2rem auto;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .section:hover {
+            transform: translateY(-10px);
+        }
+
+        footer {
+            padding: 1.5rem;
+            background: rgba(70, 130, 180, 0.8);
+            color: white;
+        }
+
+        .dark-mode {
+            background-color: #222;
+            color: white;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 1rem;
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s ease-in-out;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+                   
+        #lockScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2em;
+            text-align: center;
+            z-index: 9999;
+        }
+
+        #lockButton {
+            position: absolute;
+            top: 20px;
+            background-color: #222;
+            border-radius: 30px;
+            color:white;
+            left: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <center><button id="lockButton">Lock Website</button></center>
+    <div id="lockScreen">Press and hold anywhere to unlock</div>
+
+    <script>
+        const lockScreen = document.getElementById("lockScreen");
+        const lockButton = document.getElementById("lockButton");
+
+        lockButton.addEventListener("click", () => {
+            lockScreen.style.display = "flex"; // Activate lock screen
+        });
+
+        let pressTimer;
+        document.addEventListener("mousedown", () => {
+            pressTimer = setTimeout(() => {
+                lockScreen.style.display = "none"; // Unlock
+            }, 2000); // User needs to hold for 2 seconds
+        });
+
+        document.addEventListener("mouseup", () => {
+            clearTimeout(pressTimer);
+        });
+
+        document.addEventListener("keydown", () => {
+            pressTimer = setTimeout(() => {
+                lockScreen.style.display = "none";
+            }, 2000);
+        });
+
+        document.addEventListener("keyup", () => {
+            clearTimeout(pressTimer);
+        });
+    </script>
+<script>
+        function applyUserSettings() {
+            if (localStorage.getItem("theme") === "dark") {
+                document.body.classList.add("dark-mode");
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle("dark-mode");
+            localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+        }
+
+        window.onload = applyUserSettings;
+    </script>
+    <!-- Background Video -->
+    <video autoplay muted loop id="video-bg">
+        <source src="../Media/MED5.mp4" type="video/mp4">
+    </video>
+    
+
+    <header>
+        <h1>Learn English</h1>
+        <p>Explore grammar and fun exercises!</p>
+        <button onclick="toggleTheme()">Change Mode</button>
+    </header>
+
+    <nav>
+        <a href="Grammer.HTMl">Grammar</a>
+        <a href="Quizzes.HTML">Quizzes</a>
+    </nav>
+
+    <main>
+       
+        <section id="vocabulary" class="section">
+            <h2>Vocabulary</h2>
+            <p>Expand your word knowledge with thematic word lists.</p>
+        </section>
+        <section id="quizzes" class="section">
+            <h2>Quizzes</h2>
+            <p>Test your knowledge with interactive quizzes!</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Learn English</p>
+    </footer>
+</body>
+</html>

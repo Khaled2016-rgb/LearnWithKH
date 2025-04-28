@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grammaire - Apprendre le français</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5dc;
+            color: #333;
+            user-select: none;
+            cursor: default;
+        }
+
+        header {
+            background-color: #4682b4;
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem 0;
+            background-color: #4682b4;
+            color: white;
+        }
+
+        /* Grammar Section Styles */
+        #french-grammar {
+            margin: 2rem auto;
+            padding: 1.5rem;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+        }
+
+        #french-grammar h2 {
+            font-size: 2rem;
+            color: #4682b4;
+            border-bottom: 2px solid #87cefa;
+            padding-bottom: 0.5rem;
+        }
+
+        #french-grammar p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        #french-grammar ul {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        #french-grammar ul li {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+
+        #french-grammar input[type="text"] {
+            display: block;
+            width: 100%;
+            margin: 1rem 0;
+            padding: 0.7rem;
+            font-size: 1rem;
+            border: 2px solid #4682b4;
+            border-radius: 5px;
+            box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        #french-grammar button {
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            background-color: #4682b4;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #french-grammar button:hover {
+            background-color: #315f84;
+        }
+
+        #french-grammar h3 {
+            font-size: 1.5rem;
+            color: #315f84;
+            margin-top: 1.5rem;
+        }               
+        #lockScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2em;
+            text-align: center;
+            z-index: 9999;
+        }
+
+        #lockButton {
+            position: absolute;
+            top: 20px;
+            background-color: #222;
+            border-radius: 30px;
+            color:white;
+            left: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    
+    <center><button id="lockButton">Lock Website</button></center>
+    <div id="lockScreen">Press and hold anywhere to unlock</div>
+
+    <script>
+        const lockScreen = document.getElementById("lockScreen");
+        const lockButton = document.getElementById("lockButton");
+
+        lockButton.addEventListener("click", () => {
+            lockScreen.style.display = "flex"; // Activate lock screen
+        });
+
+        let pressTimer;
+        document.addEventListener("mousedown", () => {
+            pressTimer = setTimeout(() => {
+                lockScreen.style.display = "none"; // Unlock
+            }, 2000); // User needs to hold for 2 seconds
+        });
+
+        document.addEventListener("mouseup", () => {
+            clearTimeout(pressTimer);
+        });
+
+        document.addEventListener("keydown", () => {
+            pressTimer = setTimeout(() => {
+                lockScreen.style.display = "none";
+            }, 2000);
+        });
+
+        document.addEventListener("keyup", () => {
+            clearTimeout(pressTimer);
+        });
+    </script>
+
+    <script>
+        function checkExercises() {
+            const answer1 = document.getElementById("exercise1").value.trim().toLowerCase();
+            const answer2 = document.getElementById("exercise2").value.trim().toLowerCase();
+
+            const correctAnswer1 = "rouge";
+            const correctAnswer2 = "elle mange une pomme";
+
+            let message = "";
+
+            if (answer1 === correctAnswer1 && answer2 === correctAnswer2) {
+                message = "Bonne réponse! Excellent travail!";
+            } else {
+                message = "Réponse incorrecte! Les réponses correctes sont :\n- Rouge (Red)\n- Elle mange une pomme (She eats an apple)";
+            }
+
+            alert(message);
+        }
+    </script>
+
+    <button id="fullScreenBtn">Go Full Screen</button>
+    <p id="status">Not in full-screen mode</p>
+
+    <script>
+        const fullScreenBtn = document.getElementById('fullScreenBtn');
+        const status = document.getElementById('status');
+
+        // Function to enter full-screen mode
+        function enterFullScreen() {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) {
+                document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) {
+                document.documentElement.msRequestFullscreen();
+            }
+        }
+
+        // Event listener for the button click to activate full-screen mode
+        fullScreenBtn.addEventListener('click', () => {
+            enterFullScreen();
+        });
+
+        // Listen for full-screen changes and update status text
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                status.textContent = "You're in full-screen mode";
+            } else {
+                status.textContent = "Exited full-screen mode";
+            }
+        });
+
+        // Optional: Auto-restore full-screen mode if exited accidentally
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                // Re-enter full-screen mode (requires user interaction again)
+            
+            }
+        });
+    </script>
+    <script>
+        // Apply user settings from localStorage
+        function applyUserSettings() {
+            // Get saved settings
+            const theme = localStorage.getItem("theme");
+            const fontSize = localStorage.getItem("fontSize");
+            const language = localStorage.getItem("language");
+    
+            // Apply theme
+            if (theme === "dark") {
+                document.body.style.backgroundColor = "#333";
+                document.body.style.color = "#f5f5f5";
+            } else {
+                document.body.style.backgroundColor = "#f5f5f5";
+                document.body.style.color = "#333";
+            }
+    
+            // Apply font size
+            if (fontSize) {
+                document.body.style.fontSize = fontSize + "px";
+            }
+    
+            // Apply language direction (if Arabic, set right-to-left)
+            if (language === "ar") {
+                document.documentElement.lang = "ar";
+                document.documentElement.dir = "rtl";
+            } else {
+                document.documentElement.lang = language || "en";
+                document.documentElement.dir = "ltr";
+            }
+        }
+    
+        // Call the function when the page loads
+        window.onload = applyUserSettings;
+    </script>
+    
+    <header>
+        <h1>Grammaire - Apprendre le français</h1>
+        <p>Apprenez les règles de grammaire françaises avec des exemples pratiques et des exercices interactifs.</p>
+    </header>
+    <main>
+        <section id="french-grammar">
+            <h2>Grammaire (Grammar)</h2>
+            <p>Découvrez les règles fondamentales de la grammaire française et pratiquez-les avec des exercices amusants.</p>
+
+            <h3>1. Adjectifs (Adjectives)</h3>
+            <p>En français, les adjectifs décrivent les noms et s'accordent en genre et en nombre avec ceux-ci. Par exemple :</p>
+            <ul>
+                <li><strong>Un livre rouge :</strong> A red book (masculine singular)</li>
+                <li><strong>Une pomme rouge :</strong> A red apple (feminine singular)</li>
+                <li><strong>Des livres rouges :</strong> Red books (masculine plural)</li>
+            </ul>
+
+            <h3>2. Structure de la phrase</h3>
+            <p>La structure typique d'une phrase en français est : Sujet + Verbe + Objet. Exemple :</p>
+            <ul>
+                <li><strong>Elle mange une pomme :</strong> She eats an apple.</li>
+            </ul>
+
+            <h3>3. Exercices interactifs</h3>
+            <p>Complétez les phrases suivantes :</p>
+            <p><strong>1. Quelle est la couleur de la pomme ?</strong> (Type your answer in French.)</p>
+            <input type="text" id="exercise1" placeholder="Écrivez votre réponse ici...">
+
+            <p><strong>2. Corrigez la phrase : "Elle mange un pomme".</strong></p>
+            <input type="text" id="exercise2" placeholder="Corrigez la phrase ici...">
+
+            <button onclick="checkExercises()">Soumettre</button>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 Apprendre le français</p>
+    </footer>
+</body>
+</html>

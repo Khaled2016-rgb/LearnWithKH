@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TO DO</title>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/4697/4697260.png">
+  <style>
+    /* Reset and background setup */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body, html {
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+    }
+
+    video#bgVideo {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      min-width: 100%;
+      min-height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      filter: brightness(0.4);
+    }
+
+    .todo-container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 40px 0;
+      color: #fff;
+    }
+
+    .section {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 30px 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+    }
+
+    .section h2 {
+      color: #fff;
+    }
+
+    .task {
+      background: rgba(255, 255, 255, 0.2);
+      margin-bottom: 10px;
+      padding: 12px;
+      border-left: 6px solid #2196F3;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .task.completed {
+      background: rgba(0, 255, 0, 0.2);
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+
+    .task-text {
+      flex-grow: 1;
+      margin-left: 10px;
+    }
+
+    .task-info {
+      font-size: 0.85em;
+      color: #ddd;
+    }
+
+    .priority {
+      font-size: 0.75em;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-left: 10px;
+    }
+
+    .low { background: #c8e6c9; color: #1b5e20; }
+    .medium { background: #fff176; color: #f57f17; }
+    .high { background: #ef9a9a; color: #b71c1c; }
+
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+      align-items: center;
+    }
+
+    input, select, button {
+      padding: 8px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: none;
+    }
+
+    input[type="text"] {
+      flex: 1 1 250px;
+    }
+
+    button {
+      background: #2196F3;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1976D2;
+    }
+
+    .remove-btn {
+      margin-left: 10px;
+      background: #e53935;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    .remove-btn:hover {
+      background: #c62828;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🌌 Video Background -->
+  <video autoplay muted loop id="bgVideo">
+    <source src="../Media/MED5.mp4" type="video/mp4">
+    Your browser does not support HTML5 video.
+  </video>
+
+  <h1>📋 My Task Planner</h1>
+  <div class="todo-container" id="todoApp"></div>
+
+  <script>
+    const sections = ['My Goals', 'My Tasks', 'My Ideas'];
+    let taskData = JSON.parse(localStorage.getItem('customTasks')) || {};
+    const app = document.getElementById('todoApp');
+
+    function saveTasks() {
+      localStorage.setItem('customTasks', JSON.stringify(taskData));
+    }
+
+    function toggleComplete(section, index) {
+      taskData[section][index].done = !taskData[section][index].done;
+      saveTasks();
+      renderApp();
+    }
+
+    function removeTask(section, index) {
+      taskData[section].splice(index, 1);
+      saveTasks();
+      renderApp();
+    }
+
+    function addTask(e, section) {
+      e.preventDefault();
+      const desc = e.target.querySelector('input[name="desc"]').value;
+      const date = e.target.querySelector('input[name="date"]').value;
+      const priority = e.target.querySelector('select[name="priority"]').value;
+
+      if (!desc.trim()) return;
+
+      taskData[section] = taskData[section] || [];
+      taskData[section].push({ desc, date, priority, done: false });
+
+      saveTasks();
+      renderApp();
+    }
+
+    function renderApp() {
+      app.innerHTML = '';
+      sections.forEach(section => {
+        const sectionBox = document.createElement('div');
+        sectionBox.className = 'section';
+
+        const title = document.createElement('h2');
+        title.textContent = section;
+        sectionBox.appendChild(title);
+
+        const tasks = taskData[section] || [];
+        tasks.forEach((task, index) => {
+          const taskDiv = document.createElement('div');
+          taskDiv.className = 'task' + (task.done ? ' completed' : '');
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = task.done;
+          checkbox.onchange = () => toggleComplete(section, index);
+
+          const info = document.createElement('div');
+          info.className = 'task-text';
+          info.innerHTML = ` 
+            <strong>I want to do:</strong> ${task.desc}<br>
+            <span class="task-info"><strong>In date:</strong> ${task.date || 'No date'}</span>
+          `;
+
+          const priority = document.createElement('span');
+          priority.className = 'priority ' + task.priority.toLowerCase();
+          priority.textContent = task.priority;
+
+          const removeBtn = document.createElement('button');
+          removeBtn.textContent = '❌';
+          removeBtn.className = 'remove-btn';
+          removeBtn.onclick = () => removeTask(section, index);
+
+          taskDiv.appendChild(checkbox);
+          taskDiv.appendChild(info);
+          taskDiv.appendChild(priority);
+          taskDiv.appendChild(removeBtn);
+          sectionBox.appendChild(taskDiv);
+        });
+
+        const form = document.createElement('form');
+        form.onsubmit = (e) => addTask(e, section);
+        form.innerHTML = `
+          <input type="text" name="desc" placeholder="I want to do..." required>
+          <input type="date" name="date">
+          <select name="priority">
+            <option value="Low">Low</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="High">High</option>
+          </select>
+          <button type="submit">Add Task</button>
+        `;
+
+        sectionBox.appendChild(form);
+        app.appendChild(sectionBox);
+      });
+    }
+
+    renderApp()
+  </script>
+
+</body>
+</html>

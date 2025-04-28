@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Flappy Bird</title>
+  <link rel="icon" href="../Gallery/Flappy Bird icon.png"/>
+  <style>
+    body, canvas {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+    }
+    .video-background video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+    #game-over {
+      position: absolute;
+      font-size: 48px;
+      color: white;
+      text-align: center;
+      display: none;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    #restart-btn, #pause-btn, #resume-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 5px;
+      position: absolute;
+    }
+    #pause-btn {
+      bottom: 20px;
+      left: 20px;
+      background: #3498db;
+    }
+    #resume-btn {
+      bottom: 20px;
+      left: 140px;
+      background: #2ecc71;
+      display: none;
+    }
+    #score, #high-score {
+      position: absolute;
+      font-size: 24px;
+      color: white;
+      text-shadow: 2px 2px 4px #000;
+    }
+    #score {
+      top: 20px;
+      left: 20px;
+    }
+    #high-score {
+      top: 20px;
+      right: 20px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="video-background">
+    <video autoplay muted loop src="../Media/MED6.mp4"></video>
+  </div>
+  <div id="game-over">
+    <p>Game Over , if you press A You will be in Automatic Mode </p>
+    <button id="restart-btn">Restart</button>
+  </div>
+  <canvas id="gameCanvas"></canvas>
+  <div id="score" style="font-family: serif;""></div>
+  <div id="high-score" style="display: none;"></div><div style="display: none;">
+  <button id="pause-btn">Pause</button>
+  <button id="resume-btn">Resume</button>
+</div>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    const GRAVITY = 0.4;
+    const FLAP = -8;
+    const INITIAL_PIPE_SPEED = 10;
+    const PIPE_GAP = 250;
+    const PIPE_WIDTH = 60;
+    const BIRD_RADIUS = 15;
+    const BIRD_COLOR = "yellow";
+    const PIPE_COLOR = "green";
+
+    let bird, pipes, score, highScore, frame, pipeSpeed, gameOver, isAutoPilot, targetPipe;
+    let paused = false;
+
+    function initializeGame() {
+      bird = { x: 50, y: canvas.height / 2, radius: BIRD_RADIUS, velocity: 0 };
+      pipes = [];
+      score = 0;
+      highScore = localStorage.getItem("highScore") || 0;
+      frame = 0;
+      pipeSpeed = INITIAL_PIPE_SPEED;
+      gameOver = false;
+      isAutoPilot = false; // Auto mode starts off
+      targetPipe = null;
+      paused = false;
+      document.getElementById("game-over").style.display = "none";
+      document.getElementById("pause-btn").style.display = "inline";
+      document.getElementById("resume-btn").style.display = "none";
+    }
+
+    function drawBird() {
+      ctx.fillStyle = BIRD_COLOR;
+      ctx.beginPath();
+      ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawPipes() {
+      pipes.forEach(pipe => {
+        ctx.fillStyle = PIPE_COLOR;
+        ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.top);
+        ctx.fillRect(pipe.x, pipe.bottom, PIPE_WIDTH, canvas.height - pipe.bottom);
+      });
+    }
+
+    function spawnPipe() {
+      const topHeight = Math.random() * (canvas.height - PIPE_GAP);
+      pipes.push({ x: canvas.width, top: topHeight, bottom: topHeight + PIPE_GAP });
+    }
+
+    function movePipes() {
+      pipes.forEach(pipe => pipe.x -= pipeSpeed);
+      pipes = pipes.filter(pipe => pipe.x + PIPE_WIDTH > 0);
+      if (frame % 100 === 0) spawnPipe();
+    }
+
+    function checkCollision() {
+      if (bird.y + bird.radius >= canvas.height || bird.y - bird.radius <= 0) return true;
+      return pipes.some(pipe => bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + PIPE_WIDTH &&
+        (bird.y - bird.radius < pipe.top || bird.y + bird.radius > pipe.bottom));
+    }
+
+    function updateGame() {
+      if (gameOver || paused) return;
+
+      bird.velocity += GRAVITY;
+      bird.y += bird.velocity;
+
+      if (isAutoPilot) {
+        targetPipe = pipes.find(pipe => pipe.x + PIPE_WIDTH > bird.x) || pipes[0];
+        if (targetPipe) {
+          let safeZoneY = (targetPipe.top + targetPipe.bottom) / 2;
+          if (bird.y > safeZoneY + 20) {
+            bird.velocity = FLAP;
+          }
+        }
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBird();
+      movePipes();
+      drawPipes();
+
+      if (checkCollision()) {
+        gameOver = true;
+        document.getElementById("game-over").style.display = "block";
+        localStorage.setItem("highScore", Math.max(score, highScore));
+        return;
+      } else {
+        frame++;
+        if (frame % 100 === 0) score++;
+        document.getElementById("score").innerText = "Score: " + score;
+        document.getElementById("high-score").innerText = "High Score: " + highScore;
+      }
+
+      requestAnimationFrame(updateGame);
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.code === "Space") {
+        bird.velocity = FLAP;
+      } else if (e.code === "KeyA") {
+        isAutoPilot = !isAutoPilot;
+        targetPipe = isAutoPilot ? pipes[0] : null;
+      }
+    });
+
+    document.getElementById("restart-btn").addEventListener("click", () => {
+      initializeGame();
+      updateGame();
+    });
+
+    initializeGame();
+    updateGame();
+  </script>
+</body>
+</html>

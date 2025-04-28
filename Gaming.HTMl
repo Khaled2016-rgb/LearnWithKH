@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gaming </title>
+  <link rel="icon" href="https://img.pikbest.com/origin/09/19/36/04gpIkbEsTBhE.png!sw800">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+          /* Video background */
+          .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1; /* Ensures content is on top */
+        }
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      color: #fff;
+    }
+
+    header {
+      background: #000;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 0 15px #00ffcc;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: #00ffcc;
+    }
+
+    nav a {
+      color: #fff;
+      margin-left: 25px;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: #00ffcc;
+    }
+
+    .hero {
+      height: 80vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .hero-content {
+      max-width: 600px;
+    }
+
+    .hero-content h2 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      color: #00ffcc;
+    }
+
+    .hero-content p {
+      font-size: 1.2rem;
+      color: #ddd;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 2rem;
+      margin: 60px 0 30px;
+      color: #00ffcc;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 30px;
+      padding: 0 40px 60px;
+    }
+
+    .game-card {
+      background: #1e1e1e;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+
+    .game-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 15px #00ffcc;
+    }
+
+    .game-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .game-card .info {
+      padding: 15px;
+    }
+
+    .game-card h3 {
+      font-size: 1.2rem;
+      color: #fff;
+    }
+
+    .game-card p {
+      font-size: 0.9rem;
+      color: #aaa;
+      margin-top: 5px;
+    }
+
+    footer {
+      background: #000;
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9rem;
+      color: #999;
+    }
+
+    /* Glow effect animation */
+    @keyframes floatUp {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .float-up {
+      animation: floatUp 4s ease-in-out infinite;
+    }
+
+    /* Button Style */
+    .game-btn {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #00ffcc;
+      background: transparent;
+      border: 2px solid #00ffcc;
+      border-radius: 8px;
+      text-decoration: none;
+      text-align: center;
+      transition: all 0.4s ease;
+      box-shadow: 0 0 10px #00ffcc;
+      text-shadow: 0 0 3px #00ffcc;
+    }
+
+    .game-btn:hover {
+      background-color: #00ffcc;
+      color: #000;
+      box-shadow: 0 0 15px #00ffcc, 0 0 30px #00ffcc;
+      transform: scale(1.05);
+    }
+
+  </style>
+</head>
+<body>
+   <!-- Video Background -->
+   <video autoplay muted loop class="video-background">
+  <source src="../Media/MED6.mp4" type="video/mp4">
+         
+  </video>
+  
+
+  <header>
+    
+    <nav>
+      <a href="Gaming.HTMl">Home</a>
+    </nav>
+  </header>
+
+  <section class="hero" id="home">
+    <div class="hero-content float-up">
+      <h2>Play Games and Get fun </h2>
+      <p>Get fun with more than 3 Games</p>
+    </div>
+  </section>
+
+
+  <div class="games-grid">
+    <div class="game-card">
+      <div class="info">
+        <h3>Flappy bird</h3>
+        <p>play flappy bird and get fun </p>
+        <a href="Flappy Bird.HTML" class="game-btn">🎮 Play Now</a>
+      </div>
+    </div>
+
+
+
+    <div class="game-card">
+    
+      <div class="info">
+        <h3>Snake Game</h3>
+        <p>Play Snake Game</p>
+        <a href="snake.Html" class="game-btn">🎮 Play Now</a>
+      </div>
+    </div>
+    <div class="game-card">
+          <div class="info">
+        <h3> Tic-Tac-Toe </h3>
+        <p>Play Tic-Tac-Toe and get fun!</p>
+        <a href="Tic-Tac-Toe.HTML" class="game-btn">🎮 Play Now</a>
+      </div>
+    </div>
+    <div class="game-card">
+     
+      <div class="info">
+        <h3>2048 Puzzle Game </h3>
+        <p>Play and get fun with 2048 Puzzle Game</p>
+        <a href="2048 Puzzle Game.HTML" class="game-btn">🎮 Play Now</a>
+      </div>
+    </div>
+  </div>
+  
+
+  <footer id="contact">
+    <p>© 2025 Play games and get Fun😊. All rights reserved. | Designed for purpose and peace ✨</p>
+  </footer>
+
+  
+</body>
+</html>

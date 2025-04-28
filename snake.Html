@@ -1,0 +1,350 @@
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3292/3292221.png">
+    <style>
+      body, canvas {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: Arial, sans-serif;
+      }
+      .video-background video {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: -1;
+      }
+
+      #game-over {
+        position: absolute;
+        font-size: 48px;
+        color: white;
+        text-align: center;
+        display: none;
+        animation: fadeIn 0.5s ease-in-out;
+      }
+
+      #restart-btn {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+
+      #score, #high-score {
+        position: absolute;
+        font-size: 24px;
+        color: white;
+        text-shadow: 2px 2px 4px #000;
+      }
+
+      #score {
+        top: 20px;
+        left: 20px;
+      }
+
+      #high-score {
+        top: 20px;
+        right: 20px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="video-background">
+      <video autoplay muted loop src="../Media/MED6.mp4"></video>
+    </div>
+    <div id="game-over">
+      <p>Game Over , if you Press A You will be in Automatic mode</p>
+      <button id="restart-btn">Restart</button>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+    <div id="score">Score: 0</div>
+    <div id="high-score">High Score: 0</div>
+
+    <script>
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+
+      const blockSize = 20;
+      const canvasWidth = window.innerWidth;
+      const canvasHeight = window.innerHeight;
+      let snake = [{ x: 100, y: 100 }];
+      let direction = 'RIGHT';
+      let food = { x: 0, y: 0 };
+      let score = 0;
+      let highScore = localStorage.getItem('highScore') || 0;
+      let gameOver = false;
+      let gameLoopInterval;
+      let manualControl = false;
+
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+
+      // Handle key events
+      document.addEventListener('keydown', changeDirection);
+
+      // Game loop
+      function gameLoop() {
+        if (gameOver) return;
+
+        gameLoopInterval = setTimeout(function () {
+          clearCanvas();
+          if (!manualControl) {
+            // Automatic movement towards food if no manual control
+            moveSnakeAutomatically();
+          } else {
+            // Manual movement if the user is controlling
+            moveSnake();
+          }
+          checkCollisions();
+          drawSnake();
+          drawFood();
+          updateScore();
+          gameLoop();
+        }, 100);
+      }
+
+      // Clear the canvas
+      function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // Move the snake manually
+      function moveSnake() {
+        const head = { ...snake[0] };
+
+        if (direction === 'LEFT') head.x -= blockSize;
+        if (direction === 'RIGHT') head.x += blockSize;
+        if (direction === 'UP') head.y -= blockSize;
+        if (direction === 'DOWN') head.y += blockSize;
+
+        // Wall wrapping logic
+        if (head.x < 0) head.x = canvas.width - blockSize;
+        if (head.x >= canvas.width) head.x = 0;
+        if (head.y < 0) head.y = canvas.height - blockSize;
+        if (head.y >= canvas.height) head.y = 0;
+
+        snake.unshift(head);
+
+        if (head.x === food.x && head.y === food.y) {
+          score++;
+          spawnFood();
+          if (score > highScore) highScore = score;
+        } else {
+          snake.pop();
+        }
+      }
+
+      // Move the snake automatically towards food using A* style pathfinding
+      function moveSnakeAutomatically() {
+        const head = { ...snake[0] };
+
+        // Use a simplified A* algorithm to move towards the food
+        const nextDirection = findNextMove(head, food);
+
+        if (nextDirection === 'LEFT') head.x -= blockSize;
+        if (nextDirection === 'RIGHT') head.x += blockSize;
+        if (nextDirection === 'UP') head.y -= blockSize;
+        if (nextDirection === 'DOWN') head.y += blockSize;
+
+        // Wall wrapping logic
+        if (head.x < 0) head.x = canvas.width - blockSize;
+        if (head.x >= canvas.width) head.x = 0;
+        if (head.y < 0) head.y = canvas.height - blockSize;
+        if (head.y >= canvas.height) head.y = 0;
+
+        snake.unshift(head);
+
+        if (head.x === food.x && head.y === food.y) {
+          score++;
+          spawnFood();
+          if (score > highScore) highScore = score;
+        } else {
+          snake.pop();
+        }
+      }
+
+      // A* style pathfinding (simplified version)
+      function findNextMove(head, food) {
+        const directions = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
+        let bestDirection = null;
+        let minDistance = Infinity;
+
+        directions.forEach(direction => {
+          const newHead = { ...head };
+
+          if (direction === 'LEFT') newHead.x -= blockSize;
+          if (direction === 'RIGHT') newHead.x += blockSize;
+          if (direction === 'UP') newHead.y -= blockSize;
+          if (direction === 'DOWN') newHead.y += blockSize;
+
+          const distance = Math.abs(newHead.x - food.x) + Math.abs(newHead.y - food.y);
+
+          if (distance < minDistance && !isCollidingWithBody(newHead)) {
+            minDistance = distance;
+            bestDirection = direction;
+          }
+        });
+
+        return bestDirection;
+      }
+
+      // Check if the snake is colliding with its body
+      function isCollidingWithBody(head) {
+        for (let i = 1; i < snake.length; i++) {
+          if (head.x === snake[i].x && head.y === snake[i].y) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      // Draw the snake with rounded segments and eyes on the head
+      function drawSnake() {
+        snake.forEach((segment, index) => {
+          ctx.fillStyle = index === 0 ? '#FFFF00' : '#FFD700'; // Yellow for head and golden yellow for body
+
+          ctx.beginPath();
+          ctx.arc(segment.x + blockSize / 2, segment.y + blockSize / 2, blockSize / 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.closePath();
+
+          if (index === 0) {
+            drawEyes(segment); // Draw eyes on the head
+          }
+        });
+      }
+
+      // Draw eyes on the snake's head
+      function drawEyes(segment) {
+        const eyeSize = 4; // Eye size
+        const eyeOffset = 5; // Distance from the center of the head
+
+        // Left eye
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(segment.x + blockSize / 2 - eyeOffset, segment.y + blockSize / 2 - eyeOffset, eyeSize, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+
+        // Right eye
+        ctx.beginPath();
+        ctx.arc(segment.x + blockSize / 2 + eyeOffset, segment.y + blockSize / 2 - eyeOffset, eyeSize, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+
+        // Pupils
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.arc(segment.x + blockSize / 2 - eyeOffset, segment.y + blockSize / 2 - eyeOffset, eyeSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+
+        ctx.beginPath();
+        ctx.arc(segment.x + blockSize / 2 + eyeOffset, segment.y + blockSize / 2 - eyeOffset, eyeSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      // Draw the food
+      function drawFood() {
+        ctx.fillStyle = 'red';
+        ctx.fillRect(food.x, food.y, blockSize, blockSize);
+      }
+
+      // Spawn food at random position
+      function spawnFood() {
+        food.x = Math.floor(Math.random() * (canvasWidth / blockSize)) * blockSize;
+        food.y = Math.floor(Math.random() * (canvasHeight / blockSize)) * blockSize;
+      }
+
+      // Change snake's direction
+      function changeDirection(event) {
+        if (event.keyCode === 37 && direction !== 'RIGHT') {
+          direction = 'LEFT';
+          manualControl = true; // User has taken control
+        } else if (event.keyCode === 38 && direction !== 'DOWN') {
+          direction = 'UP';
+          manualControl = true; // User has taken control
+        } else if (event.keyCode === 39 && direction !== 'LEFT') {
+          direction = 'RIGHT';
+          manualControl = true; // User has taken control
+        } else if (event.keyCode === 40 && direction !== 'UP') {
+          direction = 'DOWN';
+          manualControl = true; // User has taken control
+        }
+
+        // Toggle automatic mode when 'A' key is pressed
+        if (event.key === 'a' || event.key === 'A') {
+          manualControl = !manualControl;
+        }
+      }
+
+      // Check for collisions
+      function checkCollisions() {
+        const head = snake[0];
+
+        for (let i = 1; i < snake.length; i++) {
+          if (head.x === snake[i].x && head.y === snake[i].y) {
+            endGame();
+          }
+        }
+      }
+
+      // Update score
+      function updateScore() {
+        document.getElementById('score').innerText = 'Score: ' + score;
+        document.getElementById('high-score').innerText = 'High Score: ' + highScore;
+      }
+
+      // End game
+      function endGame() {
+        localStorage.setItem('highScore', Math.max(score, highScore));
+        gameOver = true;
+        clearTimeout(gameLoopInterval);
+        document.getElementById('game-over').style.display = 'block';
+      }
+
+      // Restart the game
+      function restartGame() {
+        gameOver = false;
+        document.getElementById('game-over').style.display = 'none';
+        snake = [{ x: 100, y: 100 }];
+        direction = 'RIGHT';
+        score = 0;
+        spawnFood();
+        gameLoop();
+      }
+
+      // Start the game
+      spawnFood();
+      gameLoop();
+
+      // Restart on button click
+      document.getElementById('restart-btn').addEventListener('click', restartGame);
+    </script>
+  </body>
+  </html>

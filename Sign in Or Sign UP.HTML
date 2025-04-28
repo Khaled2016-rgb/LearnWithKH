@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign In / Sign Up</title>
+  <link rel="icon" href="https://cdn0.iconfinder.com/data/icons/social-messaging-ui-color-shapes/128/arrow-up-circle-blue-512.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #background-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #007acc;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px rgba(0, 122, 204, 0.7);
+      z-index: 1;
+    }
+
+    .form-box {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 122, 204, 0.4);
+      max-width: 400px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #007acc;
+      border-radius: 6px;
+      background: #f4f4f4;
+      font-size: 1rem;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      background-color: #007acc;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px rgba(0, 122, 204, 0.5);
+    }
+
+    button:hover {
+      background-color: #005fa3;
+      transform: scale(1.05);
+    }
+
+    .hint {
+      margin-top: 20px;
+      color: #007acc;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    #user-panel {
+      background: rgba(255, 255, 255, 0.95);
+      border: none;
+      box-shadow: none;
+      padding: 40px;
+      border-radius: 0;
+      width: 100vw;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 999;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    #user-panel.show {
+      display: block;
+      opacity: 1;
+    }
+
+    #user-panel.hide {
+      opacity: 0;
+    }
+
+    #user-list {
+      list-style: none;
+      padding: 0;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    #user-list li {
+      background: #e2e2e2;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .menu-container {
+      position: relative;
+    }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+    }
+
+    .user-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 25px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      z-index: 10;
+      min-width: 140px;
+    }
+
+    .user-menu button,
+    .user-menu a {
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      background: none;
+      border: none;
+      font-size: 0.9rem;
+      color: #333;
+      text-align: left;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .user-menu button:hover,
+    .user-menu a:hover {
+      background: #f0f0f0;
+    }
+
+    #profile-pic-container {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 999;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #profile-pic {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #007acc;
+      display: block;
+    }
+
+    .change-pic-btn {
+      background-color: #007acc;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      margin-top: 5px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: none;
+      position: absolute;
+      top: 55px;
+      right: 10px;
+    }
+
+    .change-pic-btn:hover {
+      background-color: #005fa3;
+    }
+
+    #close-user-panel {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      background-color: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 1000;
+      transition: background 0.3s ease;
+    }
+
+    #close-user-panel:hover {
+      background-color: #cc0000;
+    }
+
+    @media (max-width: 500px) {
+      h1 {
+        font-size: 1.6rem;
+      }
+
+      .form-box {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Video -->
+  <video id="background-video" autoplay loop muted>
+    <source src="../Media/MED5.mp4" type="video/mp4">
+  </video>
+
+  <h1>🔐 Sign In / Sign Up</h1>
+
+  <div class="form-box">
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Password (min 6 characters)" required>
+    <button onclick="signIn()">Sign In</button>
+    <button onclick="signUp()">Sign Up</button>
+  </div>
+
+  <div id="user-panel">
+    <button id="close-user-panel" onclick="closeUserPanel()">✖ Close</button>
+    <h3>Signed-in Users</h3>
+    <ul id="user-list"></ul>
+  </div>
+
+  <script>
+    const signedInUsersKey = 'signedInUsers';
+
+    function getSignedInUsers() {
+      return JSON.parse(localStorage.getItem(signedInUsersKey)) || [];
+    }
+
+    function saveSignedInUsers(users) {
+      localStorage.setItem(signedInUsersKey, JSON.stringify(users));
+    }
+
+    function signIn() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!email || password.length < 6) {
+        return alert("Please enter a valid email and a password with at least 6 characters.");
+      }
+
+      const users = getSignedInUsers();
+      if (!users.includes(email)) {
+        users.push(email);
+        saveSignedInUsers(users);
+      }
+
+      sessionStorage.setItem('currentUser', email);
+      alert(`${email} signed in successfully!`);
+      updatePanel();
+      promptProfilePicture();
+    }
+
+    function signUp() {
+      signIn();
+    }
+
+    function toggleUserPanel() {
+      const panel = document.getElementById('user-panel');
+      const list = document.getElementById('user-list');
+      const users = getSignedInUsers();
+
+      list.innerHTML = "";
+
+      users.forEach(user => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <span>${user}</span>
+          <div class="menu-container">
+            <button class="menu-btn" onclick="toggleUserMenu(this)">&#8942;</button>
+            <div class="user-menu">
+              <button onclick="removeUser('${user}')">Remove</button>
+              <a href="mailto:${user}">Contact</a>
+            </div>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+
+      if (!panel.classList.contains('show')) {
+        panel.classList.remove('hide');
+        panel.classList.add('show');
+      } else {
+        panel.classList.remove('show');
+        panel.classList.add('hide');
+        setTimeout(() => {
+          panel.style.display = 'none';
+        }, 500);
+      }
+
+      panel.style.display = 'block';
+    }
+
+    function updatePanel() {
+      const panel = document.getElementById('user-panel');
+      panel.classList.remove('hide');
+      panel.classList.add('show');
+      panel.style.display = 'block';
+      toggleUserPanel(); // Refresh list
+    }
+
+    function removeUser(email) {
+      const users = getSignedInUsers().filter(u => u !== email);
+      saveSignedInUsers(users);
+      toggleUserPanel();
+    }
+
+    function aboutUser(email) {
+      alert(`ℹ️ ${email} is a registered user.`);
+    }
+
+    function toggleUserMenu(button) {
+      const menu = button.nextElementSibling;
+      const allMenus = document.querySelectorAll(".user-menu");
+      allMenus.forEach(m => {
+        if (m !== menu) m.style.display = "none";
+      });
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
+
+    function closeUserPanel() {
+      const panel = document.getElementById('user-panel');
+      panel.classList.remove('show');
+      panel.classList.add('hide');
+      setTimeout(() => {
+        panel.style.display = 'none';
+      }, 500);
+    }
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.classList.contains("menu-btn")) {
+        document.querySelectorAll(".user-menu").forEach(menu => menu.style.display = "none");
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.ctrlKey && e.altKey && e.key === "F") {
+        toggleUserPanel();
+      }
+    });
+
+    function promptProfilePicture(event) {
+      if (confirm("Do you want to upload a profile picture?")) {
+        document.getElementById("upload-pic").click();
+      } else {
+        showStoredProfilePic();
+      }
+    }
+
+    function previewProfilePicture(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        const imgSrc = e.target.result;
+        localStorage.setItem('profilePic', imgSrc);
+        document.getElementById('profile-pic').src = imgSrc;
+        document.getElementById('profile-pic').style.display = 'block';
+        document.querySelector('.change-pic-btn').style.display = 'inline-block';
+      };
+
+      if (file) {
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function showStoredProfilePic() {
+      let pic = localStorage.getItem('profilePic');
+      const email = sessionStorage.getItem('currentUser') || "Not signed in";
+
+      const img = document.getElementById('profile-pic');
+
+      if (pic) {
+        img.src = pic;
+        img.title = email;
+        img.style.display = 'block';
+        document.querySelector('.change-pic-btn').style.display = 'inline-block';
+      }
+    }
+
+    function changeProfilePicture() {
+      document.getElementById("upload-pic").click();
+    }
+
+    // Load profile picture on page load if already stored
+    window.onload = showStoredProfilePic;
+  </script>
+
+</body>
+</html>

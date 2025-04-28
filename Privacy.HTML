@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy</title>
+    <link rel="icon" href="https://cdn-icons-png.freepik.com/512/6389/6389245.png">
+
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            cursor: default;
+            user-select: none;
+        }
+
+        /* Video Background */
+        .video-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1; /* Ensure the video stays behind content */
+        }
+
+        /* Header styles */
+        header {
+            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem 0;
+            background-color: #4682b4;
+            color: white;
+        }
+
+        button{
+            background-color: #333;
+            color: white;
+            border-style: none;
+            border-radius: 30px;
+        }
+
+        main {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: #4682b4;
+            border-bottom: 2px solid #87cefa;
+            padding-bottom: 0.5rem;
+        }
+
+        p, ul {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        ul {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+        
+        #lockScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2em;
+            text-align: center;
+            z-index: 9999;
+        }
+
+        #lockButton {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    
+    <!-- Video Background -->
+    <video autoplay muted loop playsinline class="video-bg">
+        <source src="../Media/MED1.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <center><button id="lockButton">Lock Website</button></center>
+    <div id="lockScreen">Press and hold anywhere to unlock</div>
+
+    <script>
+        const lockScreen = document.getElementById("lockScreen");
+        const lockButton = document.getElementById("lockButton");
+
+        lockButton.addEventListener("click", () => {
+            lockScreen.style.display = "flex"; // Activate lock screen
+        });
+
+        let pressTimer;
+        document.addEventListener("mousedown", () => {
+            pressTimer = setTimeout(() => {
+                lockScreen.style.display = "none"; // Unlock
+            }, 2000); // User needs to hold for 2 seconds
+        });
+
+        document.addEventListener("mouseup", () => {
+            clearTimeout(pressTimer);
+        });
+
+        document.addEventListener("keydown", () => {
+            pressTimer = setTimeout(() => {
+                lockScreen.style.display = "none";
+            }, 2000);
+        });
+
+        document.addEventListener("keyup", () => {
+            clearTimeout(pressTimer);
+        });
+    </script>
+    <header>
+        <h1>Privacy Policy</h1>
+    </header>
+    <main>
+        <h2>Your Privacy Matters</h2>
+        <p>This Privacy Policy explains how we collect, use, and protect your information when you visit our website. By using our services, you agree to the terms outlined below:</p>
+
+        <h3>1. Information We Collect</h3>
+        <p>We may collect the following types of information:</p>
+        <ul>
+            <li>Personal information, such as your name and email address, when you voluntarily provide it.</li>
+            <li>Usage data, including your browsing activity, preferences, and interactions with our website.</li>
+            <li>Cookies and other tracking technologies to enhance your user experience.</li>
+        </ul>
+
+        <h3>2. How We Use Your Information</h3>
+        <p>Your information is used for:</p>
+        <ul>
+            <li>Providing, maintaining, and improving our website.</li>
+            <li>Personalizing your experience and delivering relevant content.</li>
+            <li>Communicating with you, such as responding to inquiries or sending updates.</li>
+        </ul>
+
+        <h3>3. How We Protect Your Information</h3>
+        <p>We implement industry-standard measures to safeguard your data, including:</p>
+        <ul>
+            <li>Encryption and secure storage methods.</li>
+            <li>Restricted access to your information.</li>
+            <li>Regular security audits and updates.</li>
+        </ul>
+
+        <h3>4. Your Rights</h3>
+        <p>You have the right to:</p>
+        <ul>
+            <li>Access the information we collect about you.</li>
+            <li>Request corrections to your information.</li>
+            <li>Opt out of certain data collection practices, such as cookies.</li>
+        </ul>
+
+        <h3>5. Third-Party Services</h3>
+        <p>We may use third-party services to enhance our website, which may collect information independently. Please review their privacy policies for more information.</p>
+
+        <h3>6. Changes to This Policy</h3>
+        <p>We may update this Privacy Policy periodically. Changes will be posted on this page, and we encourage you to review it regularly.</p>
+
+        <h3>7. security</h3>
+        <p>"Your security is our priority. We have implemented industry-leading security measures to ensure that your data is safe while using our website. Our site is protected with HTTPS encryption, strong password policies, and regular software updates to keep everything up-to-date and secure. Additionally, we use advanced firewalls and monitoring tools to detect and prevent any potential threats. Rest assured, your privacy and safety are important to us!"</p>
+
+        <h3>Contact Us</h3>
+        <p>If you have questions about this Privacy Policy, please contact us at KhaledObada02@Gmail.com , Also you have the QRcode You can scan it.</p>
+    </main>
+     <!-- Display the QR code image -->
+     <img src="../Album/Web QRCode.png" alt="QR Code" width="165" height="200">
+    <footer>
+        <p>&copy; 2025 Your Website</p>
+    </footer>
+
+   
+
+</body>
+</html>

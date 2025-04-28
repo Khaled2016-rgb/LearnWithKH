@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/566/566294.png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            overflow: hidden;
+        }
+        video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+            justify-content: center;
+            margin: 50px auto;
+        }
+        .cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100px;
+            height: 100px;
+            border: 2px solid #ffffff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .cell.taken {
+            pointer-events: none;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: rgb(255, 255, 255);
+            text-shadow: 2px 2px 4px black;
+        }
+        .start-button {
+            margin: 20px;
+            padding: 15px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            color: rgb(255, 255, 255);
+            background: linear-gradient(45deg, #ff7f50, #ff4500);
+            border: none;
+            border-radius: 25px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .start-button:hover {
+            background: linear-gradient(45deg, #ff4500, #ff6347);
+            box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.3);
+            transform: scale(1.1);
+        }
+        .start-button:active {
+            transform: scale(0.95);
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <video autoplay loop muted>
+        <source src="../Media/MED6.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <h1 style="color: white; text-shadow: 2px 2px 4px black;">Tic-Tac-Toe</h1>
+    <button class="start-button" onclick="startGame()">Start Game</button>
+    <div class="board" id="board"></div>
+    <div id="status"></div>
+
+    <script>
+        const boardElement = document.getElementById('board');
+        const statusElement = document.getElementById('status');
+        let currentPlayer, board;
+
+        function checkWinner() {
+            const winningCombinations = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+                [0, 4, 8], [2, 4, 6]             // Diagonals
+            ];
+
+            for (const combination of winningCombinations) {
+                const [a, b, c] = combination;
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    return board[a];
+                }
+            }
+            return board.includes('') ? null : 'Draw';
+        }
+
+        function minimax(newBoard, isMaximizing) {
+            const winner = checkWinner();
+            if (winner === 'X') return -10;
+            if (winner === 'O') return 10;
+            if (!newBoard.includes('')) return 0;
+
+            if (isMaximizing) {
+                let bestScore = -Infinity;
+                newBoard.forEach((cell, index) => {
+                    if (cell === '') {
+                        newBoard[index] = 'O';
+                        let score = minimax(newBoard, false);
+                        newBoard[index] = '';
+                        bestScore = Math.max(score, bestScore);
+                    }
+                });
+                return bestScore;
+            } else {
+                let bestScore = Infinity;
+                newBoard.forEach((cell, index) => {
+                    if (cell === '') {
+                        newBoard[index] = 'X';
+                        let score = minimax(newBoard, true);
+                        newBoard[index] = '';
+                        bestScore = Math.min(score, bestScore);
+                    }
+                });
+                return bestScore;
+            }
+        }
+
+        function robotMove() {
+            let bestMove;
+            let bestScore = -Infinity;
+            board.forEach((cell, index) => {
+                if (cell === '') {
+                    board[index] = 'O';
+                    let score = minimax(board, false);
+                    board[index] = '';
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMove = index;
+                    }
+                }
+            });
+            board[bestMove] = 'O';
+            const robotCell = boardElement.children[bestMove];
+            robotCell.textContent = 'O';
+            robotCell.classList.add('taken');
+        }
+
+        function handleCellClick(event) {
+            const cell = event.target;
+            const index = cell.dataset.index;
+
+            if (!board[index]) {
+                board[index] = currentPlayer;
+                cell.textContent = currentPlayer;
+                cell.classList.add('taken');
+                const winner = checkWinner();
+
+                if (winner) {
+                    statusElement.textContent = winner === 'Draw' ? 'It\'s a Draw!' : `${winner} Wins!`;
+                    boardElement.querySelectorAll('.cell').forEach(cell => cell.classList.add('taken'));
+                } else {
+                    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                    if (currentPlayer === 'O') {
+                        robotMove();
+                        const winnerAfterRobot = checkWinner();
+                        if (winnerAfterRobot) {
+                            statusElement.textContent = winnerAfterRobot === 'Draw' ? 'It\'s a Draw!' : `${winnerAfterRobot} Wins!`;
+                            boardElement.querySelectorAll('.cell').forEach(cell => cell.classList.add('taken'));
+                        } else {
+                            currentPlayer = 'X';
+                            statusElement.textContent = `Player ${currentPlayer}'s Turn`;
+                        }
+                    } else {
+                        statusElement.textContent = `Player ${currentPlayer}'s Turn`;
+                    }
+                }
+            }
+        }
+
+        function createBoard() {
+            boardElement.innerHTML = '';
+            board = ['', '', '', '', '', '', '', '', ''];
+            board.forEach((_, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = index;
+                cell.addEventListener('click', handleCellClick);
+                boardElement.appendChild(cell);
+            });
+            statusElement.textContent = `Player ${currentPlayer}'s Turn`;
+        }
+
+        function startGame() {
+            currentPlayer = 'X';
+            createBoard();
+        }
+    </script>
+</body>
+</html>
