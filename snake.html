@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Snake Game</title>
-  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3292/3292221.png" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game with Touch Controls</title>
   <style>
     body, canvas {
       margin: 0;
@@ -15,69 +14,32 @@
       align-items: center;
       font-family: Arial, sans-serif;
     }
-    .video-background video {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: -1;
+    canvas {
+      background-color: #000;
+      border: 2px solid #fff;
     }
-    #game-over {
-      position: absolute;
-      font-size: 48px;
-      color: white;
-      text-align: center;
-      display: none;
-      animation: fadeIn 0.5s ease-in-out;
-    }
-    #restart-btn, #auto-btn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: #e74c3c;
-      color: white;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    #auto-btn {
+    #joystick {
       position: absolute;
       bottom: 20px;
       left: 20px;
-      background: #3498db;
-    }
-    #score, #high-score {
-      position: absolute;
-      font-size: 24px;
-      color: white;
-      text-shadow: 2px 2px 4px #000;
-    }
-    #score { top: 20px; left: 20px; }
-    #high-score { top: 20px; right: 20px; }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      width: 100px;
+      height: 100px;
+      background-color: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      display: none;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
-  <div class="video-background">
-    <video autoplay muted loop src="MED6.mp4"></video>
-  </div>
-  <div id="game-over">
-    <p>Game Over, if you press A you will be in Automatic mode</p>
-    <button id="restart-btn">Restart</button>
-  </div>
   <canvas id="gameCanvas"></canvas>
-  <div id="score">Score: 0</div>
-  <div id="high-score">High Score: 0</div>
-  <button id="auto-btn">Auto Mode: OFF</button> <!-- NEW BUTTON -->
+  <div id="joystick"></div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+    const joystick = document.getElementById('joystick');
+
     const blockSize = 20;
     const canvasWidth = window.innerWidth;
     const canvasHeight = window.innerHeight;
@@ -93,14 +55,51 @@
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
 
+    // Handle key events
     document.addEventListener('keydown', changeDirection);
-    document.getElementById('auto-btn').addEventListener('click', toggleAutoMode); // NEW LISTENER
 
+    // Handle touch events
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    canvas.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      joystick.style.display = 'block';
+      joystick.style.left = `${touchStartX - 50}px`;
+      joystick.style.top = `${touchStartY - 50}px`;
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        direction = deltaX > 0 ? 'RIGHT' : 'LEFT';
+      } else {
+        direction = deltaY > 0 ? 'DOWN' : 'UP';
+      }
+    });
+
+    canvas.addEventListener('touchend', () => {
+      joystick.style.display = 'none';
+    });
+
+    // Game loop
     function gameLoop() {
       if (gameOver) return;
-      gameLoopInterval = setTimeout(() => {
+
+      gameLoopInterval = setTimeout(function () {
         clearCanvas();
-        manualControl ? moveSnake() : moveSnakeAutomatically();
+        if (!manualControl) {
+          // Automatic movement towards food if no manual control
+          moveSnakeAutomatically();
+        } else {
+          // Manual movement if the user is controlling
+          moveSnake();
+        }
         checkCollisions();
         drawSnake();
         drawFood();
@@ -109,18 +108,26 @@
       }, 100);
     }
 
+    // Clear the canvas
     function clearCanvas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
+    // Move the snake manually
     function moveSnake() {
       const head = { ...snake[0] };
+
       if (direction === 'LEFT') head.x -= blockSize;
       if (direction === 'RIGHT') head.x += blockSize;
       if (direction === 'UP') head.y -= blockSize;
       if (direction === 'DOWN') head.y += blockSize;
 
-      wrapWall(head);
+      // Wall wrapping logic
+      if (head.x < 0) head.x = canvas.width - blockSize;
+      if (head.x >= canvas.width) head.x = 0;
+      if (head.y < 0) head.y = canvas.height - blockSize;
+      if (head.y >= canvas.height) head.y = 0;
+
       snake.unshift(head);
 
       if (head.x === food.x && head.y === food.y) {
@@ -132,17 +139,24 @@
       }
     }
 
+    // Move the snake automatically towards food using A* style pathfinding
     function moveSnakeAutomatically() {
       const head = { ...snake[0] };
+
+      // Use a simplified A* algorithm to move towards the food
       const nextDirection = findNextMove(head, food);
-      direction = nextDirection;
 
       if (nextDirection === 'LEFT') head.x -= blockSize;
       if (nextDirection === 'RIGHT') head.x += blockSize;
       if (nextDirection === 'UP') head.y -= blockSize;
       if (nextDirection === 'DOWN') head.y += blockSize;
 
-      wrapWall(head);
+      // Wall wrapping logic
+      if (head.x < 0) head.x = canvas.width - blockSize;
+      if (head.x >= canvas.width) head.x = 0;
+      if (head.y < 0) head.y = canvas.height - blockSize;
+      if (head.y >= canvas.height) head.y = 0;
+
       snake.unshift(head);
 
       if (head.x === food.x && head.y === food.y) {
@@ -154,118 +168,18 @@
       }
     }
 
-    function wrapWall(head) {
-      if (head.x < 0) head.x = canvas.width - blockSize;
-      if (head.x >= canvas.width) head.x = 0;
-      if (head.y < 0) head.y = canvas.height - blockSize;
-      if (head.y >= canvas.height) head.y = 0;
-    }
-
+    // A* style pathfinding (simplified version)
     function findNextMove(head, food) {
       const directions = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
-      let bestDirection = null, minDistance = Infinity;
+      let bestDirection = null;
+      let minDistance = Infinity;
 
-      directions.forEach(dir => {
+      directions.forEach(direction => {
         const newHead = { ...head };
-        if (dir === 'LEFT') newHead.x -= blockSize;
-        if (dir === 'RIGHT') newHead.x += blockSize;
-        if (dir === 'UP') newHead.y -= blockSize;
-        if (dir === 'DOWN') newHead.y += blockSize;
 
-        const dist = Math.abs(newHead.x - food.x) + Math.abs(newHead.y - food.y);
-        if (dist < minDistance && !isCollidingWithBody(newHead)) {
-          minDistance = dist;
-          bestDirection = dir;
-        }
-      });
-
-      return bestDirection;
-    }
-
-    function isCollidingWithBody(head) {
-      return snake.slice(1).some(seg => seg.x === head.x && seg.y === head.y);
-    }
-
-    function drawSnake() {
-      snake.forEach((segment, i) => {
-        ctx.fillStyle = i === 0 ? '#FFFF00' : '#FFD700';
-        ctx.beginPath();
-        ctx.arc(segment.x + blockSize / 2, segment.y + blockSize / 2, blockSize / 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.closePath();
-        if (i === 0) drawEyes(segment);
-      });
-    }
-
-    function drawEyes(segment) {
-      const eyeSize = 4, offset = 5;
-      ctx.fillStyle = 'white';
-      ctx.beginPath();
-      ctx.arc(segment.x + blockSize / 2 - offset, segment.y + blockSize / 2 - offset, eyeSize, 0, Math.PI * 2);
-      ctx.arc(segment.x + blockSize / 2 + offset, segment.y + blockSize / 2 - offset, eyeSize, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = 'black';
-      ctx.beginPath();
-      ctx.arc(segment.x + blockSize / 2 - offset, segment.y + blockSize / 2 - offset, eyeSize / 2, 0, Math.PI * 2);
-      ctx.arc(segment.x + blockSize / 2 + offset, segment.y + blockSize / 2 - offset, eyeSize / 2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    function drawFood() {
-      ctx.fillStyle = 'red';
-      ctx.fillRect(food.x, food.y, blockSize, blockSize);
-    }
-
-    function spawnFood() {
-      food.x = Math.floor(Math.random() * (canvasWidth / blockSize)) * blockSize;
-      food.y = Math.floor(Math.random() * (canvasHeight / blockSize)) * blockSize;
-    }
-
-    function changeDirection(e) {
-      if (e.keyCode === 37 && direction !== 'RIGHT') direction = 'LEFT', manualControl = true;
-      if (e.keyCode === 38 && direction !== 'DOWN') direction = 'UP', manualControl = true;
-      if (e.keyCode === 39 && direction !== 'LEFT') direction = 'RIGHT', manualControl = true;
-      if (e.keyCode === 40 && direction !== 'UP') direction = 'DOWN', manualControl = true;
-      if (e.key === 'a' || e.key === 'A') toggleAutoMode(); // 'A' key toggles auto mode
-    }
-
-    function toggleAutoMode() {
-      manualControl = !manualControl;
-      document.getElementById('auto-btn').innerText = manualControl ? 'Auto Mode: OFF' : 'Auto Mode: ON';
-    }
-
-    function checkCollisions() {
-      const head = snake[0];
-      for (let i = 1; i < snake.length; i++) {
-        if (head.x === snake[i].x && head.y === snake[i].y) endGame();
-      }
-    }
-
-    function updateScore() {
-      document.getElementById('score').innerText = 'Score: ' + score;
-      document.getElementById('high-score').innerText = 'High Score: ' + highScore;
-    }
-
-    function endGame() {
-      localStorage.setItem('highScore', Math.max(score, highScore));
-      gameOver = true;
-      clearTimeout(gameLoopInterval);
-      document.getElementById('game-over').style.display = 'block';
-    }
-
-    function restartGame() {
-      gameOver = false;
-      snake = [{ x: 100, y: 100 }];
-      direction = 'RIGHT';
-      score = 0;
-      spawnFood();
-      document.getElementById('game-over').style.display = 'none';
-      gameLoop();
-    }
-
-    spawnFood();
-    gameLoop();
-    document.getElementById('restart-btn').addEventListener('click', restartGame);
-  </script>
-</body>
-</html>
+        if (direction === 'LEFT') newHead.x -= blockSize;
+        if (direction === 'RIGHT') newHead.x += blockSize;
+        if (direction === 'UP') newHead.y -= blockSize;
+        if (direction ===
+::contentReference[oaicite:0]{index=0}
+ 
