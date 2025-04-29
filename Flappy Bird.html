@@ -39,7 +39,7 @@
       transform: translate(-50%, -50%);
     }
 
-    #restart-btn, #pause-btn, #resume-btn {
+    button {
       margin-top: 10px;
       padding: 10px 20px;
       background: #e74c3c;
@@ -50,19 +50,25 @@
       border-radius: 5px;
     }
 
-    #pause-btn {
+    #pause-btn, #resume-btn, #auto-btn {
+      position: absolute;
       bottom: 20px;
+    }
+
+    #pause-btn {
       left: 20px;
       background: #3498db;
-      position: absolute;
     }
 
     #resume-btn {
-      bottom: 20px;
       left: 140px;
       background: #2ecc71;
-      position: absolute;
       display: none;
+    }
+
+    #auto-btn {
+      right: 20px;
+      background: #9b59b6;
     }
 
     #score, #high-score {
@@ -94,7 +100,7 @@
   </div>
 
   <div id="game-over">
-    <p>Game Over!<br>Tap 'A' for Auto Mode</p>
+    <p>Game Over!<br>Tap 'A' or button for Auto Mode</p>
     <button id="restart-btn">Restart</button>
   </div>
 
@@ -105,6 +111,7 @@
 
   <button id="pause-btn">Pause</button>
   <button id="resume-btn">Resume</button>
+  <button id="auto-btn">Auto Mode: OFF</button>
 
   <script>
     const canvas = document.getElementById("gameCanvas");
@@ -144,6 +151,7 @@
       document.getElementById("game-over").style.display = "none";
       document.getElementById("pause-btn").style.display = "inline";
       document.getElementById("resume-btn").style.display = "none";
+      document.getElementById("auto-btn").innerText = "Auto Mode: OFF";
     }
 
     function drawBird() {
@@ -222,12 +230,11 @@
       if (e.code === "Space") {
         bird.velocity = FLAP;
       } else if (e.code === "KeyA") {
-        isAutoPilot = !isAutoPilot;
-        targetPipe = isAutoPilot ? pipes[0] : null;
+        toggleAutoPilot();
       }
     });
 
-    // ✅ Touch Controls
+    // Touch Controls
     document.addEventListener("touchstart", () => {
       if (!gameOver && !paused && !isAutoPilot) {
         bird.velocity = FLAP;
@@ -240,7 +247,7 @@
       updateGame();
     });
 
-    // ✅ Pause/Resume buttons
+    // Pause/Resume
     document.getElementById("pause-btn").addEventListener("click", () => {
       paused = true;
       document.getElementById("pause-btn").style.display = "none";
@@ -253,6 +260,17 @@
       document.getElementById("pause-btn").style.display = "inline";
       updateGame();
     });
+
+    // ✅ Auto Button
+    document.getElementById("auto-btn").addEventListener("click", () => {
+      toggleAutoPilot();
+    });
+
+    function toggleAutoPilot() {
+      isAutoPilot = !isAutoPilot;
+      targetPipe = isAutoPilot ? pipes[0] : null;
+      document.getElementById("auto-btn").innerText = "Auto Mode: " + (isAutoPilot ? "ON" : "OFF");
+    }
 
     initializeGame();
     updateGame();
