@@ -14,7 +14,9 @@
       justify-content: center;
       align-items: center;
       font-family: Arial, sans-serif;
+      height: 100vh;
     }
+
     .video-background video {
       position: fixed;
       top: 0;
@@ -24,50 +26,62 @@
       object-fit: cover;
       z-index: -1;
     }
+
     #game-over {
       position: absolute;
-      font-size: 48px;
+      font-size: 24px;
       color: white;
       text-align: center;
       display: none;
       animation: fadeIn 0.5s ease-in-out;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
+
     #restart-btn, #pause-btn, #resume-btn {
-      margin-top: 20px;
+      margin-top: 10px;
       padding: 10px 20px;
       background: #e74c3c;
       color: white;
       border: none;
-      font-size: 18px;
+      font-size: 16px;
       cursor: pointer;
       border-radius: 5px;
-      position: absolute;
     }
+
     #pause-btn {
       bottom: 20px;
       left: 20px;
       background: #3498db;
+      position: absolute;
     }
+
     #resume-btn {
       bottom: 20px;
       left: 140px;
       background: #2ecc71;
+      position: absolute;
       display: none;
     }
+
     #score, #high-score {
       position: absolute;
-      font-size: 24px;
+      font-size: 18px;
       color: white;
       text-shadow: 2px 2px 4px #000;
     }
+
     #score {
-      top: 20px;
-      left: 20px;
+      top: 10px;
+      left: 10px;
     }
+
     #high-score {
-      top: 20px;
-      right: 20px;
+      top: 10px;
+      right: 10px;
     }
+
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -78,16 +92,20 @@
   <div class="video-background">
     <video autoplay muted loop src="MED6.mp4"></video>
   </div>
+
   <div id="game-over">
-    <p>Game Over , if you press A You will be in Automatic Mode </p>
+    <p>Game Over!<br>Tap 'A' for Auto Mode</p>
     <button id="restart-btn">Restart</button>
   </div>
+
   <canvas id="gameCanvas"></canvas>
-  <div id="score" style="font-family: serif;""></div>
-  <div id="high-score" style="display: none;"></div><div style="display: none;">
+
+  <div id="score"></div>
+  <div id="high-score"></div>
+
   <button id="pause-btn">Pause</button>
   <button id="resume-btn">Resume</button>
-</div>
+
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
@@ -119,9 +137,10 @@
       frame = 0;
       pipeSpeed = INITIAL_PIPE_SPEED;
       gameOver = false;
-      isAutoPilot = false; // Auto mode starts off
+      isAutoPilot = false;
       targetPipe = null;
       paused = false;
+
       document.getElementById("game-over").style.display = "none";
       document.getElementById("pause-btn").style.display = "inline";
       document.getElementById("resume-btn").style.display = "none";
@@ -155,8 +174,11 @@
 
     function checkCollision() {
       if (bird.y + bird.radius >= canvas.height || bird.y - bird.radius <= 0) return true;
-      return pipes.some(pipe => bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + PIPE_WIDTH &&
-        (bird.y - bird.radius < pipe.top || bird.y + bird.radius > pipe.bottom));
+      return pipes.some(pipe =>
+        bird.x + bird.radius > pipe.x &&
+        bird.x - bird.radius < pipe.x + PIPE_WIDTH &&
+        (bird.y - bird.radius < pipe.top || bird.y + bird.radius > pipe.bottom)
+      );
     }
 
     function updateGame() {
@@ -195,6 +217,7 @@
       requestAnimationFrame(updateGame);
     }
 
+    // Keyboard Controls
     document.addEventListener("keydown", e => {
       if (e.code === "Space") {
         bird.velocity = FLAP;
@@ -204,8 +227,30 @@
       }
     });
 
+    // ✅ Touch Controls
+    document.addEventListener("touchstart", () => {
+      if (!gameOver && !paused && !isAutoPilot) {
+        bird.velocity = FLAP;
+      }
+    });
+
+    // Restart
     document.getElementById("restart-btn").addEventListener("click", () => {
       initializeGame();
+      updateGame();
+    });
+
+    // ✅ Pause/Resume buttons
+    document.getElementById("pause-btn").addEventListener("click", () => {
+      paused = true;
+      document.getElementById("pause-btn").style.display = "none";
+      document.getElementById("resume-btn").style.display = "inline";
+    });
+
+    document.getElementById("resume-btn").addEventListener("click", () => {
+      paused = false;
+      document.getElementById("resume-btn").style.display = "none";
+      document.getElementById("pause-btn").style.display = "inline";
       updateGame();
     });
 
