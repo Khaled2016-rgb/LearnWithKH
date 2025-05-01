@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>iPhone 16 Pro Max 3D Showcase</title>
+  <style>
+    :root {
+      --titanium: linear-gradient(145deg, #8e8e93, #5a5a60);
+      --silver: linear-gradient(145deg, #fbfbfd, #e2e2e9);
+      --deep-purple: linear-gradient(145deg, #5e4c6a, #3d2d46);
+      --gold: linear-gradient(145deg, #f9e5c9, #f5d8a7);
+      --shadow-color: rgba(0,0,0,0.5);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      perspective: 2000px;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .scene-container {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .scene {
+      width: 428px;
+      height: 926px;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: rotatePhone 24s infinite ease-in-out;
+      transform-origin: center center;
+    }
+
+    @keyframes rotatePhone {
+      0%, 100% { 
+        transform: rotateX(-5deg) rotateY(0deg) rotateZ(0deg); 
+      }
+      15% { 
+        transform: rotateX(20deg) rotateY(10deg) rotateZ(0deg); 
+      }
+      30% { 
+        transform: rotateX(45deg) rotateY(0deg) rotateZ(0deg); 
+      }
+      45% { 
+        transform: rotateX(70deg) rotateY(0deg) rotateZ(0deg); 
+      }
+      60% { 
+        transform: rotateX(70deg) rotateY(90deg) rotateZ(0deg); 
+      }
+      75% { 
+        transform: rotateX(70deg) rotateY(180deg) rotateZ(0deg); 
+      }
+      90% { 
+        transform: rotateX(0deg) rotateY(270deg) rotateZ(0deg); 
+      }
+    }
+
+    .iphone {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      transform-style: preserve-3d;
+      transition: all 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    .iphone-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50px;
+      backface-visibility: visible;
+      overflow: hidden;
+      box-shadow: 0 10px 40px var(--shadow-color);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .front {
+      transform: translateZ(12px);
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .back {
+      transform: rotateY(180deg) translateZ(12px);
+      background: var(--titanium);
+      transition: all 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    .right, .left, .top, .bottom {
+      background: inherit;
+      position: absolute;
+      box-shadow: none;
+    }
+
+    .right {
+      transform: rotateY(90deg) translateZ(214px);
+      width: 24px;
+      left: 202px;
+    }
+
+    .left {
+      transform: rotateY(-90deg) translateZ(214px);
+      width: 24px;
+      right: 202px;
+    }
+
+    .top {
+      transform: rotateX(90deg) translateZ(463px);
+      height: 24px;
+      bottom: 451px;
+    }
+
+    .bottom {
+      transform: rotateX(-90deg) translateZ(463px);
+      height: 24px;
+      top: 451px;
+    }
+
+    /* Screen Content */
+    .screen-content {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .status-bar {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 15px 25px;
+      color: #fff;
+      font-size: 14px;
+      z-index: 10;
+    }
+
+    .dynamic-island {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 35px;
+      background: #1a1a1a;
+      border-radius: 25px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.8);
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 5;
+    }
+
+    .dynamic-island::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 25px;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
+    }
+
+    /* Camera System */
+    .camera-system {
+      position: absolute;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 120px;
+      background: inherit;
+      border-radius: 25px;
+      box-shadow: 
+        0 5px 20px var(--shadow-color),
+        inset 0 1px 1px rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2;
+    }
+
+    .camera-lens {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #333 0%, #111 100%);
+      border: 2px solid rgba(255,255,255,0.1);
+      box-shadow: 
+        0 0 5px rgba(0,0,0,0.5),
+        inset 0 1px 2px rgba(255,255,255,0.1);
+    }
+
+    .lens1 { top: 25px; left: 25px; }
+    .lens2 { top: 25px; right: 25px; }
+    .lens3 { bottom: 25px; left: 45px; }
+
+    /* Physical Buttons */
+    .side-button {
+      position: absolute;
+      border-radius: 3px;
+      z-index: 2;
+      box-shadow: 
+        inset 0 1px 1px rgba(255,255,255,0.1),
+        0 1px 1px rgba(0,0,0,0.3);
+    }
+
+    .volume-up { 
+      left: -12px; 
+      top: 120px; 
+      height: 80px; 
+      width: 6px; 
+    }
+    .volume-down { 
+      left: -12px; 
+      top: 220px; 
+      height: 80px; 
+      width: 6px; 
+    }
+    .power-button { 
+      right: -12px; 
+      top: 120px; 
+      height: 120px; 
+      width: 6px; 
+    }
+    .mute-switch { 
+      left: -12px; 
+      top: 320px; 
+      height: 40px; 
+      width: 6px; 
+    }
+
+    /* Color Selector */
+    .color-selector {
+      position: fixed;
+      bottom: 40px;
+      display: flex;
+      gap: 20px;
+      z-index: 1000;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      padding: 15px;
+      border-radius: 50px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .color-option {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .color-option::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 50%;
+      box-shadow: inset 0 1px 3px rgba(255,255,255,0.2);
+    }
+
+    .color-option:hover {
+      transform: scale(1.15);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+    }
+
+    .titanium-option { background: var(--titanium); }
+    .silver-option { background: var(--silver); }
+    .deep-purple-option { background: var(--deep-purple); }
+    .gold-option { background: var(--gold); }
+
+    /* Special Effects */
+    .metallic-reflections {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        135deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.03) 50%,
+        rgba(255,255,255,0) 100%
+      );
+      pointer-events: none;
+    }
+
+    /* Lighting Effects */
+    .lighting {
+      position: fixed;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Info Panel */
+    .info-panel {
+      position: fixed;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(10px);
+      color: white;
+      padding: 15px 30px;
+      border-radius: 30px;
+      font-size: 14px;
+      text-align: center;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="scene-container">
+    <div class="lighting" style="top: 20%; left: 30%;"></div>
+    <div class="lighting" style="top: 60%; left: 70%;"></div>
+    
+    <div class="info-panel">
+      iPhone 16 Pro Max 3D Showcase • Hover to pause rotation
+    </div>
+
+    <div class="color-selector">
+      <div class="color-option titanium-option" onclick="changeColor('titanium')" title="Titanium"></div>
+      <div class="color-option silver-option" onclick="changeColor('silver')" title="Silver"></div>
+      <div class="color-option deep-purple-option" onclick="changeColor('deep-purple')" title="Deep Purple"></div>
+      <div class="color-option gold-option" onclick="changeColor('gold')" title="Gold"></div>
+    </div>
+
+    <div class="scene">
+      <div class="iphone" id="iphone">
+        <!-- Front Face -->
+        <div class="iphone-face front">
+          <div class="metallic-reflections"></div>
+          <div class="screen-content">
+            <div class="status-bar">
+              <span>9:41</span>
+              <div>
+                <span style="margin-right: 5px;">􀋚</span>
+                <span style="margin-right: 5px;">􀋦</span>
+                <span>􀋠</span>
+              </div>
+            </div>
+            <div class="dynamic-island"></div>
+          </div>
+        </div>
+        
+        <!-- Back Face -->
+        <div class="iphone-face back" id="back">
+          <div class="metallic-reflections"></div>
+          <div class="camera-system">
+            <div class="camera-lens lens1"></div>
+            <div class="camera-lens lens2"></div>
+            <div class="camera-lens lens3"></div>
+          </div>
+        </div>
+
+        <!-- Sides -->
+        <div class="iphone-face right">
+          <div class="side-button volume-up" id="vol-up"></div>
+          <div class="side-button volume-down" id="vol-down"></div>
+          <div class="side-button mute-switch" id="mute"></div>
+        </div>
+
+        <div class="iphone-face left">
+          <div class="side-button power-button" id="power"></div>
+        </div>
+
+        <div class="iphone-face top"></div>
+        <div class="iphone-face bottom"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Color Management
+    const colorThemes = {
+      'titanium': {
+        bg: 'linear-gradient(145deg, #8e8e93, #5a5a60, #3a3a3e)',
+        btn: '#5a5a60',
+        shadow: 'rgba(0,0,0,0.6)'
+      },
+      'silver': {
+        bg: 'linear-gradient(145deg, #fbfbfd, #e2e2e9, #d1d1d6)',
+        btn: '#d1d1d6',
+        shadow: 'rgba(0,0,0,0.4)'
+      },
+      'deep-purple': {
+        bg: 'linear-gradient(145deg, #5e4c6a, #3d2d46, #2d1e35)',
+        btn: '#3d2d46',
+        shadow: 'rgba(30,10,50,0.7)'
+      },
+      'gold': {
+        bg: 'linear-gradient(145deg, #f9e5c9, #f5d8a7, #ecc78d)',
+        btn: '#ecc78d',
+        shadow: 'rgba(100,70,0,0.5)'
+      }
+    };
+
+    function changeColor(color) {
+      const back = document.getElementById('back');
+      const buttons = [
+        document.getElementById('vol-up'),
+        document.getElementById('vol-down'),
+        document.getElementById('mute'),
+        document.getElementById('power')
+      ];
+      
+      // Apply new color theme
+      back.style.background = colorThemes[color].bg;
+      buttons.forEach(btn => btn.style.background = colorThemes[color].btn);
+      
+      // Update shadow color
+      document.documentElement.style.setProperty('--shadow-color', colorThemes[color].shadow);
+      
+      // Add special effects for silver
+      if (color === 'silver') {
+        back.style.boxShadow = '0 10px 40px rgba(0,0,0,0.4), 0 0 50px rgba(255,255,255,0.1)';
+      } else {
+        back.style.boxShadow = '0 10px 40px var(--shadow-color)';
+      }
+    }
+
+    // Animation Control
+    const scene = document.querySelector('.scene');
+    scene.addEventListener('mouseenter', () => {
+      scene.style.animationPlayState = 'paused';
+    });
+    
+    scene.addEventListener('mouseleave', () => {
+      scene.style.animationPlayState = 'running';
+    });
+
+    // Dynamic Island Interaction
+    const island = document.querySelector('.dynamic-island');
+    island.addEventListener('click', () => {
+      island.style.width = '180px';
+      island.style.height = '50px';
+      setTimeout(() => {
+        island.style.width = '120px';
+        island.style.height = '35px';
+      }, 2000);
+    });
+
+    // Initial setup
+    document.addEventListener('DOMContentLoaded', () => {
+      changeColor('titanium');
+    });
+  </script>
+</body>
+</html>
