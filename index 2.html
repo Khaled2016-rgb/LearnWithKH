@@ -14,20 +14,6 @@
             align-items: center;
             touch-action: manipulation;
         }
-        
-        .video-background {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            min-width: 100%;
-            min-height: 100%;
-            width: auto;
-            height: auto;
-            z-index: 0;
-            object-fit: cover;
-        }
-
 
         .iphone-frame {
             width: 375px;
@@ -149,31 +135,9 @@
             padding: 20px;
         }
     </style>
-   
-
-        .video-background {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            min-width: 100%;
-            min-height: 100%;
-            width: auto;
-            height: auto;
-            z-index: 0;
-            object-fit: cover;
-        }
-
-        .status-bar,
-        .time-display,
-        .date-display,
-        .swipe-indicator {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ... (rest of the existing styles remain the same) ... */
-    <
+</head>
+<body>
+    <div class="iphone-frame">
         <div class="lock-screen">
             <div class="status-bar">
                 <span>9:41</span>
@@ -220,7 +184,7 @@
 
     <script>
         let enteredPasscode = '';
-        const correctPasscode = '123456';
+        const correctPasscode = '1234';
         const passcodeScreen = document.getElementById('passcodeScreen');
         const deleteBtn = document.getElementById('deleteBtn');
         const homeScreen = document.getElementById('homeScreen');
