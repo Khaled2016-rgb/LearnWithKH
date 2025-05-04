@@ -290,10 +290,93 @@
             currentYearElement.textContent = currentYear;
         });
     </script> 
-        
-        
-        
 
+    <!-- Add this to your HTML where you want the restarting message to appear -->
+<div id="restartMessage" class="restart-container">
+    <div class="restart-text">RESTARTING</div>
+    <div class="spinner">
+        <div class="dot1"></div>
+        <div class="dot2"></div>
+        <div class="dot3"></div>
+    </div>
+</div>
+
+<style>
+/* Add this CSS to your styles */
+.restart-container {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.restart-text {
+    color: #ffffff;
+    margin-bottom: 10px;
+    font-family: Arial, sans-serif;
+    font-size: 1.2em;
+}
+
+.spinner {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.spinner div {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #ffffff;
+    border-radius: 50%;
+    animation: spinner 1.2s linear infinite;
+}
+
+.dot1 { top: 6px; left: 6px; }
+.dot2 { top: 6px; right: 6px; }
+.dot3 { bottom: 6px; right: 6px; }
+
+@keyframes spinner {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+    50% {
+        transform: rotate(180deg) scale(1.2);
+    }
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
+}
+
+.spinner div:nth-child(1) { animation-delay: -0.4s; }
+.spinner div:nth-child(2) { animation-delay: -0.2s; }
+.spinner div:nth-child(3) { animation-delay: 0s; }
+</style>
+
+<script>
+// Add this JavaScript to trigger the restart animation
+function showRestartAnimation() {
+    const restartContainer = document.getElementById('restartMessage');
+    
+    // Show the restart container
+    restartContainer.style.display = 'flex';
+    
+    // Hide it after 3 seconds (simulate restart completion)
+    setTimeout(() => {
+        restartContainer.style.display = 'none';
+        // Add your restart logic here
+    }, 3000);
+}
+
+// Example usage: Call this when your process finishes
+// setTimeout(showRestartAnimation, 5000); // Simulate process completion after 5 seconds
+</script>
+        
+        
     
 </body>
 </html>
