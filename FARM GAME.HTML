@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Farm Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .app-container {
+            width: 100%;
+            max-width: 1200px;
+            min-height: 90vh;
+            position: relative;
+        }
+        
+        /* Login/Signup Page Styles */
+        .auth-container {
+            background: rgba(15, 30, 45, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #2c9faf;
+            padding: 40px;
+            width: 450px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .auth-header {
+            margin-bottom: 30px;
+        }
+        
+        .auth-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #ff9a9e, #fad0c4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+        
+        .auth-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+        
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: left;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2c9faf;
+            font-size: 1.1rem;
+        }
+        
+        .form-input {
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1.1rem;
+            border: 1px solid #2c9faf;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(44, 159, 175, 0.7);
+        }
+        
+        .auth-button {
+            padding: 15px;
+            background: linear-gradient(to right, #2c9faf, #1d5c96);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .auth-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(44, 159, 175, 0.7);
+        }
+        
+        .auth-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 0.95rem;
+        }
+        
+        .auth-link {
+            color: #2c9faf;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* Home Page Styles */
+        .home-container {
+            background: rgba(15, 30, 45, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #2c9faf;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .home-header {
+            margin-bottom: 40px;
+        }
+        
+        .welcome-message {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #ff9a9e, #fad0c4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .user-stats {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .user-stat {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 25px;
+            border-radius: 10px;
+            min-width: 150px;
+            border: 1px solid #2c9faf;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .home-buttons {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            max-width: 400px;
+            margin: 30px auto;
+        }
+        
+        .home-button {
+            padding: 18px;
+            background: linear-gradient(to right, #2c9faf, #1d5c96);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+        }
+        
+        .home-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(44, 159, 175, 0.7);
+        }
+        
+        .home-button.secondary {
+            background: linear-gradient(to right, #0d3b66, #1d5c96);
+        }
+        
+        .home-button.tertiary {
+            background: linear-gradient(to right, #4a2c6c, #6d3b9e);
+        }
+        
+        /* Game Container Styles */
+        .game-container {
+            background: rgba(15, 30, 45, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #2c9faf;
+            display: none;
+        }
+        
+        .game-header {
+            background: linear-gradient(to right, #0d3b66, #1d5c96);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #2c9faf;
+        }
+        
+        .game-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #ff9a9e, #fad0c4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stats-container {
+            display: flex;
+            gap: 25px;
+        }
+        
+        .stat-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            border: 1px solid #2c9faf;
+        }
+        
+        .stat-icon {
+            font-size: 1.5rem;
+            color: #2c9faf;
+        }
+        
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        
+        .game-body {
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        .farm-section {
+            flex: 3;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid #2c9faf;
+            position: relative;
+            min-height: 500px;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #2c9faf;
+            text-align: center;
+            text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        .farm-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .plot {
+            aspect-ratio: 1/1;
+            background: linear-gradient(to bottom, #8B4513, #5D2906);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 2px solid #5D2906;
+        }
+        
+        .plot:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(44, 159, 175, 0.7);
+        }
+        
+        .plot-content {
+            font-size: 2.5rem;
+            transition: all 0.5s ease;
+        }
+        
+        .tools-section {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid #2c9faf;
+        }
+        
+        .tool {
+            background: linear-gradient(to right, #0d3b66, #1d5c96);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tool:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(44, 159, 175, 0.7);
+        }
+        
+        .tool-icon {
+            font-size: 2.5rem;
+            color: #2c9faf;
+        }
+        
+        .tool-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .tool-cost {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .inventory-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid #2c9faf;
+        }
+        
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .inventory-item {
+            background: linear-gradient(to right, #0d3b66, #1d5c96);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .item-icon {
+            font-size: 2rem;
+            color: #2c9faf;
+        }
+        
+        .item-quantity {
+            background: rgba(0, 0, 0, 0.3);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        .game-footer {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            background: linear-gradient(to right, #0d3b66, #1d5c96);
+            border-top: 3px solid #2c9faf;
+        }
+        
+        .action-button {
+            padding: 12px 25px;
+            background: linear-gradient(to right, #2c9faf, #1d5c96);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .action-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(44, 159, 175, 0.7);
+        }
+        
+        .action-button:active {
+            transform: translateY(1px);
+        }
+        
+        .action-button:disabled {
+            background: linear-gradient(to right, #555, #777);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        .time-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .weather-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(to right, #2c9faf, #1d5c96);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            transform: translateX(120%);
+            transition: transform 0.5s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .crop-growth {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 8px;
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            border-radius: 0 0 10px 10px;
+            transition: width 1s linear;
+        }
+        
+        .rain-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><line x1="20" y1="0" x2="20" y2="20" stroke="%2300BFFF" stroke-width="2" stroke-opacity="0.6"/></svg>');
+            animation: rain 0.5s linear infinite;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .sun-effect {
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(255,204,0,0.5) 0%, rgba(255,204,0,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        .night-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 10, 30, 0.6);
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        .plot-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+        }
+        
+        .watered-icon {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            color: #00BFFF;
+            font-size: 1.2rem;
+            text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+        }
+        
+        .fertilized-icon {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            color: #FF6347;
+            font-size: 1.2rem;
+            text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+        }
+        
+        @keyframes rain {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 50px; }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        .highlight {
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+        }
+        
+        .locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .locked .tool-icon {
+            color: #666;
+        }
+        
+        .achievement-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(to right, #ff9a9e, #fad0c4);
+            padding: 20px 30px;
+            border-radius: 10px;
+            color: #333;
+            font-weight: bold;
+            font-size: 1.4rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .achievement-popup.show {
+            opacity: 1;
+        }
+        
+        .tutorial {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            max-width: 300px;
+            border-left: 3px solid #2c9faf;
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .active-page {
+            display: block;
+        }
+        
+        .user-actions {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .user-action-btn {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #2c9faf;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .user-action-btn:hover {
+            background: rgba(44, 159, 175, 0.3);
+        }
+        
+        .forgot-form {
+            display: none;
+        }
+        
+        .forgot-form.active {
+            display: block;
+        }
+        
+        .success-message {
+            color: #4CAF50;
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .farm-background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect x="0" y="80" width="100" height="20" fill="%235D2906" /><circle cx="85" cy="15" r="10" fill="%23FFD700" /><path d="M0,80 Q20,60 40,80 T80,60 T100,80" fill="%234CAF50" /></svg>');
+            background-size: cover;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+        
+        /* How to Play Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .modal {
+            background: rgba(15, 30, 45, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid #2c9faf;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 1.8rem;
+            color: #2c9faf;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .modal-content {
+            line-height: 1.6;
+        }
+        
+        .modal-content h3 {
+            color: #2c9faf;
+            margin: 15px 0 10px;
+        }
+        
+        .modal-content ul {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        /* Leaderboard Styles */
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .leaderboard-table th, 
+        .leaderboard-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(44, 159, 175, 0.3);
+        }
+        
+        .leaderboard-table th {
+            background: rgba(44, 159, 175, 0.2);
+            color: #2c9faf;
+        }
+        
+        .leaderboard-table tr:nth-child(even) {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Profile Modal */
+        .profile-info {
+            margin-top: 20px;
+        }
+        
+        .profile-info p {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .profile-info span:first-child {
+            font-weight: bold;
+            color: #2c9faf;
+        }
+        
+        /* Welcome Screen */
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 30px;
+            padding: 40px;
+        }
+        
+        .welcome-title {
+            font-size: 3rem;
+            background: linear-gradient(to right, #ff9a9e, #fad0c4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .welcome-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .welcome-button {
+            padding: 15px;
+            border-radius: 10px;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .welcome-button.primary {
+            background: linear-gradient(to right, #2c9faf, #1d5c96);
+            color: white;
+        }
+        
+        .welcome-button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid #2c9faf;
+        }
+        
+        .welcome-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(44, 159, 175, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Welcome Screen -->
+        <div id="welcome-page" class="page active-page">
+            <div class="welcome-screen">
+                <h1 class="welcome-title"><i class="fas fa-tractor"></i> Farm Game</h1>
+                <p>Grow your farm, harvest crops, and become a farming tycoon!</p>
+                <div class="welcome-buttons">
+                    <button class="welcome-button primary" id="start-game-btn">
+                        <i class="fas fa-play"></i> Start Playing
+                    </button>
+                    <button class="welcome-button secondary" id="how-to-play-btn">
+                        <i class="fas fa-book"></i> How to Play
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Login Page -->
+        <div id="login-page" class="auth-container page">
+            <div class="farm-background"></div>
+            <div class="auth-header">
+                <h1 class="auth-title"><i class="fas fa-tractor"></i> Farm Game</h1>
+                <p class="auth-subtitle">Sign in to save your progress</p>
+            </div>
+            <form class="auth-form" id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="login-email">Email</label>
+                    <input class="form-input" type="email" id="login-email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="login-password">Password</label>
+                    <input class="form-input" type="password" id="login-password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="auth-button">Login</button>
+            </form>
+            
+            <div class="forgot-form" id="forgot-form">
+                <div class="form-group">
+                    <label class="form-label" for="forgot-email">Email</label>
+                    <input class="form-input" type="email" id="forgot-email" placeholder="Enter your email" required>
+                </div>
+                <button class="auth-button" id="reset-btn">Reset Password</button>
+                <div class="success-message" id="reset-success">Password reset link sent to your email!</div>
+            </div>
+            
+            <div class="auth-links">
+                <div class="auth-link" id="show-signup">Create Account</div>
+                <div class="auth-link" id="show-forgot">Forgot Password?</div>
+            </div>
+        </div>
+        
+        <!-- Signup Page -->
+        <div id="signup-page" class="auth-container page">
+            <div class="farm-background"></div>
+            <div class="auth-header">
+                <h1 class="auth-title">Create Account</h1>
+                <p class="auth-subtitle">Start your farming journey today!</p>
+            </div>
+            <form class="auth-form" id="signup-form">
+                <div class="form-group">
+                    <label class="form-label" for="signup-name">Farm Name</label>
+                    <input class="form-input" type="text" id="signup-name" placeholder="Enter your farm name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="signup-email">Email</label>
+                    <input class="form-input" type="email" id="signup-email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="signup-password">Password</label>
+                    <input class="form-input" type="password" id="signup-password" placeholder="Create a password" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="signup-confirm">Confirm Password</label>
+                    <input class="form-input" type="password" id="signup-confirm" placeholder="Confirm your password" required>
+                </div>
+                <button type="submit" class="auth-button">Create Account</button>
+            </form>
+            <div class="auth-links">
+                <div class="auth-link" id="show-login">Back to Login</div>
+            </div>
+        </div>
+        
+        <!-- Home Page -->
+        <div id="home-page" class="home-container page">
+            <div class="farm-background"></div>
+            <div class="user-actions">
+                <button class="user-action-btn" id="profile-btn"><i class="fas fa-user"></i> Profile</button>
+                <button class="user-action-btn" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+            
+            <div class="home-header">
+                <h1 class="welcome-message" id="welcome-msg">Welcome, Farmer!</h1>
+                <p>Manage your farm, plant crops, and grow your agricultural empire!</p>
+            </div>
+            
+            <div class="user-stats">
+                <div class="user-stat">
+                    <div class="stat-label">Level</div>
+                    <div class="stat-value" id="home-level">1</div>
+                </div>
+                <div class="user-stat">
+                    <div class="stat-label">Money</div>
+                    <div class="stat-value">$<span id="home-money">1500</span></div>
+                </div>
+                <div class="user-stat">
+                    <div class="stat-label">XP</div>
+                    <div class="stat-value" id="home-xp">0</div>
+                </div>
+            </div>
+            
+            <div class="home-buttons">
+                <button class="home-button" id="play-btn">
+                    <i class="fas fa-play"></i> Play Game
+                </button>
+                <button class="home-button secondary" id="how-to-btn">
+                    <i class="fas fa-book"></i> How to Play
+                </button>
+                <button class="home-button secondary" id="leaderboard-btn">
+                    <i class="fas fa-trophy"></i> Leaderboard
+                </button>
+                <button class="home-button tertiary" id="save-game-btn">
+                    <i class="fas fa-save"></i> Save Game
+                </button>
+            </div>
+        </div>
+        
+        <!-- Game Page -->
+        <div id="game-page" class="game-container page">
+            <div class="user-actions">
+                <button class="user-action-btn" id="home-btn"><i class="fas fa-home"></i> Home</button>
+                <button class="user-action-btn" id="game-logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+            
+            <div class="game-header">
+                <h1 class="game-title"><i class="fas fa-tractor"></i> Advanced Farm Game</h1>
+                <div class="stats-container">
+                    <div class="stat-box">
+                        <i class="fas fa-coins stat-icon"></i>
+                        <div class="stat-value">$<span id="money">1500</span></div>
+                    </div>
+                    <div class="stat-box">
+                        <i class="fas fa-seedling stat-icon"></i>
+                        <div class="stat-value"><span id="seeds">10</span></div>
+                    </div>
+                    <div class="stat-box">
+                        <i class="fas fa-star stat-icon"></i>
+                        <div class="stat-value"><span id="xp">0</span> XP</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="game-body">
+                <div class="farm-section">
+                    <h2 class="section-title">Your Farm</h2>
+                    <div class="farm-grid" id="farm-grid">
+                        <!-- Farm plots will be generated by JavaScript -->
+                    </div>
+                    <div class="tutorial">
+                        <p><i class="fas fa-lightbulb"></i> <strong>Tip:</strong> Select a seed, then click on an empty plot to plant. Water and fertilize crops to make them grow faster!</p>
+                    </div>
+                </div>
+                
+                <div class="tools-section">
+                    <h2 class="section-title">Tools & Seeds</h2>
+                    <div class="tool" id="tool-wheat">
+                        <i class="fas fa-wheat-awn tool-icon"></i>
+                        <div class="tool-name">Wheat Seeds</div>
+                        <div class="tool-cost">$20</div>
+                    </div>
+                    <div class="tool" id="tool-carrot">
+                        <i class="fas fa-carrot tool-icon"></i>
+                        <div class="tool-name">Carrot Seeds</div>
+                        <div class="tool-cost">$40</div>
+                    </div>
+                    <div class="tool" id="tool-corn">
+                        <i class="fas fa-corn tool-icon"></i>
+                        <div class="tool-name">Corn Seeds</div>
+                        <div class="tool-cost">$60</div>
+                    </div>
+                    <div class="tool locked" id="tool-water">
+                        <i class="fas fa-faucet-drip tool-icon"></i>
+                        <div class="tool-name">Watering Can</div>
+                        <div class="tool-cost">$200</div>
+                    </div>
+                    <div class="tool locked" id="tool-fertilizer">
+                        <i class="fas fa-flask tool-icon"></i>
+                        <div class="tool-name">Fertilizer</div>
+                        <div class="tool-cost">$300</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="inventory-section">
+                <h2 class="section-title">Inventory</h2>
+                <div class="inventory-grid">
+                    <div class="inventory-item">
+                        <i class="fas fa-wheat-awn item-icon"></i>
+                        <div>Wheat</div>
+                        <div class="item-quantity" id="inventory-wheat">0</div>
+                    </div>
+                    <div class="inventory-item">
+                        <i class="fas fa-carrot item-icon"></i>
+                        <div>Carrots</div>
+                        <div class="item-quantity" id="inventory-carrots">0</div>
+                    </div>
+                    <div class="inventory-item">
+                        <i class="fas fa-corn item-icon"></i>
+                        <div>Corn</div>
+                        <div class="item-quantity" id="inventory-corn">0</div>
+                    </div>
+                    <div class="inventory-item">
+                        <i class="fas fa-coins item-icon"></i>
+                        <div>Gold</div>
+                        <div class="item-quantity" id="inventory-gold">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="game-footer">
+                <button class="action-button" id="sell-btn">
+                    <i class="fas fa-dollar-sign"></i> Sell Harvest
+                </button>
+                <div class="time-display">
+                    <i class="fas fa-clock"></i>
+                    <span id="time">Day 1, 8:00 AM</span>
+                </div>
+                <div class="weather-display">
+                    <i class="fas fa-sun" id="weather-icon"></i>
+                    <span id="weather">Sunny</span>
+                </div>
+                <button class="action-button" id="next-day-btn">
+                    <i class="fas fa-forward"></i> Next Day
+                </button>
+            </div>
+            
+            <div class="rain-effect" id="rain-effect"></div>
+            <div class="sun-effect" id="sun-effect"></div>
+            <div class="night-overlay" id="night-overlay"></div>
+            
+            <div class="notification" id="notification">Welcome to your farm!</div>
+            <div class="achievement-popup" id="achievement-popup">
+                <i class="fas fa-trophy"></i>
+                <span id="achievement-text">Achievement Unlocked!</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Overlays -->
+    <div class="modal-overlay" id="how-to-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">How to Play</h2>
+                <button class="close-modal" id="close-how-to">&times;</button>
+            </div>
+            <div class="modal-content">
+                <h3>Welcome to Farm Game!</h3>
+                <p>Grow crops, harvest them, and sell for profit to expand your farm.</p>
+                
+                <h3>Getting Started</h3>
+                <ul>
+                    <li>Select a seed type from the Tools & Seeds panel</li>
+                    <li>Click on an empty plot to plant your seeds</li>
+                    <li>Wait for crops to grow (or advance time with Next Day)</li>
+                    <li>Harvest fully grown crops by clicking on them</li>
+                    <li>Sell your harvest for money</li>
+                </ul>
+                
+                <h3>Advanced Features</h3>
+                <ul>
+                    <li><strong>Watering Can:</strong> Water crops to make them grow faster</li>
+                    <li><strong>Fertilizer:</strong> Apply to crops for even faster growth</li>
+                    <li><strong>Weather:</strong> Rainy days make crops grow faster</li>
+                    <li><strong>Level Up:</strong> Gain XP from harvesting to unlock new features</li>
+                </ul>
+                
+                <h3>Tips</h3>
+                <ul>
+                    <li>Start with wheat - it grows fastest</li>
+                    <li>Save up for the watering can early</li>
+                    <li>Try to have crops growing at all times</li>
+                    <li>Check back often to harvest at the right time</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="leaderboard-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Leaderboard</h2>
+                <button class="close-modal" id="close-leaderboard">&times;</button>
+            </div>
+            <div class="modal-content">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Level</th>
+                            <th>Money</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <tr>
+                            <td>1</td>
+                            <td>Farmer Joe</td>
+                            <td>15</td>
+                            <td>$12,450</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Agri Queen</td>
+                            <td>12</td>
+                            <td>$9,800</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>Corn King</td>
+                            <td>10</td>
+                            <td>$7,200</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>Wheat Wizard</td>
+                            <td>8</td>
+                            <td>$5,600</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>You</td>
+                            <td id="leaderboard-level">1</td>
+                            <td id="leaderboard-money">$1500</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Your Profile</h2>
+                <button class="close-modal" id="close-profile">&times;</button>
+            </div>
+            <div class="modal-content">
+                <div class="profile-info">
+                    <p><span>Farm Name:</span> <span id="profile-name">Farmer</span></p>
+                    <p><span>Level:</span> <span id="profile-level">1</span></p>
+                    <p><span>Money:</span> $<span id="profile-money">1500</span></p>
+                    <p><span>XP:</span> <span id="profile-xp">0</span>/<span id="profile-next-level">100</span></p>
+                    <p><span>Days Played:</span> <span id="profile-days">1</span></p>
+                    <p><span>Crops Harvested:</span> <span id="profile-harvests">0</span></p>
+                    <p><span>Money Earned:</span> $<span id="profile-earnings">0</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            user: null,
+            money: 1500, // Increased starting money
+            seeds: 10,
+            xp: 0,
+            level: 1,
+            day: 1,
+            time: 8, // 24-hour format
+            weather: 'sunny',
+            selectedTool: null,
+            inventory: {
+                wheat: 0,
+                carrots: 0,
+                corn: 0,
+                gold: 0
+            },
+            plots: [],
+            upgrades: {
+                wateringCan: false,
+                fertilizer: false
+            },
+            achievements: {
+                firstHarvest: false,
+                tenCrops: false,
+                rainMaster: false
+            },
+            stats: {
+                totalHarvests: 0,
+                totalEarnings: 0
+            }
+        };
+        
+        // DOM Elements
+        const elements = {
+            welcomePage: document.getElementById('welcome-page'),
+            loginPage: document.getElementById('login-page'),
+            signupPage: document.getElementById('signup-page'),
+            homePage: document.getElementById('home-page'),
+            gamePage: document.getElementById('game-page'),
+            startGameBtn: document.getElementById('start-game-btn'),
+            howToPlayBtn: document.getElementById('how-to-play-btn'),
+            loginForm: document.getElementById('login-form'),
+            signupForm: document.getElementById('signup-form'),
+            showSignup: document.getElementById('show-signup'),
+            showLogin: document.getElementById('show-login'),
+            showForgot: document.getElementById('show-forgot'),
+            forgotForm: document.getElementById('forgot-form'),
+            resetBtn: document.getElementById('reset-btn'),
+            resetSuccess: document.getElementById('reset-success'),
+            playBtn: document.getElementById('play-btn'),
+            homeBtn: document.getElementById('home-btn'),
+            logoutBtn: document.getElementById('logout-btn'),
+            gameLogoutBtn: document.getElementById('game-logout-btn'),
+            welcomeMsg: document.getElementById('welcome-msg'),
+            homeLevel: document.getElementById('home-level'),
+            homeMoney: document.getElementById('home-money'),
+            homeXp: document.getElementById('home-xp'),
+            money: document.getElementById('money'),
+            seeds: document.getElementById('seeds'),
+            xp: document.getElementById('xp'),
+            time: document.getElementById('time'),
+            weather: document.getElementById('weather'),
+            weatherIcon: document.getElementById('weather-icon'),
+            farmGrid: document.getElementById('farm-grid'),
+            notification: document.getElementById('notification'),
+            rainEffect: document.getElementById('rain-effect'),
+            sunEffect: document.getElementById('sun-effect'),
+            nightOverlay: document.getElementById('night-overlay'),
+            sellBtn: document.getElementById('sell-btn'),
+            nextDayBtn: document.getElementById('next-day-btn'),
+            achievementPopup: document.getElementById('achievement-popup'),
+            achievementText: document.getElementById('achievement-text'),
+            inventoryWheat: document.getElementById('inventory-wheat'),
+            inventoryCarrots: document.getElementById('inventory-carrots'),
+            inventoryCorn: document.getElementById('inventory-corn'),
+            inventoryGold: document.getElementById('inventory-gold'),
+            // Modal elements
+            howToModal: document.getElementById('how-to-modal'),
+            leaderboardModal: document.getElementById('leaderboard-modal'),
+            profileModal: document.getElementById('profile-modal'),
+            closeHowTo: document.getElementById('close-how-to'),
+            closeLeaderboard: document.getElementById('close-leaderboard'),
+            closeProfile: document.getElementById('close-profile'),
+            howToBtn: document.getElementById('how-to-btn'),
+            leaderboardBtn: document.getElementById('leaderboard-btn'),
+            profileBtn: document.getElementById('profile-btn'),
+            saveGameBtn: document.getElementById('save-game-btn'),
+            leaderboardBody: document.getElementById('leaderboard-body'),
+            leaderboardLevel: document.getElementById('leaderboard-level'),
+            leaderboardMoney: document.getElementById('leaderboard-money'),
+            profileName: document.getElementById('profile-name'),
+            profileLevel: document.getElementById('profile-level'),
+            profileMoney: document.getElementById('profile-money'),
+            profileXp: document.getElementById('profile-xp'),
+            profileNextLevel: document.getElementById('profile-next-level'),
+            profileDays: document.getElementById('profile-days'),
+            profileHarvests: document.getElementById('profile-harvests'),
+            profileEarnings: document.getElementById('profile-earnings')
+        };
+        
+        // Tool elements
+        const tools = {
+            wheat: document.getElementById('tool-wheat'),
+            carrot: document.getElementById('tool-carrot'),
+            corn: document.getElementById('tool-corn'),
+            water: document.getElementById('tool-water'),
+            fertilizer: document.getElementById('tool-fertilizer')
+        };
+        
+        // Crop types
+        const crops = {
+            wheat: {
+                name: 'Wheat',
+                icon: 'fas fa-wheat-awn',
+                growthTime: 3,
+                value: 30,
+                seedCost: 20
+            },
+            carrot: {
+                name: 'Carrot',
+                icon: 'fas fa-carrot',
+                growthTime: 4,
+                value: 50,
+                seedCost: 40
+            },
+            corn: {
+                name: 'Corn',
+                icon: 'fas fa-corn',
+                growthTime: 5,
+                value: 80,
+                seedCost: 60
+            }
+        };
+        
+        // Initialize the game
+        function initGame() {
+            setupEventListeners();
+            showPage('welcome-page');
+        }
+        
+        // Show a specific page and hide others
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active-page');
+            });
+            document.getElementById(pageId).classList.add('active-page');
+            
+            if (pageId === 'game-page') {
+                createPlots();
+                updateUI();
+                startGameLoop();
+                showNotification("Welcome to your farm! Select seeds to plant.");
+            } else if (pageId === 'home-page') {
+                updateHomePage();
+            }
+        }
+        
+        // Create farm plots
+        function createPlots() {
+            elements.farmGrid.innerHTML = '';
+            for (let i = 0; i < 15; i++) {
+                const plot = document.createElement('div');
+                plot.className = 'plot';
+                plot.innerHTML = `
+                    <div class="plot-content"></div>
+                    <div class="plot-overlay"></div>
+                `;
+                
+                // Store initial plot state
+                gameState.plots.push({
+                    element: plot,
+                    crop: null,
+                    growth: 0,
+                    growthElement: null,
+                    watered: false,
+                    fertilized: false,
+                    wateredElement: null,
+                    fertilizedElement: null
+                });
+                
+                plot.addEventListener('click', () => handlePlotClick(i));
+                elements.farmGrid.appendChild(plot);
+            }
+        }
+        
+        // Handle plot click
+        function handlePlotClick(plotIndex) {
+            const plot = gameState.plots[plotIndex];
+            
+            if (gameState.selectedTool) {
+                if (gameState.selectedTool === 'water') {
+                    if (!gameState.upgrades.wateringCan) {
+                        showNotification("You need to buy the Watering Can first!");
+                        return;
+                    }
+                    
+                    if (plot.crop && plot.growth < 100) {
+                        plot.watered = true;
+                        
+                        // Add water icon if not already present
+                        if (!plot.wateredElement) {
+                            plot.wateredElement = document.createElement('div');
+                            plot.wateredElement.className = 'watered-icon';
+                            plot.wateredElement.innerHTML = '<i class="fas fa-tint"></i>';
+                            plot.element.appendChild(plot.wateredElement);
+                        }
+                        
+                        plot.element.classList.add('highlight');
+                        showNotification("Plot watered! Growth speed increased.");
+                        setTimeout(() => {
+                            plot.element.classList.remove('highlight');
+                        }, 1000);
+                    }
+                } 
+                else if (gameState.selectedTool === 'fertilizer') {
+                    if (!gameState.upgrades.fertilizer) {
+                        showNotification("You need to buy Fertilizer first!");
+                        return;
+                    }
+                    
+                    if (plot.crop && plot.growth < 100) {
+                        plot.fertilized = true;
+                        
+                        // Add fertilizer icon if not already present
+                        if (!plot.fertilizedElement) {
+                            plot.fertilizedElement = document.createElement('div');
+                            plot.fertilizedElement.className = 'fertilized-icon';
+                            plot.fertilizedElement.innerHTML = '<i class="fas fa-flask"></i>';
+                            plot.element.appendChild(plot.fertilizedElement);
+                        }
+                        
+                        plot.element.classList.add('highlight');
+                        showNotification("Fertilizer applied! Growth speed increased.");
+                        setTimeout(() => {
+                            plot.element.classList.remove('highlight');
+                        }, 1000);
+                    }
+                } 
+                else {
+                    // Planting seeds
+                    if (!plot.crop && gameState.seeds > 0) {
+                        plantCrop(plotIndex, gameState.selectedTool);
+                    } else if (plot.crop && plot.growth >= 100) {
+                        harvestCrop(plotIndex);
+                    }
+                }
+            } else {
+                showNotification("Select a tool or seed first!");
+            }
+        }
+        
+        // Plant a crop
+        function plantCrop(plotIndex, cropType) {
+            const plot = gameState.plots[plotIndex];
+            const crop = crops[cropType];
+            
+            if (gameState.money < crop.seedCost) {
+                showNotification(`Not enough money to buy ${crop.name} seeds!`);
+                return;
+            }
+            
+            // Deduct seed cost
+            gameState.money -= crop.seedCost;
+            gameState.seeds--;
+            
+            // Plant the crop
+            plot.crop = cropType;
+            plot.growth = 0;
+            plot.watered = false;
+            plot.fertilized = false;
+            
+            // Create growth bar
+            plot.growthElement = document.createElement('div');
+            plot.growthElement.className = 'crop-growth';
+            plot.growthElement.style.width = '0%';
+            plot.element.appendChild(plot.growthElement);
+            
+            // Update plot appearance
+            plot.element.querySelector('.plot-content').innerHTML = `<i class="${crop.icon}"></i>`;
+            plot.element.classList.add('pulse');
+            
+            showNotification(`Planted ${crop.name}!`);
+            updateUI();
+        }
+        
+        // Harvest a crop
+        function harvestCrop(plotIndex) {
+            const plot = gameState.plots[plotIndex];
+            const crop = crops[plot.crop];
+            
+            // Add to inventory
+            gameState.inventory[plot.crop]++;
+            gameState.stats.totalHarvests++;
+            
+            // Gain XP and money
+            const xpGain = 10 + (plot.watered ? 5 : 0) + (plot.fertilized ? 5 : 0);
+            gameState.xp += xpGain;
+            
+            // Level up
+            if (gameState.xp >= gameState.level * 100) {
+                gameState.xp = 0;
+                gameState.level++;
+                showNotification(`Level up! You are now Level ${gameState.level}`);
+            }
+            
+            // Check for achievements
+            if (!gameState.achievements.firstHarvest) {
+                gameState.achievements.firstHarvest = true;
+                unlockAchievement("First Harvest!");
+            }
+            
+            // Reset plot
+            plot.crop = null;
+            plot.growth = 0;
+            plot.watered = false;
+            plot.fertilized = false;
+            plot.element.querySelector('.plot-content').innerHTML = '';
+            plot.element.classList.remove('pulse');
+            if (plot.growthElement) plot.growthElement.remove();
+            if (plot.wateredElement) plot.wateredElement.remove();
+            if (plot.fertilizedElement) plot.fertilizedElement.remove();
+            
+            showNotification(`Harvested ${crop.name}! +${xpGain} XP`);
+            updateUI();
+        }
+        
+        // Unlock an achievement
+        function unlockAchievement(text) {
+            elements.achievementText.textContent = text;
+            elements.achievementPopup.classList.add('show');
+            
+            setTimeout(() => {
+                elements.achievementPopup.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Update all UI elements
+        function updateUI() {
+            // Update stats
+            elements.money.textContent = gameState.money;
+            elements.seeds.textContent = gameState.seeds;
+            elements.xp.textContent = gameState.xp;
+            
+            // Update time and weather
+            const timeString = gameState.time < 12 ? `${gameState.time}:00 AM` : 
+                             gameState.time === 12 ? '12:00 PM' : 
+                             `${gameState.time - 12}:00 PM`;
+            elements.time.textContent = `Day ${gameState.day}, ${timeString}`;
+            elements.weather.textContent = gameState.weather.charAt(0).toUpperCase() + gameState.weather.slice(1);
+            
+            // Update weather icon
+            const weatherIcon = gameState.weather === 'rainy' ? 'cloud-rain' : 
+                              gameState.weather === 'sunny' ? 'sun' : 'cloud';
+            elements.weatherIcon.className = `fas fa-${weatherIcon}`;
+            
+            // Update inventory
+            elements.inventoryWheat.textContent = gameState.inventory.wheat;
+            elements.inventoryCarrots.textContent = gameState.inventory.carrots;
+            elements.inventoryCorn.textContent = gameState.inventory.corn;
+            elements.inventoryGold.textContent = gameState.inventory.gold;
+            
+            // Handle tool selection
+            Object.keys(tools).forEach(tool => {
+                tools[tool].classList.remove('highlight');
+            });
+            
+            if (gameState.selectedTool) {
+                tools[gameState.selectedTool].classList.add('highlight');
+            }
+            
+            // Enable/disable tools based on upgrades
+            if (gameState.money >= 200 && !gameState.upgrades.wateringCan) {
+                tools.water.classList.remove('locked');
+            }
+            
+            if (gameState.money >= 300 && !gameState.upgrades.fertilizer) {
+                tools.fertilizer.classList.remove('locked');
+            }
+            
+            // Disable next day button if all plots are empty
+            const hasCrops = gameState.plots.some(plot => plot.crop);
+            elements.nextDayBtn.disabled = !hasCrops;
+        }
+        
+        // Update home page UI
+        function updateHomePage() {
+            elements.welcomeMsg.textContent = `Welcome, ${gameState.user || 'Farmer'}!`;
+            elements.homeLevel.textContent = gameState.level;
+            elements.homeMoney.textContent = gameState.money;
+            elements.homeXp.textContent = gameState.xp;
+            
+            // Update leaderboard and profile data
+            elements.leaderboardLevel.textContent = gameState.level;
+            elements.leaderboardMoney.textContent = gameState.money;
+            
+            elements.profileName.textContent = gameState.user || 'Farmer';
+            elements.profileLevel.textContent = gameState.level;
+            elements.profileMoney.textContent = gameState.money;
+            elements.profileXp.textContent = gameState.xp;
+            elements.profileNextLevel.textContent = gameState.level * 100;
+            elements.profileDays.textContent = gameState.day;
+            elements.profileHarvests.textContent = gameState.stats.totalHarvests;
+            elements.profileEarnings.textContent = gameState.stats.totalEarnings;
+        }
+        
+        // Show notification
+        function showNotification(message) {
+            elements.notification.textContent = message;
+            elements.notification.classList.add('show');
+            
+            setTimeout(() => {
+                elements.notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Toggle modal visibility
+        function toggleModal(modal, show = true) {
+            if (show) {
+                modal.classList.add('active');
+            } else {
+                modal.classList.remove('active');
+            }
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Welcome screen buttons
+            elements.startGameBtn.addEventListener('click', () => {
+                gameState.user = "Farmer";
+                showPage('home-page');
+            });
+            
+            elements.howToPlayBtn.addEventListener('click', () => {
+                toggleModal(elements.howToModal, true);
+            });
+            
+            // Authentication navigation
+            elements.showSignup.addEventListener('click', () => showPage('signup-page'));
+            elements.showLogin.addEventListener('click', () => showPage('login-page'));
+            elements.showForgot.addEventListener('click', () => {
+                elements.forgotForm.classList.add('active');
+            });
+            
+            // Login form
+            elements.loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                
+                // Simple validation
+                if (email && password) {
+                    gameState.user = email.split('@')[0];
+                    showPage('home-page');
+                }
+            });
+            
+            // Signup form
+            elements.signupForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('signup-name').value;
+                const email = document.getElementById('signup-email').value;
+                const password = document.getElementById('signup-password').value;
+                const confirm = document.getElementById('signup-confirm').value;
+                
+                // Simple validation
+                if (password !== confirm) {
+                    showNotification("Passwords don't match!");
+                    return;
+                }
+                
+                if (name && email && password) {
+                    gameState.user = name;
+                    showPage('home-page');
+                }
+            });
+            
+            // Password reset
+            elements.resetBtn.addEventListener('click', () => {
+                elements.resetSuccess.style.display = 'block';
+                setTimeout(() => {
+                    elements.forgotForm.classList.remove('active');
+                    elements.resetSuccess.style.display = 'none';
+                }, 3000);
+            });
+            
+            // Home page buttons
+            elements.playBtn.addEventListener('click', () => showPage('game-page'));
+            elements.homeBtn.addEventListener('click', () => showPage('home-page'));
+            elements.logoutBtn.addEventListener('click', () => showPage('welcome-page'));
+            elements.gameLogoutBtn.addEventListener('click', () => showPage('welcome-page'));
+            
+            // Modal buttons
+            elements.howToBtn.addEventListener('click', () => toggleModal(elements.howToModal, true));
+            elements.leaderboardBtn.addEventListener('click', () => {
+                updateHomePage();
+                toggleModal(elements.leaderboardModal, true);
+            });
+            elements.profileBtn.addEventListener('click', () => {
+                updateHomePage();
+                toggleModal(elements.profileModal, true);
+            });
+            elements.saveGameBtn.addEventListener('click', () => {
+                showNotification("Game saved! (Note: This is a demo - progress isn't actually saved)");
+            });
+            
+            elements.closeHowTo.addEventListener('click', () => toggleModal(elements.howToModal, false));
+            elements.closeLeaderboard.addEventListener('click', () => toggleModal(elements.leaderboardModal, false));
+            elements.closeProfile.addEventListener('click', () => toggleModal(elements.profileModal, false));
+            
+            // Close modals when clicking outside
+            [elements.howToModal, elements.leaderboardModal, elements.profileModal].forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        toggleModal(modal, false);
+                    }
+                });
+            });
+            
+            // Tool selection
+            Object.keys(tools).forEach(tool => {
+                tools[tool].addEventListener('click', () => {
+                    if (tools[tool].classList.contains('locked')) {
+                        if (tool === 'water' && gameState.money >= 200) {
+                            gameState.money -= 200;
+                            gameState.upgrades.wateringCan = true;
+                            tools.water.classList.remove('locked');
+                            gameState.selectedTool = 'water';
+                            showNotification("Watering Can purchased! Now select it to water crops.");
+                        } else if (tool === 'fertilizer' && gameState.money >= 300) {
+                            gameState.money -= 300;
+                            gameState.upgrades.fertilizer = true;
+                            tools.fertilizer.classList.remove('locked');
+                            gameState.selectedTool = 'fertilizer';
+                            showNotification("Fertilizer purchased! Now select it to fertilize crops.");
+                        } else {
+                            showNotification("Not enough money to buy this upgrade!");
+                        }
+                    } else {
+                        gameState.selectedTool = tool;
+                    }
+                    updateUI();
+                });
+            });
+            
+            // Sell button
+            elements.sellBtn.addEventListener('click', () => {
+                let total = 0;
+                let itemsSold = 0;
+                
+                Object.keys(gameState.inventory).forEach(item => {
+                    if (item !== 'gold') {
+                        const crop = crops[item];
+                        if (crop) {
+                            const value = gameState.inventory[item] * crop.value;
+                            total += value;
+                            itemsSold += gameState.inventory[item];
+                            gameState.inventory[item] = 0;
+                        }
+                    }
+                });
+                
+                if (total > 0) {
+                    gameState.money += total;
+                    gameState.inventory.gold += total;
+                    gameState.stats.totalEarnings += total;
+                    showNotification(`Sold ${itemsSold} crops for $${total}!`);
+                    
+                    // Check for achievement
+                    if (itemsSold >= 10 && !gameState.achievements.tenCrops) {
+                        gameState.achievements.tenCrops = true;
+                        unlockAchievement("Sold 10 Crops!");
+                    }
+                } else {
+                    showNotification("Nothing to sell!");
+                }
+                
+                updateUI();
+            });
+            
+            // Next day button
+            elements.nextDayBtn.addEventListener('click', () => {
+                advanceTime();
+            });
+        }
+        
+        // Advance time
+        function advanceTime() {
+            gameState.time += 4;
+            
+            if (gameState.time >= 24) {
+                gameState.time = 8;
+                gameState.day++;
+                
+                // Change weather randomly
+                const weatherOptions = ['sunny', 'sunny', 'sunny', 'rainy', 'cloudy'];
+                gameState.weather = weatherOptions[Math.floor(Math.random() * weatherOptions.length)];
+                
+                // Add seeds at the start of each day
+                gameState.seeds += 3;
+                
+                // Check for rain achievement
+                if (gameState.weather === 'rainy' && !gameState.achievements.rainMaster) {
+                    gameState.achievements.rainMaster = true;
+                    unlockAchievement("Rain Master!");
+                }
+            }
+            
+            // Update weather effects
+            updateWeatherEffects();
+            
+            // Grow crops
+            gameState.plots.forEach(plot => {
+                if (plot.crop) {
+                    const growthRate = 10 + 
+                                     (plot.watered ? 10 : 0) + 
+                                     (plot.fertilized ? 15 : 0);
+                    
+                    // Rain makes crops grow faster
+                    if (gameState.weather === 'rainy') {
+                        growthRate += 5;
+                    }
+                    
+                    plot.growth = Math.min(plot.growth + growthRate, 100);
+                    
+                    if (plot.growthElement) {
+                        plot.growthElement.style.width = `${plot.growth}%`;
+                    }
+                    
+                    // Change appearance when fully grown
+                    if (plot.growth >= 100) {
+                        plot.element.classList.add('pulse');
+                    }
+                }
+            });
+            
+            updateUI();
+        }
+        
+        // Update weather visual effects
+        function updateWeatherEffects() {
+            // Rain effect
+            if (gameState.weather === 'rainy') {
+                elements.rainEffect.style.opacity = '0.5';
+            } else {
+                elements.rainEffect.style.opacity = '0';
+            }
+            
+            // Sun effect
+            if (gameState.weather === 'sunny') {
+                elements.sunEffect.style.opacity = '0.6';
+            } else {
+                elements.sunEffect.style.opacity = '0';
+            }
+            
+            // Night effect
+            if (gameState.time >= 20 || gameState.time < 6) {
+                elements.nightOverlay.style.opacity = '0.7';
+            } else if (gameState.time >= 18 || gameState.time < 8) {
+                elements.nightOverlay.style.opacity = '0.4';
+            } else {
+                elements.nightOverlay.style.opacity = '0';
+            }
+        }
+        
+        // Game loop for visual effects
+        function startGameLoop() {
+            setInterval(() => {
+                // Animate the sun
+                if (gameState.weather === 'sunny') {
+                    const timePercent = (gameState.time - 6) / 12;
+                    const xPos = 20 + (timePercent * 60);
+                    const yPos = 80 - (Math.sin(timePercent * Math.PI) * 70);
+                    elements.sunEffect.style.left = `${xPos}%`;
+                    elements.sunEffect.style.top = `${yPos}%`;
+                }
+            }, 1000);
+        }
+        
+        // Initialize the game when page loads
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
