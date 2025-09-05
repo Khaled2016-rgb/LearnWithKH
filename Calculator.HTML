@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elegant Business Calculator</title>
+    <title>Ultra-Smooth Business Calculator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -25,38 +25,54 @@
         .calculator-container {
             width: 100%;
             max-width: 400px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 25px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25),
+                        inset 0 8px 15px rgba(255, 255, 255, 0.1);
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transform: translateZ(0);
+            will-change: transform;
         }
         
         .calculator-header {
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.2);
+            padding: 22px;
+            background: rgba(0, 0, 0, 0.18);
             text-align: center;
             color: white;
+            position: relative;
+        }
+        
+        .calculator-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 5%;
+            width: 90%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
         }
         
         .calculator-header h1 {
             font-weight: 400;
             font-size: 1.4rem;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
         
         .display {
-            background-color: rgba(0, 0, 0, 0.4);
+            background-color: rgba(0, 0, 0, 0.25);
             color: white;
-            padding: 30px 25px;
+            padding: 35px 25px;
             text-align: right;
-            min-height: 150px;
+            min-height: 160px;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
             position: relative;
             overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         
         .display::after {
@@ -66,45 +82,50 @@
             left: 0;
             right: 0;
             height: 1px;
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.25), transparent);
         }
         
         .previous-operation {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 1.25rem;
             min-height: 1.5rem;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
+            margin-bottom: 12px;
+            transition: all 0.4s ease;
+            font-weight: 300;
         }
         
         .current-input {
-            font-size: 3rem;
+            font-size: 3.2rem;
             font-weight: 300;
             overflow: hidden;
             text-overflow: ellipsis;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         
         .buttons {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 2px;
-            padding: 2px;
+            gap: 1px;
+            padding: 1px;
             background-color: rgba(0, 0, 0, 0.1);
         }
         
         button {
             border: none;
-            padding: 25px;
-            font-size: 1.4rem;
+            padding: 26px;
+            font-size: 1.5rem;
             cursor: pointer;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             color: white;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.215, 0.610, 0.355, 1);
             position: relative;
             overflow: hidden;
+            outline: none;
+            transform: translateZ(0);
+            will-change: transform, background;
         }
         
         button::before {
@@ -116,21 +137,40 @@
             height: 100%;
             background: linear-gradient(rgba(255, 255, 255, 0.1), transparent);
             clip-path: polygon(0 0, 100% 0, 100% 80%, 0 100%);
+            z-index: 1;
+        }
+        
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            z-index: 0;
         }
         
         button:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-3px) translateZ(0);
         }
         
         button:active {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(1px);
-            transition: transform 0.05s;
+            background: rgba(255, 255, 255, 0.18);
+            transform: translateY(1px) translateZ(0);
+            transition: transform 0.05s cubic-bezier(0.215, 0.610, 0.355, 1);
+        }
+        
+        button:active::after {
+            animation: ripple 0.6s ease-out;
         }
         
         .operator {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 215, 0, 0.15);
             font-weight: 500;
         }
         
@@ -149,11 +189,11 @@
         }
         
         .clear {
-            background: rgba(255, 0, 0, 0.2);
+            background: rgba(255, 80, 80, 0.2);
         }
         
         .clear:hover {
-            background: rgba(255, 50, 50, 0.3);
+            background: rgba(255, 100, 100, 0.3);
         }
         
         .zero {
@@ -167,38 +207,69 @@
         .calculator-footer {
             text-align: center;
             color: rgba(255, 255, 255, 0.6);
-            padding: 15px;
+            padding: 18px;
             font-size: 0.9rem;
-            background-color: rgba(0, 0, 0, 0.2);
+            background-color: rgba(0, 0, 0, 0.18);
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
+        }
+        
+        .calculator-footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 5%;
+            width: 90%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.15), transparent);
         }
         
         .calculator-footer i {
-            margin: 0 5px;
+            margin: 0 8px;
             color: gold;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
         }
         
-        /* Animation for button press */
+        /* Ripple animation */
+        @keyframes ripple {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(30);
+                opacity: 0;
+            }
+        }
+        
+        /* Button press animation */
         @keyframes buttonPress {
-            0% { transform: scale(1); }
-            50% { transform: scale(0.95); }
-            100% { transform: scale(1); }
+            0% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(2px) scale(0.98); }
+            100% { transform: translateY(0) scale(1); }
         }
         
         button:active {
-            animation: buttonPress 0.2s ease;
+            animation: buttonPress 0.3s cubic-bezier(0.215, 0.610, 0.355, 1);
+        }
+        
+        /* Display animation for calculation */
+        @keyframes calculateAnim {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
         }
         
         /* Responsive design */
         @media (max-width: 480px) {
             button {
-                padding: 20px;
+                padding: 22px;
             }
             
             .current-input {
-                font-size: 2.5rem;
+                font-size: 2.8rem;
             }
         }
     </style>
@@ -206,7 +277,7 @@
 <body>
     <div class="calculator-container">
         <div class="calculator-header">
-            <h1>BUSINESS CALCULATOR PRO</h1>
+            <h1>PREMIUM BUSINESS CALCULATOR</h1>
         </div>
         
         <div class="display">
@@ -241,7 +312,7 @@
         
         <div class="calculator-footer">
             <i class="fas fa-calculator"></i>
-            <span>Business Calculator v2.0</span>
+            <span>Business Calculator Elite v3.0</span>
             <i class="fas fa-chart-line"></i>
         </div>
     </div>
@@ -251,20 +322,30 @@
             const display = document.querySelector('.current-input');
             const previousOperation = document.querySelector('.previous-operation');
             const buttons = document.querySelectorAll('button');
+            const displayContainer = document.querySelector('.display');
             
             let currentValue = '0';
             let previousValue = '';
             let operation = null;
             let resetScreen = false;
             
-            // Update display
+            // Update display with smooth animation
             function updateDisplay() {
-                display.textContent = currentValue.replace('.', ',');
+                display.textContent = formatNumber(currentValue);
                 if (previousValue) {
-                    previousOperation.textContent = `${previousValue} ${operation}`;
+                    previousOperation.textContent = `${formatNumber(previousValue)} ${operation}`;
                 } else {
                     previousOperation.textContent = '';
                 }
+            }
+            
+            // Format number with thousand separators
+            function formatNumber(num) {
+                if (num === 'Error') return num;
+                
+                const parts = num.split('.');
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                return parts.join('.');
             }
             
             // Reset calculator
@@ -317,11 +398,11 @@
                 updateDisplay();
             }
             
-            // Calculate result
+            // Calculate result with smooth animation
             function calculate() {
                 let computation;
-                const prev = parseFloat(previousValue);
-                const current = parseFloat(currentValue);
+                const prev = parseFloat(previousValue.replace(/,/g, ''));
+                const current = parseFloat(currentValue.replace(/,/g, ''));
                 
                 if (isNaN(prev) || isNaN(current)) return;
                 
@@ -358,15 +439,36 @@
                     }
                 }
                 
+                // Add animation to display
+                displayContainer.style.animation = 'none';
+                setTimeout(() => {
+                    displayContainer.style.animation = 'calculateAnim 0.4s ease';
+                }, 10);
+                
                 operation = null;
                 previousValue = '';
                 resetScreen = true;
                 updateDisplay();
             }
             
-            // Add event listeners to buttons
+            // Add event listeners to buttons with smooth feedback
             buttons.forEach(button => {
-                button.addEventListener('click', () => {
+                button.addEventListener('click', (e) => {
+                    // Add ripple effect
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple');
+                    button.appendChild(ripple);
+                    
+                    const x = e.clientX - button.getBoundingClientRect().left;
+                    const y = e.clientY - button.getBoundingClientRect().top;
+                    
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                    
                     if (button.hasAttribute('data-number')) {
                         appendNumber(button.getAttribute('data-number'));
                     } else if (button.hasAttribute('data-operator')) {
