@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elegant Business Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .calculator-container {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .calculator-header {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            text-align: center;
+            color: white;
+        }
+        
+        .calculator-header h1 {
+            font-weight: 400;
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+        }
+        
+        .display {
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
+            padding: 30px 25px;
+            text-align: right;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .display::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
+        }
+        
+        .previous-operation {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            min-height: 1.5rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .current-input {
+            font-size: 3rem;
+            font-weight: 300;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: all 0.3s ease;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2px;
+            padding: 2px;
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        button {
+            border: none;
+            padding: 25px;
+            font-size: 1.4rem;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255, 255, 255, 0.1), transparent);
+            clip-path: polygon(0 0, 100% 0, 100% 80%, 0 100%);
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(1px);
+            transition: transform 0.05s;
+        }
+        
+        .operator {
+            background: rgba(255, 255, 255, 0.15);
+            font-weight: 500;
+        }
+        
+        .operator:hover {
+            background: rgba(255, 215, 0, 0.2);
+        }
+        
+        .equals {
+            background: linear-gradient(to bottom, #ff9a00, #ff6a00);
+            font-weight: 500;
+            grid-column: span 2;
+        }
+        
+        .equals:hover {
+            background: linear-gradient(to bottom, #ffa91f, #ff7c1f);
+        }
+        
+        .clear {
+            background: rgba(255, 0, 0, 0.2);
+        }
+        
+        .clear:hover {
+            background: rgba(255, 50, 50, 0.3);
+        }
+        
+        .zero {
+            grid-column: span 2;
+        }
+        
+        .decimal {
+            font-weight: bold;
+        }
+        
+        .calculator-footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 15px;
+            font-size: 0.9rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .calculator-footer i {
+            margin: 0 5px;
+            color: gold;
+        }
+        
+        /* Animation for button press */
+        @keyframes buttonPress {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+        
+        button:active {
+            animation: buttonPress 0.2s ease;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 480px) {
+            button {
+                padding: 20px;
+            }
+            
+            .current-input {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="calculator-header">
+            <h1>BUSINESS CALCULATOR PRO</h1>
+        </div>
+        
+        <div class="display">
+            <div class="previous-operation"></div>
+            <div class="current-input">0</div>
+        </div>
+        
+        <div class="buttons">
+            <button class="clear" data-action="clear">C</button>
+            <button data-action="backspace"><i class="fas fa-backspace"></i></button>
+            <button class="operator" data-operator="÷"><i class="fas fa-divide"></i></button>
+            <button class="operator" data-operator="×"><i class="fas fa-times"></i></button>
+            
+            <button data-number="7">7</button>
+            <button data-number="8">8</button>
+            <button data-number="9">9</button>
+            <button class="operator" data-operator="-"><i class="fas fa-minus"></i></button>
+            
+            <button data-number="4">4</button>
+            <button data-number="5">5</button>
+            <button data-number="6">6</button>
+            <button class="operator" data-operator="+"><i class="fas fa-plus"></i></button>
+            
+            <button data-number="1">1</button>
+            <button data-number="2">2</button>
+            <button data-number="3">3</button>
+            <button class="equals" data-action="calculate"><i class="fas fa-equals"></i></button>
+            
+            <button class="zero" data-number="0">0</button>
+            <button class="decimal" data-number="."><i class="fas fa-circle"></i></button>
+        </div>
+        
+        <div class="calculator-footer">
+            <i class="fas fa-calculator"></i>
+            <span>Business Calculator v2.0</span>
+            <i class="fas fa-chart-line"></i>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const display = document.querySelector('.current-input');
+            const previousOperation = document.querySelector('.previous-operation');
+            const buttons = document.querySelectorAll('button');
+            
+            let currentValue = '0';
+            let previousValue = '';
+            let operation = null;
+            let resetScreen = false;
+            
+            // Update display
+            function updateDisplay() {
+                display.textContent = currentValue.replace('.', ',');
+                if (previousValue) {
+                    previousOperation.textContent = `${previousValue} ${operation}`;
+                } else {
+                    previousOperation.textContent = '';
+                }
+            }
+            
+            // Reset calculator
+            function resetCalculator() {
+                currentValue = '0';
+                previousValue = '';
+                operation = null;
+                resetScreen = false;
+                updateDisplay();
+            }
+            
+            // Delete last character
+            function deleteLast() {
+                if (currentValue.length === 1) {
+                    currentValue = '0';
+                } else {
+                    currentValue = currentValue.slice(0, -1);
+                }
+                updateDisplay();
+            }
+            
+            // Append number to current value
+            function appendNumber(number) {
+                if (currentValue === '0' || resetScreen) {
+                    currentValue = '';
+                    resetScreen = false;
+                }
+                
+                // Prevent multiple decimal points
+                if (number === '.' && currentValue.includes('.')) return;
+                
+                // Limit input length
+                if (currentValue.length >= 12) return;
+                
+                currentValue += number;
+                updateDisplay();
+            }
+            
+            // Choose operation
+            function chooseOperation(op) {
+                if (currentValue === '0') return;
+                
+                if (previousValue !== '') {
+                    calculate();
+                }
+                
+                operation = op;
+                previousValue = currentValue;
+                resetScreen = true;
+                updateDisplay();
+            }
+            
+            // Calculate result
+            function calculate() {
+                let computation;
+                const prev = parseFloat(previousValue);
+                const current = parseFloat(currentValue);
+                
+                if (isNaN(prev) || isNaN(current)) return;
+                
+                switch (operation) {
+                    case '+':
+                        computation = prev + current;
+                        break;
+                    case '-':
+                        computation = prev - current;
+                        break;
+                    case '×':
+                        computation = prev * current;
+                        break;
+                    case '÷':
+                        if (current === 0) {
+                            computation = 'Error';
+                        } else {
+                            computation = prev / current;
+                        }
+                        break;
+                    default:
+                        return;
+                }
+                
+                // Format result
+                if (computation === 'Error') {
+                    currentValue = computation;
+                } else {
+                    currentValue = computation.toString();
+                    
+                    // Round if too long
+                    if (currentValue.length > 12) {
+                        currentValue = parseFloat(currentValue).toFixed(8);
+                    }
+                }
+                
+                operation = null;
+                previousValue = '';
+                resetScreen = true;
+                updateDisplay();
+            }
+            
+            // Add event listeners to buttons
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    if (button.hasAttribute('data-number')) {
+                        appendNumber(button.getAttribute('data-number'));
+                    } else if (button.hasAttribute('data-operator')) {
+                        chooseOperation(button.getAttribute('data-operator'));
+                    } else if (button.hasAttribute('data-action')) {
+                        const action = button.getAttribute('data-action');
+                        if (action === 'clear') {
+                            resetCalculator();
+                        } else if (action === 'calculate') {
+                            calculate();
+                        } else if (action === 'backspace') {
+                            deleteLast();
+                        }
+                    }
+                });
+            });
+            
+            // Keyboard support
+            document.addEventListener('keydown', (event) => {
+                if (/[0-9]/.test(event.key)) {
+                    appendNumber(event.key);
+                } else if (event.key === '.') {
+                    appendNumber('.');
+                } else if (event.key === '+' || event.key === '-') {
+                    chooseOperation(event.key);
+                } else if (event.key === '*') {
+                    chooseOperation('×');
+                } else if (event.key === '/') {
+                    chooseOperation('÷');
+                } else if (event.key === 'Enter' || event.key === '=') {
+                    calculate();
+                } else if (event.key === 'Escape') {
+                    resetCalculator();
+                } else if (event.key === 'Backspace') {
+                    deleteLast();
+                }
+            });
+            
+            // Initialize display
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>
