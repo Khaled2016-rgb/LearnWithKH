@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Timer with Custom Alarm</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            width: 100%;
+            max-width: 600px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            font-size: 2.8rem;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .timer-display {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .progress-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(#00c6ff var(--progress, 0%), transparent 0);
+            mask: radial-gradient(white 65%, transparent 68%);
+            -webkit-mask: radial-gradient(white 65%, transparent 68%);
+        }
+        
+        .ring-background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .time {
+            font-size: 48px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            text-align: center;
+        }
+        
+        .time-inputs {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .input-group label {
+            color: white;
+            font-weight: 600;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            font-size: 16px;
+        }
+        
+        .input-group input {
+            padding: 12px;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 20px;
+            text-align: center;
+            width: 80px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .alarm-sound {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            width: 100%;
+        }
+        
+        .alarm-sound label {
+            color: white;
+            font-weight: 600;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            font-size: 18px;
+        }
+        
+        .file-input-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .file-input-button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(to right, #8E44AD, #9B59B6);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+        
+        .file-input-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        #alarm-file {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .selected-file {
+            color: white;
+            margin-top: 10px;
+            font-size: 14px;
+            text-align: center;
+            max-width: 300px;
+            word-break: break-word;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        button {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            min-width: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(2px);
+        }
+        
+        #pause {
+            background: linear-gradient(to right, #FF416C, #FF4B2B);
+        }
+        
+        #reset {
+            background: linear-gradient(to right, #8e9eab, #eef2f3);
+            color: #2c3e50;
+        }
+        
+        .finished-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 25px 50px;
+            border-radius: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            z-index: 100;
+            display: none;
+            animation: pulse 1.5s infinite;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+        
+        .preset-btn {
+            padding: 10px 15px;
+            min-width: auto;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            .timer-display {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .time {
+                font-size: 36px;
+            }
+            
+            button {
+                padding: 14px 20px;
+                font-size: 16px;
+                min-width: 120px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .input-group input {
+                width: 70px;
+                font-size: 18px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Advanced Timer</h1>
+        
+        <div class="timer-display">
+            <div class="ring-background"></div>
+            <div class="progress-ring" id="progress-ring"></div>
+            <div class="time" id="display">00:00:00</div>
+        </div>
+        
+        <div class="time-inputs">
+            <div class="input-group">
+                <label for="hours">Hours</label>
+                <input type="number" id="hours" min="0" max="99" value="0">
+            </div>
+            <div class="input-group">
+                <label for="minutes">Minutes</label>
+                <input type="number" id="minutes" min="0" max="59" value="10">
+            </div>
+            <div class="input-group">
+                <label for="seconds">Seconds</label>
+                <input type="number" id="seconds" min="0" max="59" value="0">
+            </div>
+        </div>
+        
+        <div class="alarm-sound">
+            <label>Alarm Sound</label>
+            <div class="file-input-container">
+                <div class="file-input-button">
+                    <i class="fas fa-music"></i> Choose Alarm Sound
+                </div>
+                <input type="file" id="alarm-file" accept="audio/*">
+            </div>
+            <div class="selected-file" id="selected-file">Default alarm sound</div>
+        </div>
+        
+        <div class="presets">
+            <button class="preset-btn" data-hours="0" data-minutes="1" data-seconds="0">1 min</button>
+            <button class="preset-btn" data-hours="0" data-minutes="5" data-seconds="0">5 min</button>
+            <button class="preset-btn" data-hours="0" data-minutes="10" data-seconds="0">10 min</button>
+            <button class="preset-btn" data-hours="0" data-minutes="15" data-seconds="0">15 min</button>
+            <button class="preset-btn" data-hours="0" data-minutes="30" data-seconds="0">30 min</button>
+            <button class="preset-btn" data-hours="1" data-minutes="0" data-seconds="0">1 hour</button>
+        </div>
+        
+        <div class="controls">
+            <button id="start"><i class="fas fa-play"></i> Start</button>
+            <button id="pause"><i class="fas fa-pause"></i> Pause</button>
+            <button id="reset"><i class="fas fa-redo"></i> Reset</button>
+        </div>
+    </div>
+    
+    <div class="finished-message" id="finishedMessage">
+        <i class="fas fa-bell"></i><br>
+        Time's Up!
+    </div>
+
+    <audio id="alarmSound"></audio>
+
+    <script>
+        // Timer functionality
+        let totalSeconds = 600; // 10 minutes
+        let remainingSeconds = totalSeconds;
+        let timerInterval = null;
+        let isRunning = false;
+        let customAlarm = null;
+        
+        const display = document.getElementById('display');
+        const progressRing = document.getElementById('progress-ring');
+        const startButton = document.getElementById('start');
+        const pauseButton = document.getElementById('pause');
+        const resetButton = document.getElementById('reset');
+        const hoursInput = document.getElementById('hours');
+        const minutesInput = document.getElementById('minutes');
+        const secondsInput = document.getElementById('seconds');
+        const alarmSound = document.getElementById('alarmSound');
+        const alarmFileInput = document.getElementById('alarm-file');
+        const selectedFileDisplay = document.getElementById('selected-file');
+        const finishedMessage = document.getElementById('finishedMessage');
+        const presetButtons = document.querySelectorAll('.preset-btn');
+        
+        // Initialize display and progress ring
+        updateDisplay();
+        updateProgressRing();
+        
+        // Update progress ring based on remaining time
+        function updateProgressRing() {
+            const progress = 360 - (remainingSeconds / totalSeconds * 360);
+            progressRing.style.setProperty('--progress', `${progress}deg`);
+        }
+        
+        // Format time for display
+        function formatTime(seconds) {
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            if (hrs > 0) {
+                return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            } else {
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+        }
+        
+        // Update the display
+        function updateDisplay() {
+            display.textContent = formatTime(remainingSeconds);
+        }
+        
+        // Calculate total seconds from inputs
+        function calculateTotalSeconds() {
+            const hours = parseInt(hoursInput.value) || 0;
+            const minutes = parseInt(minutesInput.value) || 0;
+            const seconds = parseInt(secondsInput.value) || 0;
+            
+            return hours * 3600 + minutes * 60 + seconds;
+        }
+        
+        // Update inputs from total seconds
+        function updateInputsFromSeconds(seconds) {
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            hoursInput.value = hrs;
+            minutesInput.value = mins;
+            secondsInput.value = secs;
+        }
+        
+        // Handle alarm file selection
+        alarmFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Check if the file is an audio file
+            if (!file.type.startsWith('audio/')) {
+                alert('Please select an audio file');
+                return;
+            }
+            
+            // Display the selected file name
+            selectedFileDisplay.textContent = file.name;
+            
+            // Create a URL for the selected file
+            const fileURL = URL.createObjectURL(file);
+            
+            // Set the alarm sound source
+            alarmSound.src = fileURL;
+            
+            // Store the custom alarm
+            customAlarm = fileURL;
+        });
+        
+        // Play the alarm sound
+        function playAlarm() {
+            // If a custom alarm is set, use it
+            if (customAlarm) {
+                alarmSound.src = customAlarm;
+                alarmSound.play();
+            } else {
+                // Use the default alarm sound
+                alarmSound.src = 'https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3';
+                alarmSound.play();
+            }
+        }
+        
+        // Start the timer
+        function startTimer() {
+            if (!isRunning) {
+                // Update total seconds from inputs
+                totalSeconds = calculateTotalSeconds();
+                if (totalSeconds <= 0) {
+                    alert("Please set a valid time (greater than 0 seconds)");
+                    return;
+                }
+                
+                // If timer was completed, reset it
+                if (remainingSeconds <= 0) {
+                    remainingSeconds = totalSeconds;
+                    updateDisplay();
+                    updateProgressRing();
+                }
+                
+                isRunning = true;
+                startButton.disabled = true;
+                pauseButton.disabled = false;
+                
+                timerInterval = setInterval(() => {
+                    if (remainingSeconds > 0) {
+                        remainingSeconds--;
+                        updateDisplay();
+                        updateProgressRing();
+                    } else {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        startButton.disabled = false;
+                        pauseButton.disabled = false;
+                        playAlarm();
+                        finishedMessage.style.display = 'block';
+                        setTimeout(() => {
+                            finishedMessage.style.display = 'none';
+                        }, 4000);
+                    }
+                }, 1000);
+            }
+        }
+        
+        // Pause the timer
+        function pauseTimer() {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                startButton.disabled = false;
+            }
+        }
+        
+        // Reset the timer
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            startButton.disabled = false;
+            pauseButton.disabled = false;
+            totalSeconds = calculateTotalSeconds();
+            remainingSeconds = totalSeconds;
+            updateDisplay();
+            updateProgressRing();
+        }
+        
+        // Event listeners
+        startButton.addEventListener('click', startTimer);
+        pauseButton.addEventListener('click', pauseTimer);
+        resetButton.addEventListener('click', resetTimer);
+        
+        // Input validation
+        hoursInput.addEventListener('change', function() {
+            if (this.value < 0) this.value = 0;
+            if (this.value > 99) this.value = 99;
+            if (!isRunning) {
+                totalSeconds = calculateTotalSeconds();
+                remainingSeconds = totalSeconds;
+                updateDisplay();
+                updateProgressRing();
+            }
+        });
+        
+        minutesInput.addEventListener('change', function() {
+            if (this.value < 0) this.value = 0;
+            if (this.value > 59) this.value = 59;
+            if (!isRunning) {
+                totalSeconds = calculateTotalSeconds();
+                remainingSeconds = totalSeconds;
+                updateDisplay();
+                updateProgressRing();
+            }
+        });
+        
+        secondsInput.addEventListener('change', function() {
+            if (this.value < 0) this.value = 0;
+            if (this.value > 59) this.value = 59;
+            if (!isRunning) {
+                totalSeconds = calculateTotalSeconds();
+                remainingSeconds = totalSeconds;
+                updateDisplay();
+                updateProgressRing();
+            }
+        });
+        
+        // Initialize button states
+        pauseButton.disabled = false;
+        
+        // Preset buttons
+        presetButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const hours = parseInt(this.getAttribute('data-hours'));
+                const minutes = parseInt(this.getAttribute('data-minutes'));
+                const seconds = parseInt(this.getAttribute('data-seconds'));
+                
+                hoursInput.value = hours;
+                minutesInput.value = minutes;
+                secondsInput.value = seconds;
+                
+                if (!isRunning) {
+                    totalSeconds = calculateTotalSeconds();
+                    remainingSeconds = totalSeconds;
+                    updateDisplay();
+                    updateProgressRing();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
