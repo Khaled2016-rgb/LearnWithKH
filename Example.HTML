@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Timer with Custom Alarm</title>
-    <link rel="icon" href="https://as2.ftcdn.net/jpg/02/22/83/25/1000_F_222832528_XTlbSalrbI03qO0aULikqy0sBCThgf74.jpg">
+    <title>Advanced Timer with Custom Background</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -20,6 +20,9 @@
             background: linear-gradient(135deg, #1a2980, #26d0ce);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             padding: 20px;
+            transition: background 0.5s ease;
+            background-size: cover;
+            background-position: center;
         }
         
         .container {
@@ -119,27 +122,32 @@
             box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
         }
         
-        .alarm-sound {
+        .customization {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            margin: 15px 0;
+            gap: 15px;
             width: 100%;
+            max-width: 400px;
         }
         
-        .alarm-sound label {
+        .customization-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .customization-section label {
             color: white;
             font-weight: 600;
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-            font-size: 18px;
+            font-size: 16px;
+            text-align: center;
         }
         
         .file-input-container {
             position: relative;
             display: inline-block;
             width: 100%;
-            max-width: 300px;
         }
         
         .file-input-button {
@@ -165,7 +173,7 @@
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
         
-        #alarm-file {
+        .file-input {
             position: absolute;
             left: 0;
             top: 0;
@@ -177,10 +185,9 @@
         
         .selected-file {
             color: white;
-            margin-top: 10px;
+            margin-top: 8px;
             font-size: 14px;
             text-align: center;
-            max-width: 300px;
             word-break: break-word;
         }
         
@@ -268,6 +275,11 @@
             font-size: 14px;
         }
         
+        .reset-bg-btn {
+            background: linear-gradient(to right, #ff7e5f, #feb47b) !important;
+            margin-top: 10px;
+        }
+        
         @media (max-width: 600px) {
             .timer-display {
                 width: 250px;
@@ -325,15 +337,29 @@
             </div>
         </div>
         
-        <div class="alarm-sound">
-            <label>Alarm Sound,We are trying our best To Fix Erors</label>
-            <div class="file-input-container">
-                <div class="file-input-button">
-                    <i class="fas fa-music"></i> Choose Alarm Sound
+        <div class="customization">
+            <div class="customization-section">
+                <label>Alarm Sound</label>
+                <div class="file-input-container">
+                    <div class="file-input-button">
+                        <i class="fas fa-music"></i> Choose Alarm Sound
+                    </div>
+                    <input type="file" id="alarm-file" accept="audio/*" class="file-input">
                 </div>
-                <input type="file" id="alarm-file" accept="audio/*">
+                <div class="selected-file" id="alarm-selected-file">Default alarm sound</div>
             </div>
-            <div class="selected-file" id="selected-file">Default alarm sound</div>
+            
+            <div class="customization-section">
+                <label>Background Image</label>
+                <div class="file-input-container">
+                    <div class="file-input-button">
+                        <i class="fas fa-image"></i> Choose Background
+                    </div>
+                    <input type="file" id="background-file" accept="image/*" class="file-input">
+                </div>
+                <div class="selected-file" id="background-selected-file">Default background</div>
+                <button class="reset-bg-btn" id="reset-background"><i class="fas fa-times"></i> Reset Background</button>
+            </div>
         </div>
         
         <div class="presets">
@@ -366,6 +392,7 @@
         let timerInterval = null;
         let isRunning = false;
         let customAlarm = null;
+        let customBackground = null;
         
         const display = document.getElementById('display');
         const progressRing = document.getElementById('progress-ring');
@@ -377,13 +404,23 @@
         const secondsInput = document.getElementById('seconds');
         const alarmSound = document.getElementById('alarmSound');
         const alarmFileInput = document.getElementById('alarm-file');
-        const selectedFileDisplay = document.getElementById('selected-file');
+        const alarmSelectedFile = document.getElementById('alarm-selected-file');
+        const backgroundFileInput = document.getElementById('background-file');
+        const backgroundSelectedFile = document.getElementById('background-selected-file');
+        const resetBackgroundButton = document.getElementById('reset-background');
         const finishedMessage = document.getElementById('finishedMessage');
         const presetButtons = document.querySelectorAll('.preset-btn');
         
         // Initialize display and progress ring
         updateDisplay();
         updateProgressRing();
+        
+        // Load saved background if exists
+        const savedBackground = localStorage.getItem('timerBackground');
+        if (savedBackground) {
+            document.body.style.backgroundImage = `url(${savedBackground})`;
+            backgroundSelectedFile.textContent = "Custom background loaded";
+        }
         
         // Update progress ring based on remaining time
         function updateProgressRing() {
@@ -418,17 +455,6 @@
             return hours * 3600 + minutes * 60 + seconds;
         }
         
-        // Update inputs from total seconds
-        function updateInputsFromSeconds(seconds) {
-            const hrs = Math.floor(seconds / 3600);
-            const mins = Math.floor((seconds % 3600) / 60);
-            const secs = seconds % 60;
-            
-            hoursInput.value = hrs;
-            minutesInput.value = mins;
-            secondsInput.value = secs;
-        }
-        
         // Handle alarm file selection
         alarmFileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -441,7 +467,7 @@
             }
             
             // Display the selected file name
-            selectedFileDisplay.textContent = file.name;
+            alarmSelectedFile.textContent = file.name;
             
             // Create a URL for the selected file
             const fileURL = URL.createObjectURL(file);
@@ -451,6 +477,42 @@
             
             // Store the custom alarm
             customAlarm = fileURL;
+        });
+        
+        // Handle background file selection
+        backgroundFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Check if the file is an image file
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                return;
+            }
+            
+            // Display the selected file name
+            backgroundSelectedFile.textContent = file.name;
+            
+            // Create a URL for the selected file
+            const fileURL = URL.createObjectURL(file);
+            
+            // Set the background image
+            document.body.style.backgroundImage = `url(${fileURL})`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            
+            // Store the custom background in localStorage
+            localStorage.setItem('timerBackground', fileURL);
+            customBackground = fileURL;
+        });
+        
+        // Reset background to default
+        resetBackgroundButton.addEventListener('click', function() {
+            document.body.style.backgroundImage = '';
+            document.body.style.background = 'linear-gradient(135deg, #1a2980, #26d0ce)';
+            backgroundSelectedFile.textContent = 'Default background';
+            localStorage.removeItem('timerBackground');
+            customBackground = null;
         });
         
         // Play the alarm sound
@@ -591,6 +653,4 @@
         });
     </script>
 </body>
-
 </html>
-
