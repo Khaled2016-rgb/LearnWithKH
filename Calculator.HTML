@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultra-Smooth Business Calculator</title>
+    <title>Premium Business Calculator</title>
     <link rel="icon" href="https://www.citypng.com/public/uploads/preview/hd-calculator-app-logo-icon-transparent-background-701751694975010wqimodh0br.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -20,8 +21,101 @@
             min-height: 100vh;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
+            transition: background 1s ease;
         }
         
+        /* Lock Page Styles */
+        .lock-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            transition: opacity 0.5s ease;
+        }
+        
+        .lock-content {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeIn 0.8s ease;
+        }
+        
+        .lock-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: gold;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+        
+        .lock-title {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .lock-message {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+        
+        .subscribe-btn {
+            background: linear-gradient(to right, #ff9a00, #ff6a00);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 106, 0, 0.3);
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        
+        .subscribe-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 106, 0, 0.4);
+        }
+        
+        .subscribe-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .lock-footer {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* Calculator Styles */
         .calculator-container {
             width: 100%;
             max-width: 400px;
@@ -34,6 +128,14 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
             transform: translateZ(0);
             will-change: transform;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        
+        .calculator-container.show {
+            opacity: 1;
+            transform: scale(1);
         }
         
         .calculator-header {
@@ -42,6 +144,9 @@
             text-align: center;
             color: white;
             position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         .calculator-header::after {
@@ -59,6 +164,30 @@
             font-size: 1.4rem;
             letter-spacing: 1.5px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .header-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
         }
         
         .display {
@@ -232,6 +361,145 @@
             text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
         }
         
+        /* Customization Panel */
+        .customization-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(30, 30, 40, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            z-index: 2000;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            color: white;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .customization-panel.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .close-panel {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        
+        .close-panel:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .background-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .bg-option {
+            height: 80px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .bg-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .bg-option.active {
+            border-color: #ff9a00;
+            box-shadow: 0 0 0 3px rgba(255, 154, 0, 0.3);
+        }
+        
+        .shortcuts-list {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .shortcut-item:last-child {
+            border-bottom: none;
+        }
+        
+        .shortcut-key {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(40, 40, 50, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 3000;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .toast i {
+            color: #ff9a00;
+        }
+        
         /* Ripple animation */
         @keyframes ripple {
             0% {
@@ -271,13 +539,49 @@
             .current-input {
                 font-size: 2.8rem;
             }
+            
+            .lock-title {
+                font-size: 1.7rem;
+            }
+            
+            .lock-message {
+                font-size: 1.1rem;
+            }
+            
+            .background-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
-    <div class="calculator-container">
+    <!-- Lock Page -->
+    <div class="lock-page" id="lockPage">
+        <div class="lock-content">
+            <div class="lock-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2 class="lock-title">Calculator Locked</h2>
+            <p class="lock-message">Disable Mode: Please Subscribe to unlock the calculator and finish your calculations more quickly!</p>
+            <button class="subscribe-btn" id="unlockBtn">Subscribe Now</button>
+            <div class="lock-footer">
+                <p>Premium features require subscription</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Calculator -->
+    <div class="calculator-container" id="calculatorContainer">
         <div class="calculator-header">
             <h1>PREMIUM BUSINESS CALCULATOR</h1>
+            <div class="header-controls">
+                <button class="header-btn" id="settingsBtn" title="Customize (S)">
+                    <i class="fas fa-palette"></i>
+                </button>
+                <button class="header-btn" id="helpBtn" title="Keyboard Shortcuts (?)">
+                    <i class="fas fa-question"></i>
+                </button>
+            </div>
         </div>
         
         <div class="display">
@@ -317,7 +621,139 @@
         </div>
     </div>
 
+    <!-- Customization Panel -->
+    <div class="customization-panel" id="customizationPanel">
+        <div class="panel-header">
+            <h2 class="panel-title">Customize Calculator</h2>
+            <button class="close-panel" id="closePanel">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <h3>Background Theme</h3>
+        <div class="background-options">
+            <div class="bg-option active" data-bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"></div>
+            <div class="bg-option" data-bg="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"></div>
+            <div class="bg-option" data-bg="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"></div>
+            <div class="bg-option" data-bg="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"></div>
+            <div class="bg-option" data-bg="linear-gradient(135deg, #fa709a 0%, #fee140 100%)" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)"></div>
+            <div class="bg-option" data-bg="linear-gradient(135deg, #30cfd0 0%, #330867 100%)" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%)"></div>
+        </div>
+        
+        <h3>Keyboard Shortcuts</h3>
+        <div class="shortcuts-list">
+            <div class="shortcut-item">
+                <span>Clear calculator</span>
+                <span class="shortcut-key">Esc</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Delete last digit</span>
+                <span class="shortcut-key">Backspace</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Calculate result</span>
+                <span class="shortcut-key">Enter or =</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Basic operations</span>
+                <span class="shortcut-key">+ - * /</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Show shortcuts</span>
+                <span class="shortcut-key">?</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Open settings</span>
+                <span class="shortcut-key">S</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Square root</span>
+                <span class="shortcut-key">@</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Percentage</span>
+                <span class="shortcut-key">%</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Toggle sign</span>
+                <span class="shortcut-key">_</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-keyboard"></i>
+        <span id="toastMessage">Shortcut activated</span>
+    </div>
+
     <script>
+        // Lock Page Logic
+        const lockPage = document.getElementById('lockPage');
+        const calculatorContainer = document.getElementById('calculatorContainer');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const helpBtn = document.getElementById('helpBtn');
+        const customizationPanel = document.getElementById('customizationPanel');
+        const closePanel = document.getElementById('closePanel');
+        const bgOptions = document.querySelectorAll('.bg-option');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        
+        // Show toast notification
+        function showToast(message) {
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+        
+        // Open YouTube channel when Subscribe button is clicked
+        unlockBtn.addEventListener('click', function() {
+            window.open('https://www.youtube.com/channel/UC-y6BeP404_1LLcfy7pXAoA', '_blank');
+            
+            // Hide lock page and show calculator
+            lockPage.style.opacity = '0';
+            setTimeout(() => {
+                lockPage.classList.add('hidden');
+                calculatorContainer.classList.add('show');
+            }, 500);
+        });
+        
+        // Open customization panel
+        settingsBtn.addEventListener('click', function() {
+            customizationPanel.classList.add('show');
+        });
+        
+        // Close customization panel
+        closePanel.addEventListener('click', function() {
+            customizationPanel.classList.remove('show');
+        });
+        
+        // Change background
+        bgOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove active class from all options
+                bgOptions.forEach(opt => opt.classList.remove('active'));
+                
+                // Add active class to clicked option
+                this.classList.add('active');
+                
+                // Change body background
+                const bg = this.getAttribute('data-bg');
+                document.body.style.background = bg;
+                showToast('Background changed');
+            });
+        });
+        
+        // Show help on button click
+        helpBtn.addEventListener('click', function() {
+            customizationPanel.classList.add('show');
+            showToast('Shortcuts panel opened');
+        });
+        
+        // Calculator Logic
         document.addEventListener('DOMContentLoaded', function() {
             const display = document.querySelector('.current-input');
             const previousOperation = document.querySelector('.previous-operation');
@@ -355,6 +791,7 @@
                 operation = null;
                 resetScreen = false;
                 updateDisplay();
+                showToast('Calculator cleared');
             }
             
             // Delete last character
@@ -365,6 +802,7 @@
                     currentValue = currentValue.slice(0, -1);
                 }
                 updateDisplay();
+                showToast('Last digit deleted');
             }
             
             // Append number to current value
@@ -396,6 +834,43 @@
                 previousValue = currentValue;
                 resetScreen = true;
                 updateDisplay();
+                showToast(`Operation: ${op}`);
+            }
+            
+            // Calculate square root
+            function squareRoot() {
+                const value = parseFloat(currentValue.replace(/,/g, ''));
+                if (value < 0) {
+                    currentValue = 'Error';
+                } else {
+                    currentValue = Math.sqrt(value).toString();
+                    if (currentValue.length > 12) {
+                        currentValue = parseFloat(currentValue).toFixed(8);
+                    }
+                }
+                updateDisplay();
+                showToast('Square root calculated');
+            }
+            
+            // Calculate percentage
+            function percentage() {
+                const value = parseFloat(currentValue.replace(/,/g, ''));
+                currentValue = (value / 100).toString();
+                updateDisplay();
+                showToast('Percentage calculated');
+            }
+            
+            // Toggle positive/negative
+            function toggleSign() {
+                if (currentValue !== '0' && currentValue !== 'Error') {
+                    if (currentValue.startsWith('-')) {
+                        currentValue = currentValue.substring(1);
+                    } else {
+                        currentValue = '-' + currentValue;
+                    }
+                    updateDisplay();
+                    showToast('Sign toggled');
+                }
             }
             
             // Calculate result with smooth animation
@@ -449,6 +924,7 @@
                 previousValue = '';
                 resetScreen = true;
                 updateDisplay();
+                showToast('Calculation complete');
             }
             
             // Add event listeners to buttons with smooth feedback
@@ -486,8 +962,55 @@
                 });
             });
             
-            // Keyboard support
+            // Keyboard support with real shortcuts
             document.addEventListener('keydown', (event) => {
+                // Don't process keys if customization panel is open
+                if (customizationPanel.classList.contains('show')) {
+                    if (event.key === 'Escape') {
+                        customizationPanel.classList.remove('show');
+                        showToast('Panel closed');
+                    }
+                    return;
+                }
+                
+                // Don't process keys if lock page is visible
+                if (!lockPage.classList.contains('hidden')) {
+                    return;
+                }
+                
+                // Process calculator shortcuts
+                if (event.key === 's' || event.key === 'S') {
+                    event.preventDefault();
+                    customizationPanel.classList.add('show');
+                    showToast('Settings opened');
+                    return;
+                }
+                
+                if (event.key === '?') {
+                    event.preventDefault();
+                    customizationPanel.classList.add('show');
+                    showToast('Shortcuts panel opened');
+                    return;
+                }
+                
+                if (event.key === '@') {
+                    event.preventDefault();
+                    squareRoot();
+                    return;
+                }
+                
+                if (event.key === '%') {
+                    event.preventDefault();
+                    percentage();
+                    return;
+                }
+                
+                if (event.key === '_') {
+                    event.preventDefault();
+                    toggleSign();
+                    return;
+                }
+                
                 if (/[0-9]/.test(event.key)) {
                     appendNumber(event.key);
                 } else if (event.key === '.') {
@@ -513,4 +1036,3 @@
     </script>
 </body>
 </html>
-
