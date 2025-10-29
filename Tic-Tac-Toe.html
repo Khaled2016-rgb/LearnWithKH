@@ -3,17 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic-Tac-Toe with Adjustable Difficulty</title>
+    <title>Advanced Tic-Tac-Toe AI</title>
+    <!-- Load Tone.js for high-quality sound generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            font-family: 'Inter', sans-serif;
+            /* New Animated Gradient Background (Deeper colors for better contrast) */
+            background: linear-gradient(-45deg, #0f1d4f, #8b1313, #e29413, #43389a);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite; 
             color: white;
             min-height: 100vh;
             display: flex;
@@ -22,568 +28,940 @@
             justify-content: center;
             padding: 20px;
         }
-        
+
+        /* Define the gradient animation */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         .container {
-            max-width: 600px;
             width: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            max-width: 500px;
+            /* --- LIQUID GLASS EFFECT --- */
+            background: rgba(255, 255, 255, 0.05); /* Very light, transparent background */
+            backdrop-filter: blur(20px); /* Heavy blur for frosted glass */
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            /* Soft, white/blue shadow for a glow effect */
+            box-shadow: 0 0 40px rgba(135, 206, 235, 0.2), 0 10px 20px rgba(0, 0, 0, 0.5); 
             text-align: center;
+            /* Light, subtle border for definition */
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
+
         h1 {
             font-size: 2.8rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            margin-bottom: 5px;
+            /* Vibrant, watery Gradient Text */
+            background: linear-gradient(to right, #00c6ff, #0072ff, #2980b9);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            font-weight: 900;
         }
-        
+
         .subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            color: #ddd;
-        }
-        
-        .difficulty-selector {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        
-        .difficulty-btn {
-            padding: 12px 25px;
             font-size: 1.1rem;
-            border: none;
+            margin-bottom: 20px;
+            color: #d0e8f0; /* Lighter text for glass */
+        }
+
+        /* --- Controls & Status --- */
+        .controls {
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .status {
+            font-size: 1.3rem;
+            font-weight: 700;
+            padding: 15px 10px;
+            /* Glass status box */
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            min-height: 40px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 5px solid #00c6ff; /* Watery highlight color */
+            color: #e0f7fa;
+        }
+
+        /* --- Difficulty and Symbol Buttons --- */
+        .difficulty-buttons, .symbol-selection {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .symbol-selection {
+            margin-bottom: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- Buttons General Style (Glass Look) --- */
+        .btn {
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 50px;
+            font-size: 0.9rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
+            transition: all 0.2s ease;
+            font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 1px;
+            color: #e0f7fa; /* Icy white text */
+            background: rgba(255, 255, 255, 0.1); /* Glass background */
+            box-shadow: none; /* Removed heavy 3D shadow */
+            backdrop-filter: blur(5px);
         }
-        
-        .easy-btn {
-            background: linear-gradient(to right, #56ab2f, #a8e063);
-            color: #333;
-        }
-        
-        .medium-btn {
-            background: linear-gradient(to right, #ffa751, #ffe259);
-            color: #333;
-        }
-        
-        .hard-btn {
-            background: linear-gradient(to right, #ff416c, #ff4b2b);
-            color: white;
-        }
-        
-        .difficulty-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .difficulty-btn.active {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-        }
-        
-        .game-info {
-            margin-bottom: 20px;
-            font-size: 1.3rem;
-            min-height: 40px;
-        }
-        
-        .game-board {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-gap: 10px;
-            margin: 0 auto 30px;
-            max-width: 300px;
-        }
-        
-        .cell {
-            aspect-ratio: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .cell:hover {
+
+        .btn:hover {
+            transform: translateY(0);
+            /* Blue glow on hover for liquid feel */
+            box-shadow: 0 0 15px rgba(0, 198, 255, 0.5); 
             background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
         }
-        
-        .cell.x {
-            color: #ff7e5f;
+
+        .btn:active {
+            transform: translateY(0); 
+            /* Inset glow on press */
+            box-shadow: inset 0 0 10px rgba(0, 198, 255, 0.8); 
+            background: rgba(255, 255, 255, 0.15);
         }
+                
+        /* Specific Button Selection Styles (Colored Glow/Border) */
+        .difficulty-btn, .symbol-btn { background: rgba(255, 255, 255, 0.1); } /* Ensure default is glass */
         
-        .cell.o {
-            color: #7ee8fa;
+        .difficulty-btn.selected, .symbol-btn.selected {
+            transform: scale(1.03);
+            background: rgba(0, 198, 255, 0.3); /* Base cyan tint on selection */
+            box-shadow: 0 0 20px rgba(0, 198, 255, 0.8), inset 0 0 10px rgba(255, 255, 255, 0.5);
+            border: 1px solid #00c6ff; 
         }
+
+        .easy-btn.selected { border: 2px solid #2ecc71; box-shadow: 0 0 15px #2ecc71; background: rgba(46, 204, 113, 0.15); }
+        .medium-btn.selected { border: 2px solid #f39c12; box-shadow: 0 0 15px #f39c12; background: rgba(243, 156, 18, 0.15); }
+        .hard-btn.selected { border: 2px solid #e74c3c; box-shadow: 0 0 15px #e74c3c; background: rgba(231, 76, 60, 0.15); }
+        .impossible-btn.selected { border: 2px solid #9b59b6; box-shadow: 0 0 15px #9b59b6; background: rgba(155, 89, 182, 0.15); }
+
+        .x-btn.selected { border: 2px solid #ff7e5f; box-shadow: 0 0 15px #ff7e5f; background: rgba(255, 126, 95, 0.15); }
+        .o-btn.selected { border: 2px solid #7ee8fa; box-shadow: 0 0 15px #7ee8fa; background: rgba(126, 232, 250, 0.15); }
         
-        .controls {
+        /* New Game/Restart Round and Mute Buttons */
+        .game-controls {
             display: flex;
             justify-content: center;
+            align-items: center; 
             gap: 15px;
             margin-top: 20px;
         }
         
         .control-btn {
-            padding: 12px 25px;
-            font-size: 1.1rem;
-            border: none;
+            background: rgba(255, 255, 255, 0.1); /* Use glass base style */
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #e0f7fa;
+            padding: 12px 20px;
+            font-size: 1rem;
             border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            background: linear-gradient(to right, #667eea, #764ba2);
-            color: white;
+            box-shadow: none; /* No 3D shadow */
+            min-width: 120px; 
         }
-        
+
         .control-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
         }
-        
+
+        /* Mute button specific style */
+        #mute-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0f7fa;
+            box-shadow: none;
+            font-size: 0.8rem;
+            padding: 10px 15px;
+            min-width: 90px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #mute-btn.muted {
+            background: rgba(231, 76, 60, 0.3); /* Red glass when muted */
+            color: white;
+            border: 1px solid #e74c3c;
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.7);
+        }
+
+        /* --- Game Board (Super Glassy) --- */
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 10px;
+            width: 100%;
+            max-width: 330px; 
+            aspect-ratio: 1 / 1; 
+            margin: 0 auto 10px auto;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            /* Heavy glass cell */
+            background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(8px);
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4.5rem; 
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            line-height: 1;
+            /* Subtle border and inner shadow for depth */
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3); 
+        }
+
+        .cell:hover:not(.locked) {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.02);
+            /* Blue glow on hover for liquid feel */
+            box-shadow: inset 0 0 20px rgba(0, 198, 255, 0.5); 
+        }
+
+        .cell.win {
+            /* Watery blue-green win color */
+            background-color: rgba(0, 198, 255, 0.5); 
+            color: white;
+            animation: win-pulse 0.6s infinite alternate; 
+            transform: scale(1.05);
+        }
+
+        @keyframes win-pulse {
+            /* Blue glowing pulse */
+            0% { box-shadow: 0 0 10px #00c6ff, 0 0 30px #00c6ff; }
+            100% { box-shadow: 0 0 20px #00c6ff, 0 0 40px #00c6ff; }
+        }
+
+        .cell.locked {
+            cursor: default;
+        }
+
+        /* Symbol colors with strong glow */
+        .cell.x {
+            color: #ff5733; /* X Color - Vibrant Reddish Orange */
+            text-shadow: 0 0 10px #ff5733, 0 0 20px rgba(255, 87, 51, 0.8);
+        }
+
+        .cell.o {
+            color: #3498db; /* O Color - Vibrant Blue */
+            text-shadow: 0 0 10px #3498db, 0 0 20px rgba(52, 152, 219, 0.8);
+        }
+
+        /* Score Board Style (Glass) */
         .score-board {
             display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-            background: rgba(255, 255, 255, 0.1);
+            justify-content: space-between;
+            margin-top: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
             border-radius: 10px;
-            padding: 15px;
+            padding: 15px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.3);
+            flex-wrap: wrap; 
         }
-        
+
         .score {
             text-align: center;
+            flex: 1 1 20%; 
+            min-width: 65px; 
+            margin: 5px 0;
+            padding: 0 5px;
+        }
+
+        .score-label {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: #a0c2c9; /* Icy label color */
         }
         
         .score-value {
-            font-size: 2rem;
-            font-weight: bold;
+            font-size: 2.2rem;
+            font-weight: 900;
             margin-top: 5px;
+            line-height: 1;
+            transition: color 0.3s ease;
         }
-        
-        .player-score {
-            color: #ff7e5f;
+
+        /* Specific coloring for score values */
+        .player-score { color: #ff5733; }
+        .computer-score { color: #3498db; }
+        .ties-score { color: #2ecc71; } 
+        .time-score { color: #00c6ff; } /* Watery time color */ 
+
+        .score-value span {
+            color: inherit;
         }
-        
-        .computer-score {
-            color: #7ee8fa;
-        }
-        
-        .ties-score {
-            color: #a8e063;
-        }
-        
-        .instructions {
-            margin-top: 30px;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            font-size: 0.9rem;
-            text-align: left;
-        }
-        
-        .instructions h3 {
-            margin-bottom: 10px;
-            text-align: center;
-            color: #ffe259;
-        }
-        
-        .instructions ul {
-            list-style-type: none;
-            padding-left: 10px;
-        }
-        
-        .instructions li {
-            margin-bottom: 8px;
-            padding-left: 20px;
-            position: relative;
-        }
-        
-        .instructions li:before {
-            content: "•";
-            color: #ffe259;
-            position: absolute;
-            left: 0;
-        }
-        
+
+        /* Media Queries for smaller screens */
         @media (max-width: 500px) {
             .container {
                 padding: 15px;
             }
-            
             h1 {
                 font-size: 2.2rem;
             }
-            
-            .difficulty-btn, .control-btn {
-                padding: 10px 20px;
+            .cell {
+                font-size: 3.5rem;
+            }
+            .status {
                 font-size: 1rem;
             }
-            
-            .cell {
-                font-size: 2.5rem;
+            .score {
+                flex: 1 1 40%; /* 2 items per row on mobile */
+                margin: 5px 0;
             }
-        }
+            .score-value {
+                font-size: 1.8rem;
+            }
+            .game-controls {
+                flex-wrap: wrap;
+            }
+            .control-btn, #mute-btn {
+                min-width: 100px;
+                flex: 1 1 auto;
+            }
+        }    
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Tic-Tac-Toe</h1>
-        <p class="subtitle">Choose your difficulty and test your skills!</p>
-        
-        <div class="difficulty-selector">
-            <button class="difficulty-btn easy-btn active" data-difficulty="easy">Easy</button>
-            <button class="difficulty-btn medium-btn" data-difficulty="medium">Medium</button>
-            <button class="difficulty-btn hard-btn" data-difficulty="hard">Hard</button>
-        </div>
-        
-        <div class="game-info" id="gameInfo">Your turn! You are X</div>
-        
-        <div class="game-board" id="gameBoard">
-            <div class="cell" data-index="0"></div>
-            <div class="cell" data-index="1"></div>
-            <div class="cell" data-index="2"></div>
-            <div class="cell" data-index="3"></div>
-            <div class="cell" data-index="4"></div>
-            <div class="cell" data-index="5"></div>
-            <div class="cell" data-index="6"></div>
-            <div class="cell" data-index="7"></div>
-            <div class="cell" data-index="8"></div>
-        </div>
-        
+        <h1>Tic-Tac-Toe AI</h1>
+        <p class="subtitle">Choose your symbol and difficulty.</p>
+
         <div class="controls">
-            <button class="control-btn" id="restartBtn">Restart Game</button>
-            <button class="control-btn" id="newGameBtn">New Game</button>
+            <div id="symbol-selection" class="symbol-selection">
+                <button data-symbol="X" class="btn symbol-btn x-btn selected">Play as X</button>
+                <button data-symbol="O" class="btn symbol-btn o-btn">Play as O</button>
+            </div>
+                        
+            <div id="difficulty-buttons" class="difficulty-buttons">
+                <button data-difficulty="EASY" class="btn difficulty-btn easy-btn">Easy</button>
+                <button data-difficulty="MEDIUM" class="btn difficulty-btn medium-btn selected">Medium</button>
+                <button data-difficulty="HARD" class="btn difficulty-btn hard-btn">Hard</button>
+                <button data-difficulty="IMPOSSIBLE" class="btn difficulty-btn impossible-btn">Impossible</button>
+            </div>
         </div>
-        
+                
+        <div class="status">
+            <span id="message">Select difficulty and click a cell to start.</span>
+        </div>
+
+        <div class="board" id="board">
+            <!-- Cells will be generated by JavaScript -->
+        </div>
+
+        <div class="game-controls">
+            <button id="restart-round-btn" class="btn control-btn">Restart Round</button>
+            <button id="new-game-btn" class="btn control-btn">New Game</button>
+            <button id="mute-btn" class="btn">Mute Sound</button>
+        </div>
+
         <div class="score-board">
             <div class="score">
-                <div>Player (X)</div>
-                <div class="score-value player-score" id="playerScore">0</div>
+                <div class="score-label" id="playerSymbolLabel">Player (X)</div>
+                <div class="score-value player-score" id="playerScoreContainer">
+                    <span id="playerScore">0</span>
+                </div>
             </div>
+                        
             <div class="score">
-                <div>Ties</div>
-                <div class="score-value ties-score" id="tiesScore">0</div>
+                <div class="score-label">Time</div>
+                <div class="score-value time-score" id="timeScoreContainer">
+                    <span id="timer">00:00</span>
+                </div>
             </div>
+
             <div class="score">
-                <div>Computer (O)</div>
-                <div class="score-value computer-score" id="computerScore">0</div>
+                <div class="score-label">Ties</div>
+                <div class="score-value ties-score" id="tiesScoreContainer">
+                    <span id="tiesScore">0</span>
+                </div>
             </div>
-        </div>
-        
-        <div class="instructions">
-            <h3>How to Play & Difficulty Levels</h3>
-            <ul>
-                <li><strong>Easy:</strong> Computer makes random moves (easy to beat)</li>
-                <li><strong>Medium:</strong> Computer sometimes plays smart, sometimes makes mistakes</li>
-                <li><strong>Hard:</strong> Computer uses advanced strategy (very hard to beat)</li>
-                <li>Click on any empty cell to place your X</li>
-                <li>Get three X's in a row (horizontally, vertically, or diagonally) to win!</li>
-            </ul>
+            
+            <div class="score">
+                <div class="score-label" id="computerSymbolLabel">Computer (O)</div>
+                <div class="score-value computer-score" id="computerScoreContainer">
+                    <span id="computerScore">0</span>
+                </div>
+            </div>
         </div>
     </div>
-
     <script>
-        // Game state
-        const gameState = {
-            board: ['', '', '', '', '', '', '', '', ''],
-            currentPlayer: 'X',
-            gameActive: true,
-            difficulty: 'easy',
-            scores: {
-                player: 0,
-                computer: 0,
-                ties: 0
-            }
-        };
+        // Global Game State
+        let board = Array(9).fill(null);
+        let gameActive = false;
+        let humanSymbol = 'X'; 
+        let computerSymbol = 'O'; 
+        let currentTurnSymbol = 'X'; 
+        let difficulty = 'MEDIUM';
+        let scores = { player: 0, computer: 0, ties: 0 }; 
 
-        // DOM Elements
-        const gameBoard = document.getElementById('gameBoard');
-        const gameInfo = document.getElementById('gameInfo');
-        const restartBtn = document.getElementById('restartBtn');
-        const newGameBtn = document.getElementById('newGameBtn');
-        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
-        const playerScore = document.getElementById('playerScore');
-        const computerScore = document.getElementById('computerScore');
-        const tiesScore = document.getElementById('tiesScore');
+        // Timer State
+        let timerInterval = null;
+        let startTime = 0;
+        let audioInitialized = false; 
 
-        // Winning combinations
-        const winningConditions = [
-            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
-            [0, 4, 8], [2, 4, 6]             // Diagonals
+        // Tone.js Instruments and State
+        let moveSynth;
+        let winSynth;
+        let drawSynth;
+        let bgSynth = null;
+        let bgReverb = null; // New global variable for the ambient reverb effect
+        let bgLoop = null;
+        let isMuted = false; // Initial state: not muted
+
+        const WINNING_COMBINATIONS = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], 
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], 
+            [0, 4, 8], [2, 4, 6]             
         ];
 
-        // Initialize the game
-        function initGame() {
-            gameBoard.addEventListener('click', handleCellClick);
-            restartBtn.addEventListener('click', restartGame);
-            newGameBtn.addEventListener('click', newGame);
-            
-            // Add event listeners to difficulty buttons
-            difficultyBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // Remove active class from all buttons
-                    difficultyBtns.forEach(b => b.classList.remove('active'));
-                    // Add active class to clicked button
-                    btn.classList.add('active');
-                    // Set difficulty
-                    gameState.difficulty = btn.dataset.difficulty;
-                    gameInfo.textContent = `Difficulty set to ${gameState.difficulty.toUpperCase()}. Your turn!`;
-                    restartGame();
-                });
-            });
-            
-            updateScoreDisplay();
-        }
-
-        // Handle cell click
-        function handleCellClick(e) {
-            const clickedCell = e.target;
-            const cellIndex = parseInt(clickedCell.getAttribute('data-index'));
-
-            // Check if cell is already occupied or game is not active
-            if (gameState.board[cellIndex] !== '' || !gameState.gameActive) {
-                return;
-            }
-
-            // Player's move
-            makeMove(cellIndex, 'X');
-            
-            // Check for winner or tie after player's move
-            if (checkWinner('X')) {
-                gameInfo.textContent = 'Congratulations! You won!';
-                gameState.scores.player++;
-                updateScoreDisplay();
-                gameState.gameActive = false;
-                return;
-            }
-            
-            if (isBoardFull()) {
-                gameInfo.textContent = "It's a tie!";
-                gameState.scores.ties++;
-                updateScoreDisplay();
-                gameState.gameActive = false;
-                return;
-            }
-
-            // Computer's move
-            setTimeout(() => {
-                if (gameState.gameActive) {
-                    makeComputerMove();
-                    
-                    // Check for winner or tie after computer's move
-                    if (checkWinner('O')) {
-                        gameInfo.textContent = 'Computer wins!';
-                        gameState.scores.computer++;
-                        updateScoreDisplay();
-                        gameState.gameActive = false;
-                        return;
-                    }
-                    
-                    if (isBoardFull()) {
-                        gameInfo.textContent = "It's a tie!";
-                        gameState.scores.ties++;
-                        updateScoreDisplay();
-                        gameState.gameActive = false;
-                        return;
-                    }
-                }
-            }, 500);
-        }
-
-        // Make a move on the board
-        function makeMove(index, player) {
-            gameState.board[index] = player;
-            const cell = document.querySelector(`.cell[data-index="${index}"]`);
-            cell.textContent = player;
-            cell.classList.add(player.toLowerCase());
-            
-            if (player === 'X') {
-                gameInfo.textContent = "Computer's turn...";
-            } else {
-                gameInfo.textContent = "Your turn!";
-            }
-        }
-
-        // Computer's move based on difficulty
-        function makeComputerMove() {
-            let move;
-            
-            switch (gameState.difficulty) {
-                case 'easy':
-                    move = getEasyMove();
-                    break;
-                case 'medium':
-                    move = getMediumMove();
-                    break;
-                case 'hard':
-                    move = getHardMove();
-                    break;
-            }
-            
-            if (move !== undefined) {
-                makeMove(move, 'O');
-            }
-        }
-
-        // Easy mode: random moves
-        function getEasyMove() {
-            const emptyCells = gameState.board
-                .map((cell, index) => cell === '' ? index : null)
-                .filter(cell => cell !== null);
-            
-            return emptyCells[Math.floor(Math.random() * emptyCells.length)];
-        }
-
-        // Medium mode: sometimes smart, sometimes random
-        function getMediumMove() {
-            // 70% chance to make a smart move, 30% chance to make a random move
-            if (Math.random() < 0.7) {
-                // Try to win
-                for (let i = 0; i < winningConditions.length; i++) {
-                    const [a, b, c] = winningConditions[i];
-                    if (gameState.board[a] === 'O' && gameState.board[b] === 'O' && gameState.board[c] === '') {
-                        return c;
-                    }
-                    if (gameState.board[a] === 'O' && gameState.board[c] === 'O' && gameState.board[b] === '') {
-                        return b;
-                    }
-                    if (gameState.board[b] === 'O' && gameState.board[c] === 'O' && gameState.board[a] === '') {
-                        return a;
-                    }
-                }
+        // DOM Elements
+        const boardElement = document.getElementById('board');        
+        const messageElement = document.getElementById('message');        
+        const timerElement = document.getElementById('timer');         
+        const restartRoundBtn = document.getElementById('restart-round-btn');         
+        const newGameBtn = document.getElementById('new-game-btn');         
+        const muteBtn = document.getElementById('mute-btn'); // New Mute Button
+        const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+        const symbolButtons = document.querySelectorAll('.symbol-btn');
+        const difficultyContainer = document.getElementById('difficulty-buttons');
+        const symbolContainer = document.getElementById('symbol-selection');
                 
-                // Block player's winning move
-                for (let i = 0; i < winningConditions.length; i++) {
-                    const [a, b, c] = winningConditions[i];
-                    if (gameState.board[a] === 'X' && gameState.board[b] === 'X' && gameState.board[c] === '') {
-                        return c;
-                    }
-                    if (gameState.board[a] === 'X' && gameState.board[c] === 'X' && gameState.board[b] === '') {
-                        return b;
-                    }
-                    if (gameState.board[b] === 'X' && gameState.board[c] === 'X' && gameState.board[a] === '') {
-                        return a;
-                    }
-                }
-            }
-            
-            // If no smart move or random chance, make a random move
-            return getEasyMove();
-        }
+        // Score labels for dynamic updating        
+        const playerScoreEl = document.getElementById('playerScore');         
+        const computerScoreEl = document.getElementById('computerScore');         
+        const tiesScoreEl = document.getElementById('tiesScore');         
+        const playerSymbolLabel = document.getElementById('playerSymbolLabel');
+        const computerSymbolLabel = document.getElementById('computerSymbolLabel');
 
-        // Hard mode: uses minimax algorithm for optimal play
-        function getHardMove() {
-            // Simple strategy for hard mode (not full minimax for simplicity)
-            // Try to win
-            for (let i = 0; i < winningConditions.length; i++) {
-                const [a, b, c] = winningConditions[i];
-                if (gameState.board[a] === 'O' && gameState.board[b] === 'O' && gameState.board[c] === '') {
-                    return c;
-                }
-                if (gameState.board[a] === 'O' && gameState.board[c] === 'O' && gameState.board[b] === '') {
-                    return b;
-                }
-                if (gameState.board[b] === 'O' && gameState.board[c] === 'O' && gameState.board[a] === '') {
-                    return a;
-                }
-            }
-            
-            // Block player's winning move
-            for (let i = 0; i < winningConditions.length; i++) {
-                const [a, b, c] = winningConditions[i];
-                if (gameState.board[a] === 'X' && gameState.board[b] === 'X' && gameState.board[c] === '') {
-                    return c;
-                }
-                if (gameState.board[a] === 'X' && gameState.board[c] === 'X' && gameState.board[b] === '') {
-                    return b;
-                }
-                if (gameState.board[b] === 'X' && gameState.board[c] === 'X' && gameState.board[a] === '') {
-                    return a;
-                }
-            }
-            
-            // Take center if available
-            if (gameState.board[4] === '') {
-                return 4;
-            }
-            
-            // Take corners if available
-            const corners = [0, 2, 6, 8];
-            const availableCorners = corners.filter(index => gameState.board[index] === '');
-            if (availableCorners.length > 0) {
-                return availableCorners[Math.floor(Math.random() * availableCorners.length)];
-            }
-            
-            // Otherwise, make a random move
-            return getEasyMove();
-        }
+        // --- Audio Functions ---
 
-        // Check if there's a winner
-        function checkWinner(player) {
-            return winningConditions.some(condition => {
-                return condition.every(index => {
-                    return gameState.board[index] === player;
-                });
+        /**
+         * Initializes Tone.js instruments and contexts. 
+         * Must be called on a user-initiated event (like the first click).
+         */
+        function initializeAudio() {
+            if (audioInitialized) return;
+
+            // 1. Move Sound (unchanged)
+            moveSynth = new Tone.MembraneSynth().toDestination();
+            moveSynth.volume.value = -10; 
+
+            // 2. Win Sound (unchanged)
+            winSynth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.1, decay: 0.5, sustain: 0.1, release: 1 },
+                volume: -6
+            }).toDestination();
+
+            // 3. Draw Sound (unchanged)
+            drawSynth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "triangle" },
+                envelope: { attack: 0.05, decay: 0.3, sustain: 0, release: 0.5 },
+                volume: -10
+            }).toDestination();
+            
+            // 4. Background Sound (Focus Ambient Pad)
+            
+            // Setup Reverb for a deep space sound
+            bgReverb = new Tone.Reverb({
+                decay: 8, // Very long decay for an atmospheric feel
+                preDelay: 0.01,
+                wet: 0.6 // Heavy wet signal for ambiance
+            }).toDestination();
+            
+            // Use PolySynth with AM for a thicker, textured sound
+            bgSynth = new Tone.PolySynth(Tone.AMSynth, {
+                volume: -20, // Extremely quiet
+                oscillator: { type: "triangle" }, // Softer wave
+                envelope: {
+                    attack: 10,  // Slow attack for gentle fade-in
+                    decay: 0.1,
+                    sustain: 1,
+                    release: 10 // Slow release for gentle fade-out
+                },
+                filter: {
+                    type: "lowpass",
+                    frequency: 300 // Muffle high frequencies to keep it in the background
+                }
+            }).connect(bgReverb); // Connect synth to the new reverb unit
+            
+            // A simple, calming, and slow arpeggio (A minor triad: A1, C2, E2)
+            const ambientNotes = ["A1", "C2", "E2"];
+            let noteIndex = 0;
+
+            // Start a very long loop that plays the notes slowly
+            bgLoop = new Tone.Loop(time => {
+                const note = ambientNotes[noteIndex % ambientNotes.length];
+                // Trigger the note for 4 measures (very slow, drawn out)
+                bgSynth.triggerAttackRelease(note, "4m", time);
+                noteIndex++;
+            }, "4m"); // Trigger every 4 measures (approx 8 seconds pulse)
+
+            // Start the audio context and the background loop
+            Tone.start().then(() => {
+                audioInitialized = true;
+                Tone.Transport.start(); // Start the transport for the loop
+                bgLoop.start(0); // Start the background loop immediately
+                console.log("Audio context and background sound started.");
             });
         }
 
-        // Check if the board is full
-        function isBoardFull() {
-            return gameState.board.every(cell => cell !== '');
-        }
+        /**
+         * Toggles the master mute state for all sounds.
+         */
+        function toggleMute() {
+            isMuted = !isMuted;
 
-        // Restart the game with the same settings
-        function restartGame() {
-            gameState.board = ['', '', '', '', '', '', '', '', ''];
-            gameState.currentPlayer = 'X';
-            gameState.gameActive = true;
+            // Adjust the volume of all instruments based on the new mute state
+            if (bgSynth) bgSynth.volume.value = isMuted ? -Infinity : -20;
+            // Mute the reverb wet signal when muting for immediate silence
+            if (bgReverb) bgReverb.wet.value = isMuted ? 0 : 0.6; 
             
-            // Clear the board UI
-            document.querySelectorAll('.cell').forEach(cell => {
-                cell.textContent = '';
-                cell.classList.remove('x', 'o');
-            });
+            if (moveSynth) moveSynth.volume.value = isMuted ? -Infinity : -10;
+            if (winSynth) winSynth.volume.value = isMuted ? -Infinity : -6;
+            if (drawSynth) drawSynth.volume.value = isMuted ? -Infinity : -10;
+
+            // Update the button text and style
+            if (muteBtn) {
+                muteBtn.textContent = isMuted ? 'Unmute' : 'Mute Sound';
+                muteBtn.classList.toggle('muted', isMuted);
+            }
+        }
+
+        /**
+         * Plays a sound when a symbol is placed.
+         */
+        function playMoveSound(symbol) {
+            if (!audioInitialized || isMuted) return;
+            const note = symbol === 'X' ? 'C3' : 'G3'; // Different pitches for X and O
+            moveSynth.triggerAttackRelease(note, '8n');
+        }
+
+        /**
+         * Plays a sound upon winning or losing.
+         */
+        function playWinSound(isWin) {
+            if (!audioInitialized || isMuted) return;
             
-            gameInfo.textContent = `Difficulty: ${gameState.difficulty.toUpperCase()}. Your turn!`;
+            if (isWin) {
+                // Triumphant C Major chord
+                winSynth.triggerAttackRelease(['C4', 'E4', 'G4'], '1n');
+            } else {
+                // Minor chord for loss/end of turn
+                winSynth.triggerAttackRelease(['A3', 'C4', 'E4'], '1n');
+            }
         }
 
-        // Start a completely new game
-        function newGame() {
-            gameState.scores = {
-                player: 0,
-                computer: 0,
-                ties: 0
-            };
-            updateScoreDisplay();
-            restartGame();
+        /**
+         * Plays a sound for a draw.
+         */
+        function playDrawSound() {
+            if (!audioInitialized || isMuted) return;
+            // Neutral, high-pitched chime
+            drawSynth.triggerAttackRelease(['G5', 'A#5'], '4n');
         }
 
-        // Update score display
+        // --- Utility Functions (Remaining unchanged) ---
+        function formatTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // --- Timer Functions (Remaining unchanged) ---
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            timerElement.textContent = formatTime(elapsed);
+        }
+
         function updateScoreDisplay() {
-            playerScore.textContent = gameState.scores.player;
-            computerScore.textContent = gameState.scores.computer;
-            tiesScore.textContent = gameState.scores.ties;
+            playerScoreEl.textContent = scores.player;
+            computerScoreEl.textContent = scores.computer;
+            tiesScoreEl.textContent = scores.ties;
+                        
+            playerSymbolLabel.textContent = `Player (${humanSymbol})`;
+            computerSymbolLabel.textContent = `Computer (${computerSymbol})`;
         }
 
-        // Initialize the game when the page loads
-        window.onload = initGame;
+        // --- Game Initialization & UI (Remaining unchanged) ---
+        function renderBoard() {
+            boardElement.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.setAttribute('data-index', i);
+                cell.addEventListener('click', () => handleCellClick(i));
+                boardElement.appendChild(cell);
+            }
+        }
+
+        function updateUI() {
+            const cells = boardElement.querySelectorAll('.cell');
+            cells.forEach((cell, index) => {
+                const value = board[index];
+                cell.textContent = value || '';
+                cell.setAttribute('data-value', value || '');
+
+                cell.classList.remove('x', 'o');
+                if (value) {
+                    cell.classList.add(value.toLowerCase());
+                }
+
+                if (!gameActive || board[index] !== null) {
+                    cell.classList.add('locked');
+                } else {
+                    cell.classList.remove('locked');
+                }
+            });
+        }
+
+        function resetBoard() {
+            board = Array(9).fill(null);
+            gameActive = false;
+            currentTurnSymbol = 'X'; 
+            messageElement.textContent = `Difficulty: ${difficulty}. You are ${humanSymbol}. Click a cell to start.`;
+            timerElement.textContent = '00:00';
+            stopTimer();
+
+            difficultyContainer.style.display = 'grid'; 
+            symbolContainer.style.display = 'grid'; 
+
+            boardElement.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('win');
+            });
+
+            updateScoreDisplay(); 
+            updateUI();
+        }
+                
+        function newGame() {
+            scores = { player: 0, computer: 0, ties: 0 };
+            updateScoreDisplay();
+            resetBoard();
+        }
+
+        function autoStartGame() {
+            // Initialize audio on the very first user interaction
+            initializeAudio(); 
+            
+            gameActive = true;
+            difficultyContainer.style.display = 'none'; 
+            symbolContainer.style.display = 'none'; 
+            startTimer();
+
+            if (humanSymbol === 'X') {
+                currentTurnSymbol = 'X';
+                messageElement.textContent = `Your turn (${humanSymbol}).`;
+            } else {
+                currentTurnSymbol = 'X'; 
+                messageElement.textContent = `AI's turn (${computerSymbol})...`;
+                setTimeout(makeAIMove, 500);
+            }
+            updateUI();
+        }
+
+        function setDifficulty(newDifficulty) {
+            if (gameActive) return; 
+            difficulty = newDifficulty;
+            difficultyButtons.forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.getAttribute('data-difficulty') === newDifficulty) {
+                    btn.classList.add('selected');
+                }
+            });
+            resetBoard();
+        }
+
+        function setSymbol(symbol) {
+            if (gameActive) return;
+            humanSymbol = symbol;
+            computerSymbol = symbol === 'X' ? 'O' : 'X';
+            
+            symbolButtons.forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.getAttribute('data-symbol') === symbol) {
+                    btn.classList.add('selected');
+                }
+            });
+            newGame(); 
+        }
+
+        function endGame(result, winningIndices = []) {
+            gameActive = false;
+            stopTimer();
+
+            const finalTime = timerElement.textContent;
+            if (result === 'win') {
+                scores.player++;
+                playWinSound(true); 
+                messageElement.textContent = `Game Over! ${humanSymbol} wins in ${finalTime}!`;
+            } else if (result === 'loss') {
+                scores.computer++;
+                playWinSound(false); 
+                messageElement.textContent = `Game Over! ${computerSymbol} wins in ${finalTime}.`;
+            } else {
+                scores.ties++;
+                playDrawSound(); 
+                messageElement.textContent = `It's a Draw! Game time: ${finalTime}.`;
+            }
+
+            if (winningIndices.length > 0) {
+                winningIndices.forEach(index => {
+                    boardElement.querySelector(`[data-index="${index}"]`).classList.add('win');
+                });
+            }
+
+            updateScoreDisplay();
+        }
+        
+        // --- Game Logic, AI and Minimax (Remaining unchanged) ---
+        function checkGameStatus() {
+            const winner = checkWin(board);
+            if (winner) {
+                const gameResult = winner.player === humanSymbol ? 'win' : 'loss';
+                endGame(gameResult, winner.line);
+                return true;
+            }
+
+            if (!board.includes(null)) {
+                endGame('draw');
+                return true;
+            }
+            return false;
+        }
+
+        function checkWin(currentBoard) {
+            for (const combination of WINNING_COMBINATIONS) {
+                const [a, b, c] = combination;
+                if (currentBoard[a] && currentBoard[a] === currentBoard[b] && currentBoard[a] === currentBoard[c]) {
+                    return { player: currentBoard[a], line: combination };
+                }
+            }
+            return null;
+        }
+
+        function handleCellClick(index) {
+            // Initialize audio on the first click regardless of turn
+            if (!audioInitialized) {
+                initializeAudio();
+            }
+
+            if (!gameActive) {
+                autoStartGame();
+                if (currentTurnSymbol === computerSymbol) return; 
+            }
+
+            if (board[index] !== null || currentTurnSymbol !== humanSymbol) {
+                return;
+            }
+
+            board[index] = humanSymbol;
+            playMoveSound(humanSymbol); 
+            updateUI();
+
+            if (checkGameStatus()) return;
+
+            currentTurnSymbol = computerSymbol;
+            messageElement.textContent = `AI's turn (${computerSymbol})...`;
+            setTimeout(makeAIMove, 500);
+        }
+
+        function makeAIMove() {
+            let move;
+            const aiPlayer = computerSymbol;
+            const humanPlayer = humanSymbol;
+            
+            switch (difficulty) {
+                case 'EASY':
+                    move = getEasyMove(board);
+                    break;
+                case 'MEDIUM':
+                    move = getMediumMove(board, aiPlayer, humanPlayer);
+                    break;
+                case 'HARD':
+                    move = findBestMove(board, aiPlayer, humanPlayer, 3); 
+                    break;
+                case 'IMPOSSIBLE':
+                    move = findBestMove(board, aiPlayer, humanPlayer, 9); 
+                    break;
+                default:
+                    move = getEasyMove(board);
+            }
+
+            if (move !== null) {
+                board[move] = computerSymbol;
+                playMoveSound(computerSymbol); 
+                updateUI();
+                if (checkGameStatus()) return;
+
+                currentTurnSymbol = humanSymbol;
+                messageElement.textContent = `Your turn (${humanSymbol}).`;
+            }
+        }
+
+        function getAvailableSpots(currentBoard) {
+            return currentBoard
+                .map((val, index) => val === null ? index : null)
+                .filter(val => val !== null);
+        }
+
+        function getEasyMove(currentBoard) {
+            const available = getAvailableSpots(currentBoard);
+            if (available.length === 0) return null;
+            const randomIndex = Math.floor(Math.random() * available.length);
+            return available[randomIndex];
+        }
+
+        function getMediumMove(currentBoard, aiPlayer, humanPlayer) {
+            const available = getAvailableSpots(currentBoard);
+            if (available.length === 0) return null;
+
+            // 1. Check for AI win
+            for (const move of available) {
+                currentBoard[move] = aiPlayer;
+                if (checkWin(currentBoard)) {
+                    currentBoard[move] = null;
+                    return move;
+                }
+                currentBoard[move] = null; 
+            }
+
+            // 2. Check for player block
+            for (const move of available) {
+                currentBoard[move] = humanPlayer;
+                if (checkWin(currentBoard)) {
+                    currentBoard[move] = null;
+                    return move;
+                }
+                currentBoard[move] = null; 
+            }
+
+            // 3. Take the center if available
+            if (available.includes(4)) return 4;
+
+            // 4. Random move
+            return getEasyMove(currentBoard);
+        }
+
+        const scoresMap = {
+            win: 10,  
+            loss: -10, 
+            tie: 0
+        };
+
+        function minimax(newBoard, depth, isMaximizing, aiPlayer, humanPlayer) {
+            const result = checkWin(newBoard);
+            if (result) {
+                if (result.player === aiPlayer) return scoresMap.win + depth;
+                if (result.player === humanPlayer) return scoresMap.loss - depth;
+            }
+            if (!newBoard.includes(null)) {
+                return scoresMap.tie;
+            }
+                        
+            if (!isMaximizing && depth <= 0) { 
+                 return 0; 
+            }
+
+            const availableSpots = getAvailableSpots(newBoard);
+
+            if (isMaximizing) {
+                let bestScore = -Infinity;
+                for (const i of availableSpots) {
+                    newBoard[i] = aiPlayer;
+                    let score = minimax(newBoard, depth - 1, false, aiPlayer, humanPlayer);
+                    newBoard[i] = null; 
+                    bestScore = Math.max(score, bestScore);
+                }
+                return bestScore;
+            } else {
+                let bestScore = Infinity;
+                for (const i of availableSpots) {
+                    newBoard[i] = humanPlayer;
+                    let score = minimax(newBoard, depth - 1, true, aiPlayer, humanPlayer);
+                    newBoard[i] = null; 
+                    bestScore = Math.min(score, bestScore);
+                }
+                return bestScore;
+            }
+        }
+
+        function findBestMove(currentBoard, aiPlayer, humanPlayer, maxDepth) {
+            let bestScore = -Infinity;
+            let bestMove = null;
+            const availableSpots = getAvailableSpots(currentBoard);
+
+            if (availableSpots.length === 0) return null;
+                        
+            if (availableSpots.length === 9) {
+                const strategicStarts = [0, 2, 4, 6, 8];
+                return strategicStarts[Math.floor(Math.random() * strategicStarts.length)];
+            }
+
+            for (const i of availableSpots) {
+                currentBoard[i] = aiPlayer;
+                let score = minimax(currentBoard, maxDepth, false, aiPlayer, humanPlayer);
+                currentBoard[i] = null; 
+
+                if (score > bestScore) { 
+                    bestScore = score;
+                    bestMove = i;
+                }
+            }
+            return bestMove;
+        }
+
+        // --- Event Listeners ---
+        difficultyButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const newDifficulty = e.target.getAttribute('data-difficulty');
+                setDifficulty(newDifficulty);
+            });
+        });
+
+        symbolButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const newSymbol = e.target.getAttribute('data-symbol');
+                setSymbol(newSymbol);
+            });
+        });
+
+        restartRoundBtn.addEventListener('click', resetBoard); 
+        newGameBtn.addEventListener('click', newGame); 
+        muteBtn.addEventListener('click', toggleMute); // Mute handler
+
+        // Initial setup
+        window.onload = () => {
+            renderBoard();
+            setSymbol('X'); 
+        };
     </script>
 </body>
 </html>
