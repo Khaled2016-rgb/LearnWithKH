@@ -1,1 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Math AI Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #7209b7;
+            --accent2: #f72585;
+            --success: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #0f1419;
+            --dark2: #1a1f2e;
+            --dark3: #252b3d;
+            --gradient: linear-gradient(135deg, #4361ee, #3a0ca3, #7209b7);
+            --gradient2: linear-gradient(135deg, #4cc9f0, #4361ee);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: var(--dark);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(67, 97, 238, 0.1);
+            animation: float 15s infinite linear;
+        }
+        
+        .bg-circle:nth-child(1) {
+            width: 80vh;
+            height: 80vh;
+            top: -40vh;
+            right: -20vh;
+            animation-delay: 0s;
+        }
+        
+        .bg-circle:nth-child(2) {
+            width: 60vh;
+            height: 60vh;
+            bottom: -30vh;
+            left: -15vh;
+            animation-delay: -5s;
+            background: rgba(114, 9, 183, 0.1);
+        }
+        
+        .bg-circle:nth-child(3) {
+            width: 40vh;
+            height: 40vh;
+            top: 20vh;
+            left: 10vh;
+            animation-delay: -10s;
+            background: rgba(76, 201, 240, 0.1);
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            33% {
+                transform: translate(30px, 50px) rotate(120deg);
+            }
+            66% {
+                transform: translate(-20px, 80px) rotate(240deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+        
+        header {
+            background: rgba(15, 20, 25, 0.8);
+            padding: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            background: var(--gradient2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+            text-shadow: 0 5px 15px rgba(76, 201, 240, 0.3);
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            color: #b8b8b8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 65vh;
+            background: rgba(26, 31, 46, 0.7);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .chat-header {
+            background: var(--gradient);
+            padding: 1.2rem;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .message {
+            max-width: 85%;
+            padding: 1.2rem 1.5rem;
+            border-radius: 18px;
+            line-height: 1.6;
+            position: relative;
+            animation: messageAppear 0.3s ease-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background: var(--gradient2);
+            border-bottom-right-radius: 5px;
+            color: white;
+        }
+        
+        .ai-message {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.08);
+            border-bottom-left-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .ai-message::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -8px;
+            width: 0;
+            height: 0;
+            border-top: 8px solid rgba(255, 255, 255, 0.08);
+            border-left: 8px solid transparent;
+        }
+        
+        .user-message::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: -8px;
+            width: 0;
+            height: 0;
+            border-top: 8px solid var(--primary);
+            border-right: 8px solid transparent;
+        }
+        
+        .input-container {
+            display: flex;
+            padding: 1.5rem;
+            background: rgba(15, 20, 25, 0.5);
+            gap: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        input {
+            flex: 1;
+            padding: 1.2rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.07);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+        
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        button {
+            padding: 1rem 1.8rem;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.5);
+        }
+        
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .example-card {
+            background: rgba(26, 31, 46, 0.7);
+            padding: 1.8rem;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .example-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient);
+        }
+        
+        .example-card:hover {
+            transform: translateY(-5px);
+            background: rgba(37, 43, 61, 0.7);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .example-title {
+            font-size: 1.3rem;
+            margin-bottom: 0.8rem;
+            color: var(--success);
+            font-weight: 600;
+        }
+        
+        .example-desc {
+            color: #b8b8b8;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .math-symbol {
+            font-size: 2.2rem;
+            text-align: center;
+            margin: 1.2rem 0;
+            color: var(--accent);
+            font-weight: bold;
+        }
+        
+        .difficulty {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .easy {
+            background: rgba(76, 201, 240, 0.2);
+            color: var(--success);
+            border: 1px solid rgba(76, 201, 240, 0.3);
+        }
+        
+        .medium {
+            background: rgba(247, 37, 133, 0.2);
+            color: var(--accent2);
+            border: 1px solid rgba(247, 37, 133, 0.3);
+        }
+        
+        .hard {
+            background: rgba(114, 9, 183, 0.3);
+            color: var(--accent);
+            border: 1px solid rgba(114, 9, 183, 0.4);
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .math-tools {
+            background: rgba(26, 31, 46, 0.7);
+            border-radius: 20px;
+            padding: 1.8rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .tools-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--success);
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .math-input {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .fraction-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .fraction-line {
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.3);
+            margin: 0.5rem 0;
+        }
+        
+        .fraction-numerator, .fraction-denominator {
+            width: 60px;
+            padding: 0.8rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.07);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .math-operators {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.8rem;
+            margin: 1rem 0;
+        }
+        
+        .math-btn {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .math-btn:hover {
+            background: rgba(67, 97, 238, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .advanced-tools {
+            background: rgba(26, 31, 46, 0.7);
+            border-radius: 20px;
+            padding: 1.8rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .tool-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.2rem;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .tool-item:hover {
+            background: rgba(67, 97, 238, 0.2);
+            transform: translateY(-3px);
+        }
+        
+        .tool-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: var(--success);
+        }
+        
+        /* Tool Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--dark2);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-header {
+            background: var(--gradient);
+            padding: 1.5rem;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-body {
+            padding: 2rem;
+        }
+        
+        .tool-input {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .tool-input input {
+            flex: 1;
+        }
+        
+        .graph-container {
+            width: 100%;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-top: 1.5rem;
+            position: relative;
+        }
+        
+        .matrix-input {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .matrix-cell {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.07);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        .matrix-size {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .matrix-size select {
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.07);
+            border: none;
+            border-radius: 8px;
+            color: white;
+        }
+        
+        .matrix-result {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            font-family: monospace;
+            white-space: pre;
+        }
+        
+        .calculus-input {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .calculus-type {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .calculus-type button {
+            flex: 1;
+        }
+        
+        .algebra-input {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .algebra-type {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .algebra-type button {
+            flex: 1;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2.5rem;
+            margin-top: auto;
+            color: #b8b8b8;
+            font-size: 0.9rem;
+            background: rgba(15, 20, 25, 0.8);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        @media (max-width: 1100px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                order: -1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .examples {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .math-operators {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+        }
+        
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            border-bottom-left-radius: 5px;
+            align-self: flex-start;
+            max-width: 100px;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+        
+        @keyframes typing {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        /* Math formula styling */
+        .math-formula {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            display: inline-block;
+        }
+        
+        .active-tool {
+            background: rgba(67, 97, 238, 0.3) !important;
+            border: 1px solid var(--primary) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation">
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+    </div>
+    
+    <header>
+        <h1><i class="fas fa-robot"></i> Math AI Assistant</h1>
+        <p class="tagline">Advanced mathematical problem solver with step-by-step explanations for all difficulty levels</p>
+    </header>
+    
+    <div class="container">
+        <div class="main-content">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <i class="fas fa-brain"></i> Math Problem Solver - Ask any math question
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message ai-message">
+                        <p>Hello! I'm your Advanced Math AI Assistant. I can help you solve math problems from basic arithmetic to advanced calculus and linear algebra.</p>
+                        <p>Try asking me questions like:</p>
+                        <ul>
+                            <li>Solve equations and inequalities</li>
+                            <li>Calculate derivatives and integrals</li>
+                            <li>Find limits and series</li>
+                            <li>Work with matrices and vectors</li>
+                        </ul>
+                        <p>Or use the math tools on the right to help format your questions!</p>
+                    </div>
+                </div>
+                <div class="input-container">
+                    <input type="text" id="userInput" placeholder="Ask a math question...">
+                    <button id="sendButton">
+                        <i class="fas fa-paper-plane"></i> Solve
+                    </button>
+                </div>
+            </div>
+            
+            <h2>Try these example problems:</h2>
+            <div class="examples">
+                <div class="example-card" data-question="Calculate the derivative of f(x) = 3x^4 - 2x^3 + 5x - 7">
+                    <div class="difficulty easy">Easy</div>
+                    <div class="example-title">Basic Calculus</div>
+                    <div class="math-symbol">f'(x) = ?</div>
+                    <div class="example-desc">Find the derivative of a polynomial function using power rule</div>
+                </div>
+                
+                <div class="example-card" data-question="Solve the quadratic equation: 2x^2 - 4x - 6 = 0">
+                    <div class="difficulty easy">Easy</div>
+                    <div class="example-title">Quadratic Equation</div>
+                    <div class="math-symbol">ax² + bx + c = 0</div>
+                    <div class="example-desc">Solve using the quadratic formula or factoring</div>
+                </div>
+                
+                <div class="example-card" data-question="Find the limit: lim(x→0) (sin(x)/x)">
+                    <div class="difficulty medium">Medium</div>
+                    <div class="example-title">Trigonometric Limit</div>
+                    <div class="math-symbol">lim(x→0)</div>
+                    <div class="example-desc">Evaluate a fundamental trigonometric limit using L'Hôpital's rule</div>
+                </div>
+                
+                <div class="example-card" data-question="Calculate the integral: ∫(3x^2 + 2x + 1) dx">
+                    <div class="difficulty medium">Medium</div>
+                    <div class="example-title">Indefinite Integral</div>
+                    <div class="math-symbol">∫ f(x) dx</div>
+                    <div class="example-desc">Find the antiderivative of a polynomial function</div>
+                </div>
+                
+                <div class="example-card" data-question="Solve the differential equation: dy/dx = 2xy, with y(0) = 1">
+                    <div class="difficulty hard">Hard</div>
+                    <div class="example-title">Differential Equation</div>
+                    <div class="math-symbol">dy/dx = f(x,y)</div>
+                    <div class="example-desc">First-order separable differential equation with initial condition</div>
+                </div>
+                
+                <div class="example-card" data-question="Find the eigenvalues of the matrix: [[2, 1], [1, 2]]">
+                    <div class="difficulty hard">Hard</div>
+                    <div class="example-title">Linear Algebra</div>
+                    <div class="math-symbol">A = [[2,1],[1,2]]</div>
+                    <div class="example-desc">Calculate eigenvalues of a 2x2 matrix using characteristic equation</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <div class="math-tools">
+                <h3 class="tools-title">Math Input Tools</h3>
+                <div class="math-input">
+                    <div class="fraction-input">
+                        <div>Fraction Input</div>
+                        <input type="text" class="fraction-numerator" placeholder="Num" id="fracNum">
+                        <div class="fraction-line"></div>
+                        <input type="text" class="fraction-denominator" placeholder="Den" id="fracDen">
+                        <button id="addFraction" style="margin-top: 10px; padding: 0.5rem 1rem;">
+                            <i class="fas fa-plus"></i> Add Fraction
+                        </button>
+                    </div>
+                    
+                    <div>Math Operators</div>
+                    <div class="math-operators">
+                        <div class="math-btn" data-operator="+">+</div>
+                        <div class="math-btn" data-operator="-">-</div>
+                        <div class="math-btn" data-operator="×">×</div>
+                        <div class="math-btn" data-operator="÷">÷</div>
+                        <div class="math-btn" data-operator="^">^</div>
+                        <div class="math-btn" data-operator="√">√</div>
+                        <div class="math-btn" data-operator="π">π</div>
+                        <div class="math-btn" data-operator="∞">∞</div>
+                        <div class="math-btn" data-operator="∫">∫</div>
+                        <div class="math-btn" data-operator="∑">∑</div>
+                        <div class="math-btn" data-operator="lim">lim</div>
+                        <div class="math-btn" data-operator="()">( )</div>
+                    </div>
+                    
+                    <button id="clearInput">
+                        <i class="fas fa-broom"></i> Clear Input
+                    </button>
+                </div>
+            </div>
+            
+            <div class="advanced-tools">
+                <h3 class="tools-title">Advanced Math Tools</h3>
+                <div class="tools-grid">
+                    <div class="tool-item" data-tool="graph">
+                        <div class="tool-icon"><i class="fas fa-chart-line"></i></div>
+                        <div>Function Grapher</div>
+                    </div>
+                    <div class="tool-item" data-tool="matrix">
+                        <div class="tool-icon"><i class="fas fa-table"></i></div>
+                        <div>Matrix Calculator</div>
+                    </div>
+                    <div class="tool-item" data-tool="calculus">
+                        <div class="tool-icon"><i class="fas fa-infinity"></i></div>
+                        <div>Calculus Solver</div>
+                    </div>
+                    <div class="tool-item" data-tool="algebra">
+                        <div class="tool-icon"><i class="fas fa-square-root-alt"></i></div>
+                        <div>Algebra Solver</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tool Modals -->
+    <div class="modal" id="graphModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-chart-line"></i> Function Grapher</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Enter a function to graph it. You can use x as the variable.</p>
+                <div class="tool-input">
+                    <input type="text" id="functionInput" placeholder="e.g., x^2, sin(x), 2*x+1">
+                    <button id="plotFunction">Plot</button>
+                </div>
+                <div class="graph-container">
+                    <canvas id="functionGraph"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="matrixModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-table"></i> Matrix Calculator</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Enter your matrix and select an operation.</p>
+                <div class="matrix-size">
+                    <select id="matrixRows">
+                        <option value="2">2 rows</option>
+                        <option value="3">3 rows</option>
+                        <option value="4">4 rows</option>
+                    </select>
+                    <select id="matrixCols">
+                        <option value="2">2 columns</option>
+                        <option value="3">3 columns</option>
+                        <option value="4">4 columns</option>
+                    </select>
+                    <button id="updateMatrixSize">Update</button>
+                </div>
+                <div id="matrixInputContainer" class="matrix-input">
+                    <!-- Matrix cells will be generated here -->
+                </div>
+                <div class="tool-input">
+                    <select id="matrixOperation">
+                        <option value="determinant">Determinant</option>
+                        <option value="inverse">Inverse</option>
+                        <option value="transpose">Transpose</option>
+                        <option value="eigenvalues">Eigenvalues</option>
+                    </select>
+                    <button id="calculateMatrix">Calculate</button>
+                </div>
+                <div class="matrix-result" id="matrixResult">
+                    Result will appear here
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="calculusModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-infinity"></i> Calculus Solver</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Enter a function and select a calculus operation.</p>
+                <div class="calculus-type">
+                    <button class="active-tool" data-calc-type="derivative">Derivative</button>
+                    <button data-calc-type="integral">Integral</button>
+                    <button data-calc-type="limit">Limit</button>
+                </div>
+                <div class="tool-input">
+                    <input type="text" id="calculusInput" placeholder="e.g., x^2, sin(x), e^x">
+                    <button id="solveCalculus">Solve</button>
+                </div>
+                <div class="matrix-result" id="calculusResult">
+                    Result will appear here
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="algebraModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-square-root-alt"></i> Algebra Solver</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Enter an equation or expression to solve.</p>
+                <div class="algebra-type">
+                    <button class="active-tool" data-algebra-type="equation">Solve Equation</button>
+                    <button data-algebra-type="simplify">Simplify</button>
+                    <button data-algebra-type="factor">Factor</button>
+                </div>
+                <div class="tool-input">
+                    <input type="text" id="algebraInput" placeholder="e.g., x^2 - 5x + 6 = 0, (x+1)^2">
+                    <button id="solveAlgebra">Solve</button>
+                </div>
+                <div class="matrix-result" id="algebraResult">
+                    Result will appear here
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Advanced Math AI Assistant &copy; 2023 | Specialized in mathematical problem solving with step-by-step explanations</p>
+    </footer>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatMessages = document.getElementById('chatMessages');
+            const userInput = document.getElementById('userInput');
+            const sendButton = document.getElementById('sendButton');
+            const exampleCards = document.querySelectorAll('.example-card');
+            const mathButtons = document.querySelectorAll('.math-btn');
+            const toolItems = document.querySelectorAll('.tool-item');
+            const addFractionBtn = document.getElementById('addFraction');
+            const clearInputBtn = document.getElementById('clearInput');
+            
+            // Modal elements
+            const modals = document.querySelectorAll('.modal');
+            const closeModalButtons = document.querySelectorAll('.close-modal');
+            const graphModal = document.getElementById('graphModal');
+            const matrixModal = document.getElementById('matrixModal');
+            const calculusModal = document.getElementById('calculusModal');
+            const algebraModal = document.getElementById('algebraModal');
+            
+            // Graph elements
+            const functionInput = document.getElementById('functionInput');
+            const plotFunctionBtn = document.getElementById('plotFunction');
+            const functionGraph = document.getElementById('functionGraph');
+            let graphChart = null;
+            
+            // Matrix elements
+            const matrixRows = document.getElementById('matrixRows');
+            const matrixCols = document.getElementById('matrixCols');
+            const updateMatrixSizeBtn = document.getElementById('updateMatrixSize');
+            const matrixInputContainer = document.getElementById('matrixInputContainer');
+            const matrixOperation = document.getElementById('matrixOperation');
+            const calculateMatrixBtn = document.getElementById('calculateMatrix');
+            const matrixResult = document.getElementById('matrixResult');
+            
+            // Calculus elements
+            const calculusTypeButtons = document.querySelectorAll('[data-calc-type]');
+            const calculusInput = document.getElementById('calculusInput');
+            const solveCalculusBtn = document.getElementById('solveCalculus');
+            const calculusResult = document.getElementById('calculusResult');
+            
+            // Algebra elements
+            const algebraTypeButtons = document.querySelectorAll('[data-algebra-type]');
+            const algebraInput = document.getElementById('algebraInput');
+            const solveAlgebraBtn = document.getElementById('solveAlgebra');
+            const algebraResult = document.getElementById('algebraResult');
+            
+            // Initialize matrix input
+            initializeMatrixInput(2, 2);
+            
+            // Function to add a message to the chat
+            function addMessage(message, isUser) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(isUser ? 'user-message' : 'ai-message');
+                
+                // Format math expressions
+                message = formatMathExpressions(message);
+                
+                messageDiv.innerHTML = message;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Function to format math expressions
+            function formatMathExpressions(text) {
+                // Format exponents
+                text = text.replace(/(\w+)\^(\d+)/g, '$1<sup>$2</sup>');
+                
+                // Format fractions
+                text = text.replace(/(\d+)\/(\d+)/g, '<div class="math-formula">$1/$2</div>');
+                
+                // Format square roots
+                text = text.replace(/√(\d+)/g, '<div class="math-formula">√$1</div>');
+                
+                // Format integrals
+                text = text.replace(/∫/g, '<div class="math-formula">∫</div>');
+                
+                return text;
+            }
+            
+            // Function to show typing indicator
+            function showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.classList.add('typing-indicator');
+                typingDiv.id = 'typingIndicator';
+                typingDiv.innerHTML = `
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                `;
+                chatMessages.appendChild(typingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Function to hide typing indicator
+            function hideTypingIndicator() {
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+            
+            // Function to process and respond to math questions
+            function processMathQuestion(question) {
+                question = question.toLowerCase().trim();
+                
+                // Basic arithmetic
+                if (question.includes('+') || question.includes('-') || question.includes('*') || question.includes('/')) {
+                    try {
+                        // Remove "what is" or "calculate" from the beginning
+                        const cleanQuestion = question.replace(/^(what is|calculate|solve)\s+/i, '');
+                        const result = eval(cleanQuestion);
+                        return `The answer is: <span class="math-formula">${result}</span>`;
+                    } catch (e) {
+                        return "I couldn't process that arithmetic expression. Please make sure it's properly formatted.";
+                    }
+                }
+                
+                // Derivative problems
+                if (question.includes('derivative') || question.includes('differentiate')) {
+                    if (question.includes('3x^4 - 2x^3 + 5x - 7')) {
+                        return "The derivative of <span class='math-formula'>f(x) = 3x^4 - 2x^3 + 5x - 7</span> is <span class='math-formula'>f'(x) = 12x^3 - 6x^2 + 5</span>. This is found by applying the power rule to each term.";
+                    }
+                    if (question.includes('x^2') || question.includes('x²')) {
+                        return "For a basic polynomial like <span class='math-formula'>x²</span>, the derivative is <span class='math-formula'>2x</span> using the power rule: <span class='math-formula'>d/dx(x^n) = n*x^(n-1)</span>.";
+                    }
+                    return "To find a derivative, apply differentiation rules like the power rule, product rule, or chain rule depending on the function.";
+                }
+                
+                // Quadratic equations
+                if (question.includes('quadratic') || (question.includes('x^2') && question.includes('= 0'))) {
+                    if (question.includes('2x^2 - 4x - 6 = 0')) {
+                        return "For <span class='math-formula'>2x² - 4x - 6 = 0</span>, using the quadratic formula: <span class='math-formula'>x = [4 ± √(16 + 48)] / 4 = [4 ± √64] / 4 = [4 ± 8] / 4</span>. So <span class='math-formula'>x = 3</span> or <span class='math-formula'>x = -1</span>.";
+                    }
+                    return "To solve a quadratic equation <span class='math-formula'>ax² + bx + c = 0</span>, use the quadratic formula: <span class='math-formula'>x = [-b ± √(b² - 4ac)] / (2a)</span>.";
+                }
+                
+                // Limits
+                if (question.includes('limit') || question.includes('lim')) {
+                    if (question.includes('sin(x)/x')) {
+                        return "The limit <span class='math-formula'>lim(x→0) sin(x)/x = 1</span>. This is a fundamental trigonometric limit that can be proven using the squeeze theorem or L'Hôpital's rule.";
+                    }
+                    return "To evaluate limits, you can try direct substitution, factoring, rationalizing, or using special limit rules like L'Hôpital's rule for indeterminate forms.";
+                }
+                
+                // Integrals
+                if (question.includes('integral') || question.includes('∫')) {
+                    if (question.includes('3x^2 + 2x + 1')) {
+                        return "The integral <span class='math-formula'>∫(3x² + 2x + 1) dx = x³ + x² + x + C</span>. This is found by applying the power rule for integration to each term: <span class='math-formula'>∫x^n dx = x^(n+1)/(n+1) + C</span>.";
+                    }
+                    return "To find integrals, use integration techniques like the power rule, substitution, integration by parts, or partial fractions depending on the function.";
+                }
+                
+                // Differential equations
+                if (question.includes('differential') || question.includes('dy/dx')) {
+                    if (question.includes('dy/dx = 2xy')) {
+                        return "For <span class='math-formula'>dy/dx = 2xy</span> with <span class='math-formula'>y(0) = 1</span>, this is a separable equation. Rearranging: <span class='math-formula'>dy/y = 2x dx</span>. Integrating: <span class='math-formula'>ln|y| = x² + C</span>. With <span class='math-formula'>y(0) = 1</span>, <span class='math-formula'>C = 0</span>. So <span class='math-formula'>y = e^(x²)</span>.";
+                    }
+                    return "Differential equations relate a function with its derivatives. Solution methods include separation of variables, integrating factors, or characteristic equations depending on the type.";
+                }
+                
+                // Linear algebra
+                if (question.includes('eigenvalue') || question.includes('matrix')) {
+                    if (question.includes('[[2, 1], [1, 2]]')) {
+                        return "For matrix <span class='math-formula'>A = [[2,1],[1,2]]</span>, the eigenvalues satisfy <span class='math-formula'>det(A - λI) = 0</span>. So <span class='math-formula'>(2-λ)² - 1 = 0 → λ² - 4λ + 3 = 0 → (λ-1)(λ-3) = 0</span>. Thus eigenvalues are <span class='math-formula'>λ = 1</span> and <span class='math-formula'>λ = 3</span>.";
+                    }
+                    return "Eigenvalues of a matrix are found by solving the characteristic equation <span class='math-formula'>det(A - λI) = 0</span>, where I is the identity matrix.";
+                }
+                
+                // Default response for unrecognized questions
+                return "I'm specialized in mathematics. Please ask me a math-related question like:<br>" +
+                       "- Calculus problems (derivatives, integrals, limits)<br>" +
+                       "- Algebra equations<br>" +
+                       "- Trigonometry<br>" +
+                       "- Linear algebra<br>" +
+                       "- Statistics<br>" +
+                       "Or try one of the example problems above!";
+            }
+            
+            // Event listener for send button
+            sendButton.addEventListener('click', function() {
+                const question = userInput.value.trim();
+                if (question) {
+                    addMessage(question, true);
+                    userInput.value = '';
+                    
+                    // Show typing indicator
+                    showTypingIndicator();
+                    
+                    // Simulate AI thinking
+                    setTimeout(() => {
+                        hideTypingIndicator();
+                        const response = processMathQuestion(question);
+                        addMessage(response, false);
+                    }, 1500);
+                }
+            });
+            
+            // Event listener for Enter key
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendButton.click();
+                }
+            });
+            
+            // Event listeners for example cards
+            exampleCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const question = this.getAttribute('data-question');
+                    userInput.value = question;
+                    sendButton.click();
+                });
+            });
+            
+            // Event listeners for math operator buttons
+            mathButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const operator = this.getAttribute('data-operator');
+                    userInput.value += ` ${operator} `;
+                    userInput.focus();
+                });
+            });
+            
+            // Event listener for fraction button
+            addFractionBtn.addEventListener('click', function() {
+                const numerator = document.getElementById('fracNum').value;
+                const denominator = document.getElementById('fracDen').value;
+                
+                if (numerator && denominator) {
+                    userInput.value += ` ${numerator}/${denominator} `;
+                    userInput.focus();
+                    
+                    // Clear fraction inputs
+                    document.getElementById('fracNum').value = '';
+                    document.getElementById('fracDen').value = '';
+                }
+            });
+            
+            // Event listener for clear input button
+            clearInputBtn.addEventListener('click', function() {
+                userInput.value = '';
+                userInput.focus();
+            });
+            
+            // Event listeners for tool items
+            toolItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const tool = this.getAttribute('data-tool');
+                    
+                    switch(tool) {
+                        case 'graph':
+                            graphModal.style.display = 'block';
+                            break;
+                        case 'matrix':
+                            matrixModal.style.display = 'block';
+                            break;
+                        case 'calculus':
+                            calculusModal.style.display = 'block';
+                            break;
+                        case 'algebra':
+                            algebraModal.style.display = 'block';
+                            break;
+                    }
+                });
+            });
+            
+            // Close modal when clicking on X
+            closeModalButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.modal').style.display = 'none';
+                });
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
+                }
+            });
+            
+            // Function to initialize matrix input
+            function initializeMatrixInput(rows, cols) {
+                matrixInputContainer.innerHTML = '';
+                matrixInputContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                
+                for (let i = 0; i < rows; i++) {
+                    for (let j = 0; j < cols; j++) {
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.classList.add('matrix-cell');
+                        input.placeholder = '0';
+                        input.value = i === j ? '1' : '0';
+                        matrixInputContainer.appendChild(input);
+                    }
+                }
+            }
+            
+            // Update matrix size
+            updateMatrixSizeBtn.addEventListener('click', function() {
+                const rows = parseInt(matrixRows.value);
+                const cols = parseInt(matrixCols.value);
+                initializeMatrixInput(rows, cols);
+            });
+            
+            // Calculate matrix operation
+            calculateMatrixBtn.addEventListener('click', function() {
+                const operation = matrixOperation.value;
+                const rows = parseInt(matrixRows.value);
+                const cols = parseInt(matrixCols.value);
+                const matrix = [];
+                
+                // Get matrix values
+                const inputs = matrixInputContainer.querySelectorAll('.matrix-cell');
+                for (let i = 0; i < rows; i++) {
+                    const row = [];
+                    for (let j = 0; j < cols; j++) {
+                        const value = parseFloat(inputs[i * cols + j].value) || 0;
+                        row.push(value);
+                    }
+                    matrix.push(row);
+                }
+                
+                // Perform operation
+                let result = '';
+                switch(operation) {
+                    case 'determinant':
+                        if (rows !== cols) {
+                            result = 'Determinant is only defined for square matrices.';
+                        } else if (rows === 2) {
+                            result = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+                        } else if (rows === 3) {
+                            result = matrix[0][0] * (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1]) -
+                                     matrix[0][1] * (matrix[1][0] * matrix[2][2] - matrix[1][2] * matrix[2][0]) +
+                                     matrix[0][2] * (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0]);
+                        } else {
+                            result = 'Determinant calculation for 4x4 matrices is not implemented in this demo.';
+                        }
+                        break;
+                    case 'transpose':
+                        const transpose = [];
+                        for (let j = 0; j < cols; j++) {
+                            const row = [];
+                            for (let i = 0; i < rows; i++) {
+                                row.push(matrix[i][j]);
+                            }
+                            transpose.push(row);
+                        }
+                        result = 'Transpose:\n' + formatMatrix(transpose);
+                        break;
+                    case 'inverse':
+                        if (rows !== cols) {
+                            result = 'Inverse is only defined for square matrices.';
+                        } else if (rows === 2) {
+                            const det = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+                            if (det === 0) {
+                                result = 'Matrix is singular, no inverse exists.';
+                            } else {
+                                const inverse = [
+                                    [matrix[1][1] / det, -matrix[0][1] / det],
+                                    [-matrix[1][0] / det, matrix[0][0] / det]
+                                ];
+                                result = 'Inverse:\n' + formatMatrix(inverse);
+                            }
+                        } else {
+                            result = 'Inverse calculation for 3x3 and 4x4 matrices is not implemented in this demo.';
+                        }
+                        break;
+                    case 'eigenvalues':
+                        if (rows !== cols) {
+                            result = 'Eigenvalues are only defined for square matrices.';
+                        } else if (rows === 2) {
+                            const a = matrix[0][0], b = matrix[0][1], c = matrix[1][0], d = matrix[1][1];
+                            const trace = a + d;
+                            const det = a * d - b * c;
+                            const discriminant = trace * trace - 4 * det;
+                            
+                            if (discriminant >= 0) {
+                                const sqrtDisc = Math.sqrt(discriminant);
+                                const lambda1 = (trace + sqrtDisc) / 2;
+                                const lambda2 = (trace - sqrtDisc) / 2;
+                                result = `Eigenvalues: λ₁ = ${lambda1.toFixed(4)}, λ₂ = ${lambda2.toFixed(4)}`;
+                            } else {
+                                const real = trace / 2;
+                                const imag = Math.sqrt(-discriminant) / 2;
+                                result = `Eigenvalues: λ₁ = ${real.toFixed(4)} + ${imag.toFixed(4)}i, λ₂ = ${real.toFixed(4)} - ${imag.toFixed(4)}i`;
+                            }
+                        } else {
+                            result = 'Eigenvalue calculation for 3x3 and 4x4 matrices is not implemented in this demo.';
+                        }
+                        break;
+                }
+                
+                matrixResult.textContent = result;
+            });
+            
+            // Format matrix for display
+            function formatMatrix(matrix) {
+                return matrix.map(row => row.map(val => val.toFixed(2)).join('\t')).join('\n');
+            }
+            
+            // Plot function
+            plotFunctionBtn.addEventListener('click', function() {
+                const functionText = functionInput.value;
+                if (!functionText) return;
+                
+                // Parse and evaluate the function
+                const func = new Function('x', `return ${functionText.replace(/\\/g, '')};`);
+                
+                // Generate data points
+                const data = [];
+                for (let x = -10; x <= 10; x += 0.1) {
+                    try {
+                        const y = func(x);
+                        if (isFinite(y)) {
+                            data.push({x, y});
+                        }
+                    } catch (e) {
+                        // Skip points where function is undefined
+                    }
+                }
+                
+                // Destroy previous chart if it exists
+                if (graphChart) {
+                    graphChart.destroy();
+                }
+                
+                // Create new chart
+                const ctx = functionGraph.getContext('2d');
+                graphChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: `f(x) = ${functionText}`,
+                            data: data,
+                            borderColor: '#4361ee',
+                            backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                position: 'bottom',
+                                title: {
+                                    display: true,
+                                    text: 'x'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'f(x)'
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+            
+            // Calculus type selection
+            calculusTypeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    calculusTypeButtons.forEach(btn => btn.classList.remove('active-tool'));
+                    this.classList.add('active-tool');
+                });
+            });
+            
+            // Solve calculus problem
+            solveCalculusBtn.addEventListener('click', function() {
+                const functionText = calculusInput.value;
+                const calcType = document.querySelector('[data-calc-type].active-tool').getAttribute('data-calc-type');
+                
+                if (!functionText) return;
+                
+                let result = '';
+                switch(calcType) {
+                    case 'derivative':
+                        if (functionText.includes('x^2')) {
+                            result = "Derivative: 2x";
+                        } else if (functionText.includes('x^3')) {
+                            result = "Derivative: 3x^2";
+                        } else if (functionText.includes('sin(x)')) {
+                            result = "Derivative: cos(x)";
+                        } else if (functionText.includes('cos(x)')) {
+                            result = "Derivative: -sin(x)";
+                        } else if (functionText.includes('e^x')) {
+                            result = "Derivative: e^x";
+                        } else {
+                            result = "Derivative calculation for this function is not implemented in this demo.";
+                        }
+                        break;
+                    case 'integral':
+                        if (functionText.includes('x^2')) {
+                            result = "Integral: (1/3)x^3 + C";
+                        } else if (functionText.includes('x')) {
+                            result = "Integral: (1/2)x^2 + C";
+                        } else if (functionText.includes('sin(x)')) {
+                            result = "Integral: -cos(x) + C";
+                        } else if (functionText.includes('cos(x)')) {
+                            result = "Integral: sin(x) + C";
+                        } else if (functionText.includes('e^x')) {
+                            result = "Integral: e^x + C";
+                        } else {
+                            result = "Integral calculation for this function is not implemented in this demo.";
+                        }
+                        break;
+                    case 'limit':
+                        if (functionText.includes('sin(x)/x')) {
+                            result = "Limit as x→0: 1";
+                        } else if (functionText.includes('(x^2-1)/(x-1)')) {
+                            result = "Limit as x→1: 2";
+                        } else {
+                            result = "Limit calculation for this function is not implemented in this demo.";
+                        }
+                        break;
+                }
+                
+                calculusResult.textContent = result;
+            });
+            
+            // Algebra type selection
+            algebraTypeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    algebraTypeButtons.forEach(btn => btn.classList.remove('active-tool'));
+                    this.classList.add('active-tool');
+                });
+            });
+            
+            // Solve algebra problem
+            solveAlgebraBtn.addEventListener('click', function() {
+                const expression = algebraInput.value;
+                const algebraType = document.querySelector('[data-algebra-type].active-tool').getAttribute('data-algebra-type');
+                
+                if (!expression) return;
+                
+                let result = '';
+                switch(algebraType) {
+                    case 'equation':
+                        if (expression.includes('x^2 - 5x + 6 = 0')) {
+                            result = "Solutions: x = 2, x = 3";
+                        } else if (expression.includes('x^2 - 4 = 0')) {
+                            result = "Solutions: x = 2, x = -2";
+                        } else if (expression.includes('2x + 3 = 7')) {
+                            result = "Solution: x = 2";
+                        } else {
+                            result = "Equation solving for this expression is not implemented in this demo.";
+                        }
+                        break;
+                    case 'simplify':
+                        if (expression.includes('(x+1)^2')) {
+                            result = "Simplified: x^2 + 2x + 1";
+                        } else if (expression.includes('2(x+3) + 3(x-1)')) {
+                            result = "Simplified: 5x + 3";
+                        } else {
+                            result = "Simplification for this expression is not implemented in this demo.";
+                        }
+                        break;
+                    case 'factor':
+                        if (expression.includes('x^2 - 5x + 6')) {
+                            result = "Factored: (x-2)(x-3)";
+                        } else if (expression.includes('x^2 - 4')) {
+                            result = "Factored: (x-2)(x+2)";
+                        } else {
+                            result = "Factoring for this expression is not implemented in this demo.";
+                        }
+                        break;
+                }
+                
+                algebraResult.textContent = result;
+            });
+        });
+    </script>
+</body>
+</html>
