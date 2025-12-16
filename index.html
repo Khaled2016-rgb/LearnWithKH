@@ -1,260 +1,191 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Learn languages, play fun games, and enjoy interactive learning.">
-    <meta name="keywords" content="Learn languages and play games ">
+    <meta name="keywords" content="Learn languages and play games">
     <meta name="author" content="KH">
     
     <!-- Title for the page -->
     <title>Learn Languages & Play Games</title>
-
+    
     <!-- Favicon -->
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/8273/8273004.png" type="image/x-icon">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <!-- Open Graph (for social media and previews) -->
+    <!-- Open Graph -->
     <meta property="og:title" content="Learn Languages & Play Games" />
     <meta property="og:description" content="Discover a fun way to learn languages and play games online!" />
     <meta property="og:image" content="https://images.vexels.com/media/users/3/147094/isolated/preview/055a10de0c31e98eef1451f742c32345-instagram-home-icon.png" />
     <meta property="og:url" content="https://khaled2016-rgb.github.io/" />
     <meta property="og:type" content="website" />
     
-    <!-- Twitter Card (for Twitter previews) -->
+    <!-- Twitter Card -->
     <meta name="twitter:title" content="Learn Languages & Play Games" />
     <meta name="twitter:description" content="Play interactive games while learning new languages online." />
     <meta name="twitter:image" content="https://icons.veryicon.com/png/o/miscellaneous/two-color-webpage-small-icon/home-page-161.png" />
     <meta name="twitter:card" content="summary_large_image" />
 
     <style>
-        /* General styles */
+        /* --- CORE VARIABLES & RESET --- */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --blur-strength: 16px;
+            --text-color: #ffffff;
+            --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --liquid-bg-1: #4facfe;
+            --liquid-bg-2: #00f2fe;
+            --liquid-bg-3: #ff6a95;
+        }
+
+        * {
+            box-sizing: border-box;
+            outline: none;
+        }
+
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Poppins', sans-serif; /* Modern font */
             margin: 0;
             padding: 0;
-            color: #ffffff;
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(45deg, var(--liquid-bg-1), var(--liquid-bg-2));
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            
+            /* Unselectable Text */
             user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
             cursor: default;
-            background: linear-gradient(120deg, #89f7fe, #66a6ff);
         }
 
-        /* Three-dots menu styles - Enhanced Design */
-        .menu-container {
-            position: absolute;
-            top: 20px;
-            right: 90px;
-            z-index: 1000;
+        /* Allow selection in inputs if added later */
+        input, textarea {
+            user-select: text;
+            -webkit-user-select: text;
+            cursor: text;
         }
 
-        .menu-button {
-            background: rgba(0, 0, 0, 0.7);
-            border: none;
-            border-radius: 12px;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: white;
-            font-size: 22px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            position: relative;
+        /* --- iOS 26.2 ENTRANCE ANIMATIONS --- */
+        /* A futuristic, high-blur, fluid entrance style */
+        @keyframes iosFutureEntrance {
+            0% {
+                opacity: 0;
+                transform: translateY(40px) scale(0.92);
+                filter: blur(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
         }
 
-        .menu-button:hover {
-            background: rgba(0, 0, 0, 0.9);
-            transform: scale(1.1);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        /* Apply Staggered Animations */
+        header { 
+            animation: iosFutureEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+            animation-delay: 0.1s;
+        }
+        nav { 
+            animation: iosFutureEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+            animation-delay: 0.2s;
+        }
+        main > .glass-panel { /* Intro Box */
+            animation: iosFutureEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+            animation-delay: 0.3s;
+        }
+        .features-grid { 
+            animation: iosFutureEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+            animation-delay: 0.4s;
+        }
+        .qr-section { 
+            animation: iosFutureEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+            animation-delay: 0.5s;
+        }
+        footer { 
+            animation: iosFutureEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+            animation-delay: 0.6s;
         }
 
-        .menu-button::after {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            right: -4px;
-            bottom: -4px;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #66a6ff, #89f7fe, #ff6a95);
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .menu-button:hover::after {
-            opacity: 1;
-        }
-
-        .menu-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 55px;
-            background: rgba(0, 0, 0, 0.9);
-            min-width: 220px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-            overflow: hidden;
-            z-index: 1001;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .menu-content.show {
-            display: block;
-            animation: fadeIn 0.2s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .menu-item {
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            transition: background-color 0.2s, transform 0.1s;
-        }
-
-        .menu-item:last-child {
-            border-bottom: none;
-        }
-
-        .menu-item:hover {
-            background-color: rgba(255, 255, 255, 0.15);
-            transform: translateX(5px);
-        }
-
-        .menu-item i {
-            margin-right: 12px;
-            width: 20px;
-            text-align: center;
-            font-size: 18px;
-        }
-
-        /* Toast notification */
-        .toast {
-            visibility: hidden;
-            min-width: 250px;
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-            color: white;
-            text-align: center;
-            border-radius: 8px;
-            padding: 16px;
+        /* --- LIQUID BACKGROUND ANIMATION --- */
+        /* Moving blobs to create liquid feel behind glass */
+        .liquid-blob {
             position: fixed;
-            z-index: 1002;
-            bottom: 30px;
-            right: 30px;
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.5s, visibility 0.5s;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .toast.show {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        /* Dark mode styles */
-        body.dark-mode {
-            background: linear-gradient(120deg, #1a1a2e, #16213e);
-        }
-
-        body.dark-mode .language-section {
-            background: linear-gradient(120deg, #0f3460, #533483);
-        }
-
-        body.dark-mode nav {
-            background: linear-gradient(to right, #0f3460, #533483);
-        }
-
-        body.dark-mode footer {
-            background-color: #0f3460;
-        }
-
-        /* High contrast mode */
-        body.high-contrast {
-            background: #000;
-            color: #fff;
-        }
-
-        body.high-contrast .language-section {
-            background: #000;
-            border: 2px solid #fff;
-        }
-
-        body.high-contrast nav {
-            background: #000;
-            border-bottom: 2px solid #fff;
-        }
-
-        body.high-contrast nav a {
-            border: 1px solid #fff;
-        }
-
-        body.high-contrast footer {
-            background-color: #000;
-            border-top: 2px solid #fff;
-        }
-
-        /* Font size adjustment classes */
-        body.font-small {
-            font-size: 14px;
-        }
-
-        body.font-medium {
-            font-size: 16px;
-        }
-
-        body.font-large {
-            font-size: 18px;
-        }
-
-        /* Profile Picture */
-        .profile-pic-container {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        #profile-pic {
-            width: 50px;
-            height: 50px;
             border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #fff;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.6;
+            animation: floatBlob 20s infinite alternate;
         }
 
-        .change-pic-btn {
-            display: none;
-            margin-left: 10px;
-            padding: 5px 15px;
-            font-size: 0.9rem;
-            color: #fff;
-            background-color: rgba(0, 0, 0, 0.6);
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: #ff6a95;
+            animation-delay: 0s;
         }
 
-        .change-pic-btn:hover {
-            background-color: rgba(0, 0, 0, 0.8);
+        .blob-2 {
+            bottom: -10%;
+            right: -10%;
+            width: 60vw;
+            height: 60vw;
+            background: #66a6ff;
+            animation-delay: -5s;
         }
 
-        /* Video background */
+        .blob-3 {
+            top: 40%;
+            left: 40%;
+            width: 40vw;
+            height: 40vw;
+            background: #89f7fe;
+            animation-delay: -10s;
+        }
+
+        @keyframes floatBlob {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- GLASSMORPHISM UTILITY --- */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur-strength));
+            -webkit-backdrop-filter: blur(var(--blur-strength));
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: 20px;
+        }
+
+        /* --- LAYOUT --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Video Background (Optional Fallback) */
         .video-background {
             position: fixed;
             top: 0;
@@ -262,409 +193,465 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            z-index: -1;
+            z-index: -2; /* Behind blobs */
+            opacity: 0.3; /* Subtle overlay */
         }
 
-        /* Header styles */
+        /* --- HEADER --- */
         header {
-            background: rgba(0, 0, 0, 0.6);
-            color: #ffffff;
             text-align: center;
-            padding: 1.5rem 0;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
-        }
-        header h1 {
-            font-size: 2.8rem;
-            font-weight: bold;
-            letter-spacing: 2px;
+            padding: 2rem 1rem;
+            margin-bottom: 20px;
+            margin-top: 60px; /* Space for top elements */
         }
 
-        /* Navigation styles */
+        header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        /* --- NAVIGATION --- */
         nav {
             display: flex;
             justify-content: center;
-            background: linear-gradient(to right, #007777, #00a1a1);
-            padding: 1rem 0;
-            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+            flex-wrap: wrap;
+            padding: 1rem 2rem;
+            margin-bottom: 3rem;
+            gap: 15px;
+            /* Glass Nav */
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
+
         nav a {
             color: #ffffff;
             text-decoration: none;
-            font-weight: bold;
-            margin: 0 1.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        nav a:hover {
-            background-color: #ffffff;
-            color: #007777;
-        }
-
-        /* Main content styles */
-        main {
-            padding: 2rem;
-            text-align: center;
-        }
-        .language-section {
-            margin: 2rem auto;
-            padding: 2rem;
-            border-radius: 10px;
-            color: #ffffff;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(120deg, #ff6a95, #fecd56);
-        }
-
-        p {
-            font-size: 1.4rem;
-            line-height: 1.8rem;
-        }
-
-        /* Button styles */
-        button {
-            padding: 0.7rem 2rem;
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #ffffff;
-            background: linear-gradient(120deg, #66a6ff, #89f7fe);
-            border: none;
+            font-weight: 600;
+            padding: 0.8rem 1.5rem;
             border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        button:hover {
-            transform: scale(1.1);
-        }
-
-        /* Footer styles */
-        footer {
-            text-align: center;
-            padding: 1.5rem 0;
-            background-color: #005757;
-            color: white;
-            font-size: 1rem;
-            box-shadow: 0px -4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Enhanced Restart Animation Styles */
-        .restart-overlay {
-            display: none;
-            position: fixed;
+        nav a::before {
+            content: '';
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 1003;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: -1;
+            border-radius: 30px;
         }
 
-        .restart-container {
+        nav a:hover::before {
+            transform: translateX(0);
+        }
+
+        nav a:hover {
+            color: #fff;
+            text-shadow: 0 0 8px rgba(255,255,255,0.6);
+            transform: translateY(-2px);
+        }
+
+        /* --- MAIN CONTENT & SECTIONS --- */
+        main {
             text-align: center;
-            padding: 40px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
-            width: 80%;
-            animation: containerAppear 0.5s ease-out;
+        }
+        
+        main h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        @keyframes containerAppear {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+        main p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto 2rem;
         }
 
-        .restart-title {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            background: linear-gradient(45deg, #fff, #f0f0f0);
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 20px 0;
+        }
+
+        .language-section {
+            padding: 3rem 2rem;
+            color: #ffffff;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.27), box-shadow 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            /* Glass styles applied via class */
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .language-section:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .language-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            opacity: 0;
+            transform: scale(0.5);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        .language-section:hover::before {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .language-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #fff, #e0e0e0);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
         }
 
-        .restart-subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            color: rgba(255, 255, 255, 0.8);
+        /* --- BUTTONS & MENU --- */
+        /* Menu Container */
+        .menu-container {
+            position: fixed; /* Fixed so it stays on scroll */
+            top: 30px;
+            right: 100px;
+            z-index: 1000;
         }
 
-        .restart-loader {
-            position: relative;
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 30px;
-        }
-
-        .restart-loader-inner {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 4px solid transparent;
-            border-top: 4px solid #fff;
+        .menu-button {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            animation: spin 1.5s linear infinite;
-        }
-
-        .restart-loader-inner:nth-child(2) {
-            border: 4px solid transparent;
-            border-bottom: 4px solid #fff;
-            animation: spinReverse 1.5s linear infinite;
-        }
-
-        .restart-loader-center {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .restart-loader-icon {
-            font-size: 24px;
-            animation: pulse 1.5s ease-in-out infinite;
+        .menu-button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 0 20px rgba(255,255,255,0.4);
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .menu-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 70px;
+            width: 250px;
+            /* Glass Menu */
+            background: rgba(20, 20, 30, 0.85); /* Darker glass for readability */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 10px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            z-index: 1001;
+            transform-origin: top right;
         }
 
-        @keyframes spinReverse {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(-360deg); }
+        .menu-content.show {
+            display: block;
+            animation: liquidMenuOpen 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
+        @keyframes liquidMenuOpen {
+            from { opacity: 0; transform: scale(0.8) translateY(-20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        .restart-progress {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 20px;
+        .menu-item {
+            padding: 15px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            color: rgba(255,255,255,0.9);
+            transition: all 0.2s;
+            margin-bottom: 5px;
         }
 
-        .restart-progress-bar {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #fff, #ffeb3b);
-            border-radius: 4px;
-            animation: progressFill 3s linear forwards;
-        }
-
-        @keyframes progressFill {
-            0% { width: 0%; }
-            100% { width: 100%; }
-        }
-
-        .restart-countdown {
-            font-size: 1.5rem;
-            font-weight: bold;
+        .menu-item:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
             color: #fff;
+        }
+
+        .menu-item i {
+            width: 25px;
+            margin-right: 10px;
+        }
+
+        /* --- PROFILE PICTURE --- */
+        .profile-pic-container {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #profile-pic {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.5);
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        #profile-pic:hover {
+            transform: scale(1.1);
+            border-color: #fff;
+        }
+
+        .change-pic-btn {
             margin-top: 10px;
+            font-size: 0.75rem;
+            padding: 5px 10px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
         }
 
-        .restart-message {
-            font-size: 1rem;
-            color: rgba(255, 255, 255, 0.7);
-            margin-top: 15px;
+        /* --- FOOTER & EXTRAS --- */
+        footer {
+            margin-top: 4rem;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
         }
 
-        /* Print styles */
-        @media print {
-            /* Hide elements that shouldn't be printed */
-            .menu-container, .profile-pic-container, .video-background, 
-            #viewchannelimg, img[src*="LWKH QRcode Design.png"],
-            .toast, .restart-overlay {
-                display: none !important;
-            }
-            
-            /* Remove URL and date from print */
-            @page {
-                margin: 0.5in;
-                size: auto;
-            }
-            
-            /* Prevent URL and date from being printed */
-            body::after {
-                display: none !important;
-            }
-            
-            /* Basic print styling */
-            body {
-                background: white !important;
-                color: black !important;
-                font-size: 12pt !important;
-                line-height: 1.4 !important;
-            }
-            
-            .language-section {
-                background: white !important;
-                color: black !important;
-                border: 1px solid #ccc !important;
-                box-shadow: none !important;
-                margin: 1rem auto !important;
-                page-break-inside: avoid;
-            }
-            
-            header, nav, footer {
-                background: white !important;
-                color: black !important;
-                box-shadow: none !important;
-            }
-            
-            nav a {
-                color: black !important;
-                border: 1px solid #ccc !important;
-            }
-            
-            /* Add LWKHO to the footer */
-            footer::after {
-                content: "LWKHO";
-                display: block;
-                margin-top: 10px;
-                font-weight: bold;
-                font-size: 14pt;
-            }
-            
-            h1, h2 {
-                color: black !important;
-            }
-            
-            p {
-                color: black !important;
-            }
-            
-            /* Ensure good print layout */
-            main {
-                padding: 0.5in !important;
-            }
-            
-            /* Prevent URLs from being printed */
-            a[href]:after {
-                content: "" !important;
-            }
-            
-            /* Hide specific navigation items in print */
-            nav a[href*="Gaming"],
-            nav a[href*="TO DO"], 
-            nav a[href*="FARM GAME"], 
-            nav a[href*="Calculator"], 
-            nav a[href*="Example"] {
-                display: none !important;
-            }
+        .qr-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 3rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .qr-section img, #viewchannelimg {
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 4px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .qr-section img:hover, #viewchannelimg:hover {
+            transform: scale(1.05);
+            border-color: rgba(255,255,255,0.6);
+        }
+
+        /* Toast */
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            text-align: center;
+            border-radius: 50px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1002;
+            bottom: 30px;
+            right: 30px;
+            font-size: 14px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Restart Overlay */
+        .restart-overlay {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(20px);
+        }
+        
+        .restart-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            border-radius: 30px;
+        }
+
+        /* --- DARK MODE OVERRIDES --- */
+        body.dark-mode {
+            background: #111;
+        }
+        body.dark-mode .liquid-blob {
+            opacity: 0.3;
+        }
+        body.dark-mode .glass-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+        body.dark-mode h2, body.dark-mode p {
+            color: #eee;
+        }
+        
+        /* --- HIGH CONTRAST --- */
+        body.high-contrast {
+            background: #000;
+            color: #fff;
+        }
+        body.high-contrast .glass-panel, body.high-contrast nav {
+            background: #000;
+            border: 2px solid #fff;
+            backdrop-filter: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 { font-size: 2rem; }
+            nav { flex-direction: column; width: 90%; margin: 0 auto 2rem; border-radius: 20px;}
+            .menu-container { right: 80px; top: 20px; }
+            .profile-pic-container { top: 20px; right: 15px; }
+            #profile-pic { width: 45px; height: 45px; }
+            .menu-button { width: 45px; height: 45px; }
         }
     </style>
 </head>
 <body class="font-medium">
-    <!-- Three-dots menu -->
-    <div class="menu-container">
-        <button class="menu-button" id="menuButton">⋯</button>
-        <div class="menu-content" id="menuContent">
-            <div class="menu-item" id="darkModeToggle">
-                <i>🌙</i> Toggle Dark Mode
-            </div>
-            <div class="menu-item" id="fontSizeSmall">
-                <i>A</i> Small Font
-            </div>
-            <div class="menu-item" id="fontSizeMedium">
-                <i>A</i> Medium Font
-            </div>
-            <div class="menu-item" id="fontSizeLarge">
-                <i>A</i> Large Font
-            </div>
-            <div class="menu-item" id="highContrastToggle">
-                <i>⚫</i> High Contrast
-            </div>
-            <div class="menu-item" id="printPage">
-                <i>🖨️</i> Print Page
-            </div>
-            <div class="menu-item" id="copyUrl">
-                <i>🔗</i> Copy URL
-            </div>
-            <div class="menu-item" id="restartPage">
-                <i>🔄</i> Restart Page
-            </div>
-        </div>
-    </div>
+    
+    <!-- Liquid Blobs for Background Animation -->
+    <div class="liquid-blob blob-1"></div>
+    <div class="liquid-blob blob-2"></div>
+    <div class="liquid-blob blob-3"></div>
 
-    <!-- Profile Picture and Change Button -->
-    <div class="profile-pic-container">
-        <img id="profile-pic" src="" alt="Profile Picture" onclick="promptProfilePicture(event)" />
-        <button class="change-pic-btn" onclick="changeProfilePicture()">Change picture</button>
-        <input type="file" id="upload-pic" style="display: none" onchange="previewProfilePicture(event)" />
-    </div>
-
-    <!-- Video Background -->
+    <!-- Video Background (Preserved as fallback/option) -->
     <video autoplay muted loop class="video-background">
         <source src="MED6.mp4" type="video/mp4">
     </video>
 
-    <header>
-        <h1>Learn Languages & Play Games</h1>
-    </header>
+    <!-- Three-dots menu -->
+    <div class="menu-container">
+        <button class="menu-button" id="menuButton">⋯</button>
+        <div class="menu-content glass-panel" id="menuContent">
+            <!-- Modified Theme Toggle Item -->
+            <div class="menu-item" id="themeToggle"><i>🌙</i> Toggle Dark Mode</div>
+            <div class="menu-item" id="fontSizeSmall"><i>A</i> Small Font</div>
+            <div class="menu-item" id="fontSizeMedium"><i>A</i> Medium Font</div>
+            <div class="menu-item" id="fontSizeLarge"><i>A</i> Large Font</div>
+            <div class="menu-item" id="highContrastToggle"><i>⚫</i> High Contrast</div>
+            <div class="menu-item" id="printPage"><i>🖨️</i> Print Page</div>
+            <div class="menu-item" id="copyUrl"><i>🔗</i> Copy URL</div>
+            <div class="menu-item" id="restartPage" style="display:none;"><i></i></div>
+            <a href="https://www.youtube.com/@INTOTHEUNKNOWN-WEBSITE" style="text-decoration:none;"><div class="menu-item"><i>📺</i>Go to YouTube channel</div></a>
+        </div>
+    </div>
 
-    <nav>
-        <a href="english.html">Learn English</a>
-        <a href="arabic.html">Learn Arabic</a>
-        <a href="quiz.html"> Dive into some quizzes </a>
-        <a href="Privacy.html">Privacy</a>
-        <a href="Gaming.html">Play Games</a>
-        <a href="TO DO List.html">TO DO </a>
-        <a href="FARM GAME.HTML">Farm Game </a>
-        <a href="Calculator.HTML">Calculator</a>
-        <a href="Example.HTML">Timer</a>
-        <a href="Maths AI.HTML">MATHS AI</a>
-    </nav>
-    
-    <main>
-        <h2 style="color: black;">Explore Our Features</h2>
-        <p style="color: black;"> We are trying our best to fix Problems , Thank you for veseting our website . Contact Us At : KhaledObada02@gmail.com   </p>
+    <!-- Profile Picture -->
+    <div class="profile-pic-container">
+        <img id="profile-pic" src="" alt="Profile" onclick="promptProfilePicture(event)" style="display:none; background:#fff;">
+        <button class="change-pic-btn" onclick="changeProfilePicture()">Change</button>
+        <input type="file" id="upload-pic" style="display: none" onchange="previewProfilePicture(event)" />
+    </div>
 
-        <section id="english" class="language-section">
-            <h2>Learn English</h2>
-            <p>Explore exercises, quizzes, and fun ways to master the English language.</p>
-        </section>
-        <section id="arabic" class="language-section">
-            <h2>Learn Arabic</h2>
-            <p>Discover Arabic script, phrases, and cultural insights to boost your learning.</p>
-        </section>
-        <section id="Settings" class="language-section">
-            <h2> Play Games</h2>
-            <p>Play Games and get fun ! </p>
-        </section>
-    </main>
+    <div class="container">
+        <header>
+            <h1>Learn Languages & Play Games</h1>
+        </header>
 
-    <!-- Display the QR code image -->
-    <img align="center" src="LWKH QRcode Design.png" alt="QR Code" width="215" height="200">
-    <a href="https://www.youtube.com/@LWKHO"><img src="https://yt3.googleusercontent.com/Yj1sJPdgqAM8XmSk8TsdxZYxl5jcCDfMY2XfIbGTj_zeRVQNs_xu5fXVj70_xmYq8LneU_ekBA=s160-c-k-c0x00ffffff-no-rj" id="viewchannelimg" height="200" width="215"></a> <style>.viewchannelimg:hover{background-image:url('https://cdn.dribbble.com/userupload/20045159/file/original-af7da2760f5dd814e392c7a0df70f799.gif');}</style>
-    
+        <nav>
+            <a href="english.html">Learn English</a>
+            <a href="arabic.html">Learn Arabic</a>
+            <a href="quiz.html">Quizzes</a>
+            <a href="Gaming.html">Play Games</a>
+            <a href="TO DO List.html">To Do</a>
+            <a href="FARM GAME.HTML">Farm Game</a>
+            <a href="Calculator.HTML">Calculator</a>
+            <a href="Example.HTML">Timer</a>
+            <a href="Maths AI.HTML">Maths AI</a>
+            <a href="Privacy.html">Privacy</a>
+        </nav>
+
+        <main>
+            <div class="glass-panel" style="padding: 2rem; margin-bottom: 2rem;">
+                <h2 style="color: #fff;">Explore Our Features</h2>
+                <p style="color: #eee;">We are trying our best to fix problems. Thank you for visiting our website. <br> Contact Us At: KhaledObada02@gmail.com</p>
+            </div>
+
+            <div class="features-grid">
+                <section id="english" class="language-section glass-panel">
+                    <h2>Learn English</h2>
+                    <p>Explore exercises, quizzes, and fun ways to master the English language.</p>
+                </section>
+                
+                <section id="arabic" class="language-section glass-panel">
+                    <h2>Learn Arabic</h2>
+                    <p>Discover Arabic script, phrases, and cultural insights to boost your learning.</p>
+                </section>
+                
+                <section id="Settings" class="language-section glass-panel">
+                    <h2>Play Games</h2>
+                    <p>Play Games and have fun!</p>
+                </section>
+            </div>
+
+            <!-- QR Section -->
+            <div class="qr-section">
+                <img align="center" src="../Album/LWKH QRcode.png" alt="QR Code" width="215" height="200" class="glass-panel">
+                <a href="https://www.youtube.com/@LWKHO">
+                    <img src="https://yt3.googleusercontent.com/Yj1sJPdgqAM8XmSk8TsdxZYxl5jcCDfMY2XfIbGTj_zeRVQNs_xu5fXVj70_xmYq8LneU_ekBA=s160-c-k-c0x00ffffff-no-rj" id="viewchannelimg" height="200" width="215">
+                </a> 
+            </div>
+        </main>
+    </div>
+
     <footer>
         <p>Copyright &copy; <span id="current-year"></span> Learn Languages & Play Games, all rights reserved</p>
     </footer>
 
     <!-- Enhanced Restart Animation -->
-    <div id="restartOverlay" class="restart-overlay">
+    <div id="restartOverlay" class="restart-overlay" style="display: none;">
         <div class="restart-container">
             <div class="restart-title">RESTARTING</div>
             <div class="restart-subtitle">Please wait while we refresh the page</div>
@@ -709,35 +696,56 @@
             e.stopPropagation();
         });
         
-        // Dark mode toggle
-        document.getElementById('darkModeToggle').addEventListener('click', function() {
-            document.body.classList.toggle('dark-mode');
-            showToast('Dark mode toggled');
+        // --- Persistence Functions ---
+        
+        // Function to update the menu button based on current mode
+        function updateThemeButton(isDark) {
+            const btn = document.getElementById('themeToggle');
+            if (isDark) {
+                btn.innerHTML = '<i>☀️</i> Toggle Light Mode';
+            } else {
+                btn.innerHTML = '<i>🌙</i> Toggle Dark Mode';
+            }
+        }
+
+        // Theme Toggle
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeButton(isDark);
+            
+            showToast(isDark ? 'Dark mode enabled' : 'Light mode enabled');
             menuContent.classList.remove('show');
         });
         
-        // Font size adjustments
+        // Font size adjustments with Persistence
+        function setFontSize(size) {
+            document.body.className = document.body.className.replace(/(font-small|font-medium|font-large)/, '') + ' font-' + size;
+            localStorage.setItem('fontSize', 'font-' + size);
+        }
+
         document.getElementById('fontSizeSmall').addEventListener('click', function() {
-            document.body.className = document.body.className.replace(/(font-small|font-medium|font-large)/, '') + ' font-small';
+            setFontSize('small');
             showToast('Small font size applied');
             menuContent.classList.remove('show');
         });
         
         document.getElementById('fontSizeMedium').addEventListener('click', function() {
-            document.body.className = document.body.className.replace(/(font-small|font-medium|font-large)/, '') + ' font-medium';
+            setFontSize('medium');
             showToast('Medium font size applied');
             menuContent.classList.remove('show');
         });
         
         document.getElementById('fontSizeLarge').addEventListener('click', function() {
-            document.body.className = document.body.className.replace(/(font-small|font-medium|font-large)/, '') + ' font-large';
+            setFontSize('large');
             showToast('Large font size applied');
             menuContent.classList.remove('show');
         });
         
-        // High contrast mode
+        // High contrast mode with Persistence
         document.getElementById('highContrastToggle').addEventListener('click', function() {
-            document.body.classList.toggle('high-contrast');
+            const isHighContrast = document.body.classList.toggle('high-contrast');
+            localStorage.setItem('highContrast', isHighContrast);
             showToast('High contrast mode toggled');
             menuContent.classList.remove('show');
         });
@@ -794,8 +802,9 @@
             reader.onload = function(e) {
                 const imgSrc = e.target.result;
                 localStorage.setItem('profilePic', imgSrc);
-                document.getElementById('profile-pic').src = imgSrc;
-                document.getElementById('profile-pic').style.display = 'block';
+                const img = document.getElementById('profile-pic');
+                img.src = imgSrc;
+                img.style.display = 'block';
                 document.querySelector('.change-pic-btn').style.display = 'inline-block';
             };
 
@@ -806,10 +815,14 @@
 
         function showStoredProfilePic() {
             let pic = localStorage.getItem('profilePic');
+            const img = document.getElementById('profile-pic');
             if (pic) {
-                document.getElementById('profile-pic').src = pic;
-                document.getElementById('profile-pic').style.display = 'block';
+                img.src = pic;
+                img.style.display = 'block';
                 document.querySelector('.change-pic-btn').style.display = 'inline-block';
+            } else {
+                // If no pic, show a default icon or hide
+                img.style.display = 'none'; 
             }
         }
 
@@ -841,15 +854,39 @@
             }, 1000);
         }
 
-        // Load profile picture on page load if already stored
-        window.onload = function() {
+        // --- Load Settings on Startup ---
+        window.addEventListener('DOMContentLoaded', () => {
+            // Load Profile Pic
             showStoredProfilePic();
+
+            // Load Theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                updateThemeButton(true);
+            } else {
+                updateThemeButton(false);
+            }
             
+            // Load Font Size
+            const savedFont = localStorage.getItem('fontSize');
+            if (savedFont) {
+                // Remove existing font classes first
+                document.body.classList.remove('font-small', 'font-medium', 'font-large');
+                document.body.classList.add(savedFont);
+            }
+            
+            // Load High Contrast
+            const savedHighContrast = localStorage.getItem('highContrast');
+            if (savedHighContrast === 'true') {
+                document.body.classList.add('high-contrast');
+            }
+
             // Set current year
             const currentYearElement = document.getElementById('current-year');
             const currentYear = new Date().getFullYear();
             currentYearElement.textContent = currentYear;
-        };
+        });
     </script>
 </body>
 </html>
