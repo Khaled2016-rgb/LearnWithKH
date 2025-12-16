@@ -1,679 +1,415 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <meta name="description" content="Ultimate Knowledge Quiz with Liquid Glass Style">
-    <title>Ultimate Knowledge Quiz (Liquid Glass Edition)</title>
-    <link rel="icon" href="https://cdn-icons-png.freepik.com/256/7128/7128236.png?semt=ais_hybrid">
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <meta name="description" content="Ultimate Knowledge Quiz with Liquid Glass Style">
+        <title>Ultimate Knowledge Quiz (Liquid Glass Edition)</title>
+        <link rel="icon" href="https://cdn-icons-png.freepik.com/256/7128/7128236.png?semt=ais_hybrid">
 
-    <!-- Tailwind CSS CDN for utility classes -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    animation: {
-                        'gradient-x': 'gradient-x 15s ease infinite',
-                    },
-                    keyframes: {
-                        'gradient-x': {
-                            '0%, 100%': { 'background-position': '0% 50%' },
-                            '50%': { 'background-position': '100% 50%' },
+        <!-- Tailwind CSS CDN for utility classes -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: ['Inter', 'sans-serif'],
                         },
+                        keyframes: {
+                            'blob-move': {
+                                '0%': { transform: 'translate(0, 0) scale(1)' },
+                                '33%': { transform: 'translate(10vw, 5vh) scale(1.15) rotate(10deg)' },
+                                '66%': { transform: 'translate(-5vw, -10vh) scale(0.9) rotate(-10deg)' },
+                                '100%': { transform: 'translate(0, 0) scale(1)' },
+                            },
+                        },
+                        animation: {
+                            'blob-move': 'blob-move 25s ease-in-out infinite alternate',
+                        }
                     }
                 }
             }
-        }
-    </script>
-    <style>
-        /* Base styles and Animated Background */
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-            color: white; /* Default text color for the dark background */
-            /* Animated Gradient Background */
-            background: linear-gradient(-45deg, #0f172a, #1e3a8a, #4f46e5, #9333ea);
-            background-size: 400% 400%;
-            animation: gradient-x 15s ease infinite;
-            transition: all 0.3s ease;
-        }
+        </script>
+        <style>
+            /* Base styles and Container Setup */
+            body {
+                font-family: 'Inter', sans-serif;
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 1rem;
+                color: white; 
+                background: #111827; /* Dark base color to let the blobs shine */
+                transition: all 0.3s ease;
+            }
 
-        /* Liquid Glass Effect on main container */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.1); /* Slightly transparent white */
-            backdrop-filter: blur(15px); /* The liquid glass blur */
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-            transition: transform 0.3s ease-in-out;
-            transform: perspective(1000px) rotateX(0deg);
-        }
-        .glass-card:hover {
-            transform: perspective(1000px) rotateX(1deg);
-        }
+            /* --- Color Rippling Background (Animated Blobs) --- */
+            .rippling-background {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                z-index: -1; 
+            }
 
-        /* Liquid Glass Buttons */
-        .glass-button {
-            /* Tailwind classes are also applied in HTML, this adds the essential glass properties */
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            color: #ffffff;
-            font-weight: 500;
-            transition: all 0.3s ease, transform 0.1s ease;
-        }
+            .blob {
+                position: absolute;
+                border-radius: 50%;
+                opacity: 0.5; /* High opacity for a liquid, dense color */
+                filter: blur(150px); /* Heavy blur for the rippling/liquid effect */
+                transition: background 0.5s ease;
+            }
 
-        .glass-button:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
-        }
+            #blob1 {
+                width: 700px;
+                height: 700px;
+                background: #6366f1; /* Indigo */
+                top: 5%;
+                left: 5%;
+                animation: blob-move 20s infinite alternate;
+                animation-delay: 0s;
+            }
 
-        .glass-button:disabled {
-            background: rgba(100, 100, 100, 0.1);
-            border-color: rgba(100, 100, 100, 0.4);
-            color: #ccc;
-            transform: none;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
+            #blob2 {
+                width: 900px;
+                height: 900px;
+                background: #34d399; /* Emerald Green */
+                bottom: -150px;
+                right: -150px;
+                animation: blob-move 25s infinite alternate;
+                animation-delay: -5s;
+            }
 
-        /* Dark Mode adjustments for glass elements (if we want to support a dark mode toggle) */
-        .dark-mode .glass-card {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(0, 0, 0, 0.3);
-        }
-        .dark-mode .glass-button {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(0, 0, 0, 0.5);
-        }
+            #blob3 {
+                width: 600px;
+                height: 600px;
+                background: #f87171; /* Red/Pink */
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                animation: blob-move 18s infinite alternate;
+                animation-delay: -10s;
+            }
 
-        /* Custom text colors for feedback */
-        .correct { color: #84cc16; font-weight: bold; }
-        .incorrect { color: #ef4444; font-weight: bold; }
-        
-        /* Lock Screen Styling */
-        #lockScreen {
-            z-index: 9999;
-            background: rgba(0, 0, 0, 0.95);
-            font-size: 2.5em;
-            text-shadow: 0 0 10px #ffffff;
-            animation: pulse 2s infinite;
-        }
+            /* --- Liquid Glass Effect (iOS 26.2 Style) --- */
+            .glass-card {
+                /* Core Glass Properties */
+                background: rgba(255, 255, 255, 0.08); /* Subtle background color */
+                backdrop-filter: blur(25px) saturate(180%); /* Strong blur and saturation */
+                -webkit-backdrop-filter: blur(25px) saturate(180%);
+                border: 1px solid rgba(255, 255, 255, 0.3); /* Clear white border */
+                box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); /* Stronger outer shadow */
+                
+                /* Enhanced Aesthetics */
+                position: relative;
+                z-index: 10;
+                overflow: hidden;
+                /* Subtle tilt on hover */
+                transition: transform 0.3s ease-in-out;
+                transform: perspective(1000px) rotateX(0deg);
+            }
+            
+            .glass-card:hover {
+                transform: perspective(1000px) rotateX(1deg) scale(1.01);
+            }
 
-        @keyframes pulse {
-            0% { opacity: 0.8; }
-            50% { opacity: 1; }
-            100% { opacity: 0.8; }
-        }
-    </style>
-</head>
-<body class="p-4 md:p-8">
+            /* Inner highlight/shine for 'liquid' luminosity */
+            .glass-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                border-radius: inherit;
+                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4), /* Inner border highlight */
+                            inset 0 0 30px rgba(255, 255, 255, 0.05); /* Soft inner glow */
+                pointer-events: none;
+                z-index: 10;
+            }
 
-    <!-- Lock Button and Screen -->
-    <div class="fixed top-4 left-4 z-[10000]">
-        <button id="lockButton" class="glass-button text-sm md:text-base px-4 py-2 rounded-full shadow-lg hover:shadow-xl">
-            Lock Website
-        </button>
-    </div>
+            /* Liquid Glass Buttons */
+            .glass-button {
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                color: #ffffff;
+                font-weight: 600;
+                transition: all 0.3s ease, transform 0.1s ease;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                position: relative;
+            }
 
-    <div id="lockScreen" class="fixed inset-0 hidden justify-center items-center text-white text-center">
-        Press and hold anywhere to unlock
-    </div>
-    
-    <!-- Quiz Container -->
-    <div id="quiz-container" class="glass-card w-full max-w-xl p-6 md:p-10 rounded-2xl text-center shadow-2xl transition-all duration-500">
-        <h1 class="text-3xl md:text-4xl font-extrabold mb-4 text-white drop-shadow-lg">
-            Ultimate Knowledge Quiz
-        </h1>
+            .glass-button:hover:not(:disabled) {
+                background: rgba(255, 255, 255, 0.4); 
+                transform: translateY(-3px);
+                box-shadow: 0 6px 25px rgba(255, 255, 255, 0.2);
+            }
 
-        <!-- Progress Bar -->
-        <div class="mb-6">
-            <div id="progress-bar" class="h-2 bg-white/20 rounded-full mx-auto w-full max-w-lg overflow-hidden">
-                <div id="progress-fill" class="h-full bg-indigo-400 transition-all duration-300 ease-in-out"></div>
-            </div>
-            <p id="progress" class="text-lg mt-2 text-white/80">Progress: 0/0</p>
+            .glass-button:disabled {
+                background: rgba(100, 100, 100, 0.1);
+                border-color: rgba(100, 100, 100, 0.4);
+                color: #ccc;
+                transform: none;
+                box-shadow: none;
+                cursor: not-allowed;
+                display: none;
+            }
+
+            /* Custom text colors for feedback */
+            .correct { color: #84cc16; font-weight: bold; }
+            .incorrect { color: #ef4444; font-weight: bold; }
+                
+            /* Lock Screen Styling */
+            #lockScreen {
+                z-index: 99999;
+                background: rgba(0, 0, 0, 0.95);
+                font-size: 2.5em;
+                text-shadow: 0 0 10px #ffffff;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% { opacity: 0.8; }
+                50% { opacity: 1; }
+                100% { opacity: 0.8; }
+            }
+        </style>
+    </head>
+    <body class="p-4 md:p-8">
+
+        <!-- --- Color Rippling Background Container --- -->
+        <div class="rippling-background">
+            <div id="blob1" class="blob"></div>
+            <div id="blob2" class="blob"></div>
+            <div id="blob3" class="blob"></div>
         </div>
+        <!-- ----------------------------------------- -->
 
-        <div id="question-container" class="space-y-6">
-            <!-- Questions load here -->
-        </div>
-
-        <!-- Next Button -->
-        <div class="mt-8">
-            <button id="next-btn" onclick="nextQuestion()" disabled class="glass-button w-full md:w-auto px-8 py-3 rounded-xl shadow-xl hover:shadow-2xl font-bold uppercase tracking-wider">
-                Next Question
+        <!-- Lock Button and Screen -->
+        <div class="fixed top-4 left-4 z-[10000]">
+            <button id="lockButton" class="glass-button text-sm md:text-base px-4 py-2 rounded-full shadow-lg hover:shadow-xl">
+                Lock Website
             </button>
         </div>
-    </div>
-    
-    <!-- Main JavaScript Logic -->
-    <script>
-        // --- Quiz Data and State ---
-        let quizData = [];
-        let currentQuestionIndex = 0;
-        let score = 0;
 
-        // --- Utility Functions ---
-        function toggleDarkMode() {
-            // Note: Dark mode logic retained, but the current background makes light mode look strange.
-            document.body.classList.toggle("dark-mode");
-            localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
-        }
+        <div id="lockScreen" class="fixed inset-0 hidden justify-center items-center text-white text-center">
+            Press and hold anywhere to unlock
+        </div>
+        
+        <!-- Quiz Container (Liquid Glass Card) -->
+        <div id="quiz-container" class="glass-card w-full max-w-xl p-6 md:p-10 rounded-2xl text-center shadow-2xl transition-all duration-500">
+            <h1 class="text-3xl md:text-4xl font-extrabold mb-4 text-white drop-shadow-lg">
+                Ultimate Knowledge Quiz
+            </h1>
 
-        function applyUserSettings() {
-            if (localStorage.getItem("theme") === "dark") {
-                document.body.classList.add("dark-mode");
-            }
-        }
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function generateQuestions() {
-            const questions = [];
-            
-            // Math Questions
-            for (let i = 1; i <= 20; i++) {
-                questions.push({
-                    subject: "Math",
-                    question: `What is ${i} × ${i}?`,
-                    options: shuffle([`${i*11}`, `${i * 2}`, `${i * i}`, `${i + 10}`]),
-                    answer: `${i * i}`
-                });
-            }
-
-            // Other Subjects
-            const science = [
-                { question: "What is the chemical symbol for water?", options: ["O₂", "CO₂", "H₂O", "CH₄"], answer: "H₂O" },
-                { question: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter", "Saturn"], answer: "Mars" },
-                { question: "What is the powerhouse of the cell?", options: ["Nucleus", "Ribosome", "Mitochondria", "Golgi Apparatus"], answer: "Mitochondria" }
-            ];
-            const humanities = [
-                { question: "Who wrote 'Romeo and Juliet'?", options: ["Shakespeare", "Dickens", "Austen", "Hemingway"], answer: "Shakespeare" },
-                { question: "Who built pyramids in Egypt?", options: ["Romans", "Greeks", "Egyptians", "Mayans"], answer: "Egyptians" },
-                { question: "First US president?", options: ["Lincoln", "George Washington", "Jefferson", "Roosevelt"], answer: "George Washington" }
-            ];
-            const general = [
-                { question: "Capital of Japan?", options: ["Beijing", "Seoul", "Tokyo", "Bangkok"], answer: "Tokyo" },
-                { question: "How many continents?", options: ["Five", "Six", "Seven", "Eight"], answer: "Seven" },
-                { question: "Largest ocean?", options: ["Atlantic", "Pacific", "Indian", "Arctic"], answer: "Pacific" }                            
-            ];
-            
-            questions.push(...science, ...humanities, ...general);
-            return shuffle(questions);
-        }
-
-        function displayQuestion() {
-            const container = document.getElementById("question-container");
-            const quiz = quizData[currentQuestionIndex];
-            
-            const optionsHtml = quiz.options.map(option => `
-                <button 
-                    class="glass-button w-full px-4 py-3 rounded-lg text-lg text-left" 
-                    onclick="checkAnswer(this, '${option}')">
-                    ${option}
-                </button>
-            `).join("");
-
-            container.innerHTML = `
-                <h3 class="text-lg font-semibold text-indigo-300">${quiz.subject} Quiz</h3>
-                <h2 class="text-2xl font-bold mb-6">${quiz.question}</h2>
-                <div class="space-y-4">
-                    ${optionsHtml}
+            <!-- Progress Bar -->
+            <div class="mb-6">
+                <div id="progress-bar" class="h-2 bg-white/20 rounded-full mx-auto w-full max-w-lg overflow-hidden">
+                    <div id="progress-fill" class="h-full bg-indigo-400/80 transition-all duration-300 ease-in-out shadow-lg"></div>
                 </div>
-                <p id="feedback" class="mt-4 text-xl h-6"></p>
-            `;
+                <p id="progress" class="text-lg mt-2 text-white/80">Progress: 0/0</p>
+            </div>
 
-            updateProgress();
-            document.getElementById("next-btn").disabled = true;
-        }
+            <div id="question-container" class="space-y-6">
+                <!-- Questions load here -->
+            </div>
 
-        function checkAnswer(button, selected) {
-            const quiz = quizData[currentQuestionIndex];
-            const buttons = document.querySelectorAll("#question-container button");
-            const feedback = document.getElementById("feedback");
+            <!-- Next Button -->
+            <div class="mt-8">
+                <button id="next-btn" onclick="nextQuestion()" disabled class="glass-button w-full md:w-auto px-8 py-3 rounded-xl shadow-xl hover:shadow-2xl font-bold uppercase tracking-wider">
+                    Next Question
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main JavaScript Logic -->
+        <script>
+            // --- Quiz Data and State ---
+            let quizData = [];
+            let currentQuestionIndex = 0;
+            let score = 0;
 
-            // Disable all buttons
-            buttons.forEach(btn => btn.disabled = true);
-
-            // Highlight the correct/incorrect answers
-            if (selected === quiz.answer) {
-                feedback.innerHTML = `<span class="correct">✔ Correct! Keep it up.</span>`;
-                button.classList.add('bg-green-600/50', 'border-green-400');
-                score++;
-            } else {
-                feedback.innerHTML = `<span class="incorrect">✘ Incorrect. Correct: ${quiz.answer}</span>`;
-                button.classList.add('bg-red-600/50', 'border-red-400');
-            }
-
-            // Find and highlight the correct answer if incorrect choice was made
-            buttons.forEach(btn => {
-                if (btn.innerText.trim() === quiz.answer) {
-                     btn.classList.add('bg-green-600/50', 'border-green-400');
+            // --- Utility Functions ---
+            function shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
                 }
-            });
-
-            document.getElementById("next-btn").disabled = false;
-        }
-
-        function nextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < quizData.length) {
-                displayQuestion();
-            } else {
-                var incorrectanswers = quizData.length - score;
-                document.getElementById("quiz-container").innerHTML = `
-                    <div class="py-10">
-                        <h2 class="text-4xl font-extrabold mb-4 text-green-300 drop-shadow-xl">🎉 Quiz Completed!</h2>
-                        <p class="text-2xl mb-4">Your final score: <span class="text-yellow-300 font-extrabold">${score}/${quizData.length}</span></p>
-                        <p class="text-xl">Correct answers: ${score}</p>
-                        <p class="text-xl mb-8">Incorrect answers: ${incorrectanswers}</p>
-                        <button onclick="restartQuiz()" class="glass-button px-8 py-3 rounded-xl shadow-xl hover:shadow-2xl font-bold uppercase tracking-wider">
-                            Restart Quiz
-                        </button>
-                    </div>
-                `;
+                return array;
             }
-        }
 
-        function updateProgress() {
-            const progress = document.getElementById("progress");
-            const fill = document.getElementById("progress-fill");
-            const total = quizData.length;
-            const current = currentQuestionIndex + 1;
-            const percent = (current / total) * 100;
-            
-            progress.innerText = `Progress: ${current}/${total}`;
-            fill.style.width = percent + "%";
-        }
-
-        function restartQuiz() {
-            currentQuestionIndex = 0;
-            score = 0;
-            quizData = generateQuestions();
-            displayQuestion();
-        }
-
-        // --- Lock Screen Logic ---
-        const lockScreen = document.getElementById("lockScreen");
-        const lockButton = document.getElementById("lockButton");
-        
-        lockButton.addEventListener("click", () => {
-            lockScreen.style.display = "flex"; // Activate lock screen
-        });
-
-        let pressTimer;
-        const unlockDuration = 2000; // 2 seconds
-
-        // Generic function to set up press and hold for both mouse and touch
-        function setupPressHold(downEvent, upEvent) {
-            document.addEventListener(downEvent, () => {
-                // Prevent starting timer if already unlocked and just clicking
-                if (lockScreen.style.display !== "flex") return;
+            function generateQuestions() {
+                const questions = [];
                 
-                pressTimer = setTimeout(() => {
-                    lockScreen.style.display = "none"; // Unlock
-                }, unlockDuration);
-            });
+                // Math Questions
+                for (let i = 1; i <= 20; i++) {
+                    questions.push({
+                        subject: "Math",
+                        question: `What is ${i} × ${i}?`,
+                        options: shuffle([`${i*11}`, `${i * 2}`, `${i * i}`, `${i + 10}`]),
+                        answer: `${i * i}`
+                    });
+                }
 
-            document.addEventListener(upEvent, () => {
-                clearTimeout(pressTimer);
-            });
-        }
-        
-        // Mouse/Desktop events
-        setupPressHold("mousedown", "mouseup");
-        
-        // Touch/Mobile events
-        setupPressHold("touchstart", "touchend");
+                // Other Subjects
+                const science = [
+                    { question: "What is the chemical symbol for water?", options: ["O₂", "CO₂", "H₂O", "CH₄"], answer: "H₂O" },
+                    { question: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter", "Saturn"], answer: "Mars" },
+                    { question: "What is the powerhouse of the cell?", options: ["Nucleus", "Ribosome", "Mitochondria", "Golgi Apparatus"], answer: "Mitochondria" }
+                ];
+                const humanities = [
+                    { question: "Who wrote 'Romeo and Juliet'?", options: ["Shakespeare", "Dickens", "Austen", "Hemingway"], answer: "Shakespeare" },
+                    { question: "Who built pyramids in Egypt?", options: ["Romans", "Greeks", "Egyptians", "Mayans"], answer: "Egyptians" },
+                    { question: "First US president?", options: ["Lincoln", "George Washington", "Jefferson", "Roosevelt"], answer: "George Washington" }
+                ];
+                const general = [
+                    { question: "Capital of Japan?", options: ["Beijing", "Seoul", "Tokyo", "Bangkok"], answer: "Tokyo" },
+                    { question: "How many continents?", options: ["Five", "Six", "Seven", "Eight"], answer: "Seven" },
+                    { question: "Largest ocean?", options: ["Atlantic", "Pacific", "Indian", "Arctic"], answer: "Pacific" }                    
+                ];
+                
+                questions.push(...science, ...humanities, ...general);
+                return shuffle(questions);
+            }
 
+            function displayQuestion() {
+                const container = document.getElementById("question-container");
+                const quiz = quizData[currentQuestionIndex];
+                
+                const optionsHtml = quiz.options.map(option => `
+                    <button 
+                        class="glass-button w-full px-4 py-3 rounded-xl text-lg text-left" 
+                        onclick="checkAnswer(this, '${option}')">
+                        ${option}
+                    </button>
+                `).join("");
 
-        // --- Initialization ---
-        window.onload = () => {
-            applyUserSettings();
-            quizData = generateQuestions();
-            displayQuestion();
-        };
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <meta name="description" content="Ultimate Knowledge Quiz with Liquid Glass Style">
-    <title>Ultimate Knowledge Quiz (Liquid Glass Edition)</title>
-    <link rel="icon" href="https://cdn-icons-png.freepik.com/256/7128/7128236.png?semt=ais_hybrid">
+                container.innerHTML = `
+                    <h3 class="text-lg font-semibold text-indigo-300 drop-shadow">${quiz.subject} Quiz</h3>
+                    <h2 class="text-2xl font-bold mb-6">${quiz.question}</h2>
+                    <div class="space-y-4">
+                        ${optionsHtml}
+                    </div>
+                    <p id="feedback" class="mt-4 text-xl h-6"></p>
+                `;
 
-    <!-- Tailwind CSS CDN for utility classes -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    animation: {
-                        'gradient-x': 'gradient-x 15s ease infinite',
-                    },
-                    keyframes: {
-                        'gradient-x': {
-                            '0%, 100%': { 'background-position': '0% 50%' },
-                            '50%': { 'background-position': '100% 50%' },
-                        },
+                updateProgress();
+                document.getElementById("next-btn").disabled = true;
+            }
+
+            function checkAnswer(button, selected) {
+                const quiz = quizData[currentQuestionIndex];
+                const buttons = document.querySelectorAll("#question-container button");
+                const feedback = document.getElementById("feedback");
+
+                // Disable all buttons
+                buttons.forEach(btn => btn.disabled = true);
+
+                // Highlight the correct/incorrect answers
+                if (selected === quiz.answer) {
+                    feedback.innerHTML = `<span class="correct">✔ Correct! Keep it up.</span>`;
+                    button.classList.add('bg-green-500/80', 'border-green-300', 'ring-2', 'ring-green-400');
+                    score++;
+                } else {
+                    feedback.innerHTML = `<span class="incorrect">✘ Incorrect. Correct: ${quiz.answer}</span>`;
+                    button.classList.add('bg-red-500/80', 'border-red-300', 'ring-2', 'ring-red-400');
+                }
+
+                // Find and highlight the correct answer if incorrect choice was made
+                buttons.forEach(btn => {
+                    if (btn.innerText.trim() === quiz.answer) {
+                        // Ensure the correct answer is always clearly marked
+                        btn.classList.add('bg-green-500/80', 'border-green-300', 'ring-2', 'ring-green-400');
+                        btn.classList.remove('bg-red-500/80', 'border-red-300'); // Remove potential incorrect styling
                     }
+                });
+
+                document.getElementById("next-btn").disabled = false;
+            }
+
+            function nextQuestion() {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < quizData.length) {
+                    displayQuestion();
+                } else {
+                    var incorrectanswers = quizData.length - score;
+                    document.getElementById("quiz-container").innerHTML = `
+                        <div class="py-10">
+                            <h2 class="text-4xl font-extrabold mb-4 text-green-300 drop-shadow-xl">🎉 Quiz Completed!</h2>
+                            <p class="text-2xl mb-4">Your final score: <span class="text-yellow-300 font-extrabold">${score}/${quizData.length}</span></p>
+                            <p class="text-xl">Correct answers: ${score}</p>
+                            <p class="text-xl mb-8">Incorrect answers: ${incorrectanswers}</p>
+                            <button onclick="restartQuiz()" class="glass-button px-8 py-3 rounded-xl shadow-xl hover:shadow-2xl font-bold uppercase tracking-wider">
+                                Restart Quiz
+                            </button>
+                        </div>
+                    `;
                 }
             }
-        }
-    </script>
-    <style>
-        /* Base styles and Animated Background */
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-            color: white; /* Default text color for the dark background */
-            /* Animated Gradient Background */
-            background: linear-gradient(-45deg, #0f172a, #1e3a8a, #4f46e5, #9333ea);
-            background-size: 400% 400%;
-            animation: gradient-x 15s ease infinite;
-            transition: all 0.3s ease;
-        }
 
-        /* Liquid Glass Effect on main container */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.1); /* Slightly transparent white */
-            backdrop-filter: blur(15px); /* The liquid glass blur */
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-            transition: transform 0.3s ease-in-out;
-            transform: perspective(1000px) rotateX(0deg);
-        }
-        .glass-card:hover {
-            transform: perspective(1000px) rotateX(1deg);
-        }
-
-        /* Liquid Glass Buttons */
-        .glass-button {
-            /* Tailwind classes are also applied in HTML, this adds the essential glass properties */
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            color: #ffffff;
-            font-weight: 500;
-            transition: all 0.3s ease, transform 0.1s ease;
-        }
-
-        .glass-button:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
-        }
-
-        .glass-button:disabled {
-            background: rgba(100, 100, 100, 0.1);
-            border-color: rgba(100, 100, 100, 0.4);
-            color: #ccc;
-            transform: none;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-
-        /* Dark Mode adjustments for glass elements (if we want to support a dark mode toggle) */
-        .dark-mode .glass-card {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(0, 0, 0, 0.3);
-        }
-        .dark-mode .glass-button {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(0, 0, 0, 0.5);
-        }
-
-        /* Custom text colors for feedback */
-        .correct { color: #84cc16; font-weight: bold; }
-        .incorrect { color: #ef4444; font-weight: bold; }
-        
-        /* Lock Screen Styling */
-        #lockScreen {
-            z-index: 9999;
-            background: rgba(0, 0, 0, 0.95);
-            font-size: 2.5em;
-            text-shadow: 0 0 10px #ffffff;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.8; }
-            50% { opacity: 1; }
-            100% { opacity: 0.8; }
-        }
-    </style>
-</head>
-<body class="p-4 md:p-8">
-
-    <!-- Lock Button and Screen -->
-    <div class="fixed top-4 left-4 z-[10000]">
-        <button id="lockButton" class="glass-button text-sm md:text-base px-4 py-2 rounded-full shadow-lg hover:shadow-xl">
-            Lock Website
-        </button>
-    </div>
-
-    <div id="lockScreen" class="fixed inset-0 hidden justify-center items-center text-white text-center">
-        Press and hold anywhere to unlock
-    </div>
-    
-    <!-- Main JavaScript Logic -->
-    <script>
-        // --- Quiz Data and State ---
-        let quizData = [];
-        let currentQuestionIndex = 0;
-        let score = 0;
-
-        // --- Utility Functions ---
-        function toggleDarkMode() {
-            // Note: Dark mode logic retained, but the current background makes light mode look strange.
-            document.body.classList.toggle("dark-mode");
-            localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
-        }
-
-        function applyUserSettings() {
-            if (localStorage.getItem("theme") === "dark") {
-                document.body.classList.add("dark-mode");
+            function updateProgress() {
+                const progress = document.getElementById("progress");
+                const fill = document.getElementById("progress-fill");
+                const total = quizData.length;
+                const current = currentQuestionIndex + 1;
+                const percent = (current / total) * 100;
+                
+                progress.innerText = `Progress: ${current}/${total}`;
+                fill.style.width = percent + "%";
             }
-        }
 
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+            function restartQuiz() {
+                currentQuestionIndex = 0;
+                score = 0;
+                quizData = generateQuestions();
+                displayQuestion();
             }
-            return array;
-        }
 
-        function generateQuestions() {
-            const questions = [];
+            // --- Lock Screen Logic ---
+            const lockScreen = document.getElementById("lockScreen");
+            const lockButton = document.getElementById("lockButton");
             
-            // Math Questions
-            for (let i = 1; i <= 20; i++) {
-                questions.push({
-                    subject: "Math",
-                    question: `What is ${i} × ${i}?`,
-                    options: shuffle([`${i*11}`, `${i * 2}`, `${i * i}`, `${i + 10}`]),
-                    answer: `${i * i}`
+            lockButton.addEventListener("click", () => {
+                lockScreen.style.display = "flex"; // Activate lock screen
+            });
+
+            let pressTimer;
+            const unlockDuration = 2000; // 2 seconds
+
+            // Generic function to set up press and hold for both mouse and touch
+            function setupPressHold(downEvent, upEvent) {
+                document.addEventListener(downEvent, (e) => {
+                    // Check if we are interacting with the lock screen
+                    if (lockScreen.style.display !== "flex") return;
+                    
+                    pressTimer = setTimeout(() => {
+                        lockScreen.style.display = "none"; // Unlock
+                    }, unlockDuration);
+                });
+
+                document.addEventListener(upEvent, () => {
+                    clearTimeout(pressTimer);
                 });
             }
-
-            // Other Subjects
-            const science = [
-                { question: "What is the chemical symbol for water?", options: ["O₂", "CO₂", "H₂O", "CH₄"], answer: "H₂O" },
-                { question: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter", "Saturn"], answer: "Mars" },
-                { question: "What is the powerhouse of the cell?", options: ["Nucleus", "Ribosome", "Mitochondria", "Golgi Apparatus"], answer: "Mitochondria" }
-            ];
-            const humanities = [
-                { question: "Who wrote 'Romeo and Juliet'?", options: ["Shakespeare", "Dickens", "Austen", "Hemingway"], answer: "Shakespeare" },
-                { question: "Who built pyramids in Egypt?", options: ["Romans", "Greeks", "Egyptians", "Mayans"], answer: "Egyptians" },
-                { question: "First US president?", options: ["Lincoln", "George Washington", "Jefferson", "Roosevelt"], answer: "George Washington" }
-            ];
-            const general = [
-                { question: "Capital of Japan?", options: ["Beijing", "Seoul", "Tokyo", "Bangkok"], answer: "Tokyo" },
-                { question: "How many continents?", options: ["Five", "Six", "Seven", "Eight"], answer: "Seven" },
-                { question: "Largest ocean?", options: ["Atlantic", "Pacific", "Indian", "Arctic"], answer: "Pacific" }                            
-            ];
             
-            questions.push(...science, ...humanities, ...general);
-            return shuffle(questions);
-        }
-
-        function displayQuestion() {
-            const container = document.getElementById("question-container");
-            const quiz = quizData[currentQuestionIndex];
+            // Mouse/Desktop events
+            setupPressHold("mousedown", "mouseup");
             
-            const optionsHtml = quiz.options.map(option => `
-                <button 
-                    class="glass-button w-full px-4 py-3 rounded-lg text-lg text-left" 
-                    onclick="checkAnswer(this, '${option}')">
-                    ${option}
-                </button>
-            `).join("");
+            // Touch/Mobile events
+            setupPressHold("touchstart", "touchend");
 
-            container.innerHTML = `
-                <h3 class="text-lg font-semibold text-indigo-300">${quiz.subject} Quiz</h3>
-                <h2 class="text-2xl font-bold mb-6">${quiz.question}</h2>
-                <div class="space-y-4">
-                    ${optionsHtml}
-                </div>
-                <p id="feedback" class="mt-4 text-xl h-6"></p>
-            `;
 
-            updateProgress();
-            document.getElementById("next-btn").disabled = true;
-        }
-
-        function checkAnswer(button, selected) {
-            const quiz = quizData[currentQuestionIndex];
-            const buttons = document.querySelectorAll("#question-container button");
-            const feedback = document.getElementById("feedback");
-
-            // Disable all buttons
-            buttons.forEach(btn => btn.disabled = true);
-
-            // Highlight the correct/incorrect answers
-            if (selected === quiz.answer) {
-                feedback.innerHTML = `<span class="correct">✔ Correct! Keep it up.</span>`;
-                button.classList.add('bg-green-600/50', 'border-green-400');
-                score++;
-            } else {
-                feedback.innerHTML = `<span class="incorrect">✘ Incorrect. Correct: ${quiz.answer}</span>`;
-                button.classList.add('bg-red-600/50', 'border-red-400');
-            }
-
-            // Find and highlight the correct answer if incorrect choice was made
-            buttons.forEach(btn => {
-                if (btn.innerText.trim() === quiz.answer) {
-                     btn.classList.add('bg-green-600/50', 'border-green-400');
-                }
-            });
-
-            document.getElementById("next-btn").disabled = false;
-        }
-
-        function nextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < quizData.length) {
+            // --- Initialization ---
+            window.onload = () => {
+                // Removed dark mode logic as the aesthetic relies on the dark background.
+                quizData = generateQuestions();
                 displayQuestion();
-            } else {
-                var incorrectanswers = quizData.length - score;
-                document.getElementById("quiz-container").innerHTML = `
-                    <div class="py-10">
-                        <h2 class="text-4xl font-extrabold mb-4 text-green-300 drop-shadow-xl">🎉 Quiz Completed!</h2>
-                        <p class="text-2xl mb-4">Your final score: <span class="text-yellow-300 font-extrabold">${score}/${quizData.length}</span></p>
-                        <p class="text-xl">Correct answers: ${score}</p>
-                        <p class="text-xl mb-8">Incorrect answers: ${incorrectanswers}</p>
-                        <button onclick="restartQuiz()" class="glass-button px-8 py-3 rounded-xl shadow-xl hover:shadow-2xl font-bold uppercase tracking-wider">
-                            Restart Quiz
-                        </button>
-                    </div>
-                `;
-            }
-        }
-
-        function updateProgress() {
-            const progress = document.getElementById("progress");
-            const fill = document.getElementById("progress-fill");
-            const total = quizData.length;
-            const current = currentQuestionIndex + 1;
-            const percent = (current / total) * 100;
-            
-            progress.innerText = `Progress: ${current}/${total}`;
-            fill.style.width = percent + "%";
-        }
-
-        function restartQuiz() {
-            currentQuestionIndex = 0;
-            score = 0;
-            quizData = generateQuestions();
-            displayQuestion();
-        }
-
-        // --- Lock Screen Logic ---
-        const lockScreen = document.getElementById("lockScreen");
-        const lockButton = document.getElementById("lockButton");
-        
-        lockButton.addEventListener("click", () => {
-            lockScreen.style.display = "flex"; // Activate lock screen
-        });
-
-        let pressTimer;
-        const unlockDuration = 2000; // 2 seconds
-
-        // Generic function to set up press and hold for both mouse and touch
-        function setupPressHold(downEvent, upEvent) {
-            document.addEventListener(downEvent, () => {
-                // Prevent starting timer if already unlocked and just clicking
-                if (lockScreen.style.display !== "flex") return;
-                
-                pressTimer = setTimeout(() => {
-                    lockScreen.style.display = "none"; // Unlock
-                }, unlockDuration);
-            });
-
-            document.addEventListener(upEvent, () => {
-                clearTimeout(pressTimer);
-            });
-        }
-        
-        // Mouse/Desktop events
-        setupPressHold("mousedown", "mouseup");
-        
-        // Touch/Mobile events
-        setupPressHold("touchstart", "touchend");
-
-
-        // --- Initialization ---
-        window.onload = () => {
-            applyUserSettings();
-            quizData = generateQuestions();
-            displayQuestion();
-        };
-    </script>
-</body>
-</html>
+            };
+        </script>
+    </body>
+    </html>
