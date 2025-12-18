@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>City Taxi Simulator: Morning Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,900;1,900&family=Inter:wght@400;600;800&display=swap');
+        
+        body { margin: 0; overflow: hidden; background: #f0f4f8; font-family: 'Inter', sans-serif; touch-action: none; color: #1e293b; }
+        canvas { display: block; width: 100%; height: 100%; }
+        
+        .ui-panel { position: absolute; pointer-events: none; z-index: 10; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 16px 24px;
+            border-radius: 28px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        #minimap-container {
+            position: absolute; bottom: 30px; left: 30px;
+            width: 280px; height: 280px;
+            background: #ffffff;
+            border: 8px solid #ffffff;
+            border-radius: 48px;
+            overflow: hidden;
+            pointer-events: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        #minimap-canvas { width: 100%; height: 100%; }
+
+        .gps-center {
+            position: absolute; top: 50%; left: 50%;
+            width: 24px; height: 24px;
+            background: #4285F4;
+            clip-path: polygon(50% 0%, 0% 100%, 50% 80%, 100% 100%);
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+            border: 2px solid white;
+            z-index: 20;
+        }
+
+        #speedometer { 
+            position: absolute; bottom: 30px; right: 30px; 
+            text-align: right; 
+            font-family: 'Montserrat', sans-serif;
+            color: #0f172a;
+        }
+
+        .nitro-container {
+            width: 180px; height: 10px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin-top: 8px;
+            position: relative;
+        }
+        #nitro-fill { 
+            width: 100%; height: 100%; 
+            background: linear-gradient(90deg, #38bdf8, #818cf8); 
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+            transition: width 0.1s;
+        }
+
+        .menu-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #ffffff; padding: 40px; border-radius: 40px; border: 1px solid rgba(0,0,0,0.05);
+            display: none; flex-direction: column; gap: 16px; min-width: 450px; pointer-events: auto; z-index: 100;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.15);
+        }
+
+        .location-item {
+            padding: 18px 24px; border-radius: 20px; background: #f8fafc; 
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; transition: 0.3s; border: 1px solid #e2e8f0;
+            color: #334155;
+        }
+        .location-item:hover { background: #f1f5f9; border-color: #38bdf8; transform: translateY(-2px); }
+
+        #toast {
+            position: absolute; top: 120px; left: 50%; transform: translateX(-50%);
+            background: #0f172a; color: #ffffff; font-weight: 900; padding: 14px 40px; border-radius: 100px;
+            display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 20;
+            font-size: 1.1rem; letter-spacing: 1px; animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes bounceIn { from { opacity: 0; transform: translate(-50%, -20px) scale(0.8); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+
+        #auto-pilot-status {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: #0284c7; padding: 10px 30px; border-radius: 16px; color: white;
+            font-weight: 900; font-size: 14px; letter-spacing: 0.25em; display: none;
+            box-shadow: 0 10px 20px rgba(2, 132, 199, 0.3);
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse { 0% { opacity: 0.9; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.05); } 100% { opacity: 0.9; transform: translateX(-50%) scale(1); } }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="toast">PICKUP PASSENGER!</div>
+    <div id="auto-pilot-status">AUTO-PILOT ACTIVE</div>
+
+    <!-- GPS Navigation Menu -->
+    <div id="gps-menu" class="menu-overlay">
+        <div class="text-center mb-6">
+            <h2 class="text-4xl font-black text-slate-900 italic">CITY GUIDE</h2>
+            <p class="text-slate-400 font-bold uppercase tracking-[0.4em] text-[10px] mt-1">Satellite Navigation System</p>
+        </div>
+        <div id="location-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-3">
+            <!-- Dynamic list -->
+        </div>
+        <button onclick="closeGPS()" class="mt-4 bg-slate-100 text-slate-600 p-5 rounded-3xl font-black uppercase tracking-widest hover:bg-slate-200 transition-all">Close Map</button>
+    </div>
+
+    <!-- UI Elements -->
+    <div id="minimap-container">
+        <canvas id="minimap-canvas"></canvas>
+        <div class="gps-center"></div>
+    </div>
+
+    <!-- Top Left UI -->
+    <div class="ui-panel top-0 left-0 p-8 flex flex-col gap-5">
+        <div class="stat-card">
+            <div class="text-[10px] font-black text-slate-400 tracking-[0.4em] uppercase">Earnings</div>
+            <div class="text-5xl font-black italic text-slate-900" id="money-display">$0</div>
+        </div>
+        <div class="stat-card">
+            <div class="flex justify-between items-end mb-1">
+                <div class="text-[10px] font-black text-sky-600 tracking-[0.4em] uppercase">NOS Charge</div>
+                <div class="text-xs font-black text-slate-400" id="nitro-text">100%</div>
+            </div>
+            <div class="nitro-container"><div id="nitro-fill"></div></div>
+        </div>
+        <div class="flex gap-3">
+            <div class="bg-white/80 shadow-sm px-4 py-2 rounded-2xl text-[11px] font-black text-slate-500 uppercase tracking-wider border border-slate-100">
+                <span class="text-sky-500 mr-2">[G]</span> GPS
+            </div>
+            <div class="bg-white/80 shadow-sm px-4 py-2 rounded-2xl text-[11px] font-black text-slate-500 uppercase tracking-wider border border-slate-100">
+                <span class="text-orange-500 mr-2">[A]</span> PILOT
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Right UI -->
+    <div class="ui-panel top-0 right-0 p-8 flex flex-col gap-5 items-end">
+        <div class="stat-card text-right">
+            <div class="text-[10px] font-black text-orange-600 tracking-[0.4em] uppercase">Fuel</div>
+            
+            
+        </div>
+        <div class="stat-card text-right w-72 border-r-8 border-emerald-500">
+            <div class="text-[10px] font-black text-emerald-600 tracking-[0.4em] uppercase">Active Job</div>
+            <div class="text-md font-black italic text-slate-700 leading-tight mt-1" id="task-display">CRUISING STREETS...</div>
+            <div id="distance-display" class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest">NO TARGET</div>
+        </div>
+    </div>
+
+    <!-- Speedometer -->
+    <div id="speedometer" class="ui-panel">
+        <div class="text-[10px] font-black text-slate-400 tracking-[0.6em] uppercase mb-[-5px]">Velocity</div>
+        <div class="text-9xl font-black italic tracking-tighter" id="speed-val">00</div>
+        <div class="text-sm font-black text-slate-900 tracking-[1em] uppercase ml-4">km/h</div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const miniCanvas = document.getElementById('minimap-canvas');
+    const miniCtx = miniCanvas.getContext('2d');
+
+    // UI REFS
+    const moneyEl = document.getElementById('money-display');
+    const taskEl = document.getElementById('task-display');
+    const fuelText = document.getElementById('fuel-text');
+    const speedEl = document.getElementById('speed-val');
+    const nitroFill = document.getElementById('nitro-fill');
+    const nitroText = document.getElementById('nitro-text');
+    const distanceEl = document.getElementById('distance-display');
+    const toast = document.getElementById('toast');
+    const autoPilotStatus = document.getElementById('auto-pilot-status');
+    const gpsMenu = document.getElementById('gps-menu');
+    const locationList = document.getElementById('location-list');
+
+    // CONFIG
+    const WORLD_SIZE = 14000;
+    const BLOCK_SIZE = 1200; 
+    const ROAD_WIDTH = 340;
+    
+    const LOCATIONS = [
+        { name: "Financial Center", x: 2500, y: 2500, color: "#94a3b8", icon: "🏛️" },
+        { name: "City Hospital", x: -4500, y: 1500, color: "#f87171", icon: "🏥" },
+        { name: "Sunrise Park", x: 5000, y: -3500, color: "#4ade80", icon: "🌳" },
+        { name: "Cargo Harbor", x: -1000, y: -5500, color: "#38bdf8", icon: "⚓" },
+        { name: "The Plaza", x: -5500, y: -3000, color: "#fbbf24", icon: "🏢" },
+        { name: "Industrial Zone", x: 4500, y: 5500, color: "#64748b", icon: "🏭" },
+        { name: "Gold Coast", x: -6000, y: 4500, color: "#fcd34d", icon: "🏖️" },
+        { name: "Grand Central", x: 0, y: 0, color: "#818cf8", icon: "🚉" }
+    ];
+
+    const state = {
+        money: 0, fuel: 100, nitro: 100,
+        inMenu: false, job: null,
+        particles: [], skids: [],
+        time: 0,
+        isAutoPilot: false,
+        navigationTarget: null,
+        camera: { x: 0, y: 0, shake: 0 }
+    };
+
+    // Build GPS Menu
+    LOCATIONS.forEach(loc => {
+        const div = document.createElement('div');
+        div.className = 'location-item';
+        div.innerHTML = `
+            <div class="flex items-center gap-4">
+                <span class="text-2xl">${loc.icon}</span>
+                <div class="flex flex-col">
+                    <span class="font-black text-slate-800 uppercase">${loc.name}</span>
+                    <span class="text-[9px] font-bold text-slate-400 tracking-widest">CITY DISTRICT</span>
+                </div>
+            </div>
+            <span class="text-[10px] font-black text-sky-600 bg-sky-50 px-3 py-1 rounded-lg border border-sky-100">GO</span>
+        `;
+        div.onclick = () => setNavigation(loc);
+        locationList.appendChild(div);
+    });
+
+    const keys = {};
+    window.onkeydown = e => {
+        keys[e.code] = true;
+        if (state.inMenu) return;
+        if (e.code === 'KeyA') toggleAutoPilot();
+        if (e.code === 'KeyG') openGPS();
+    };
+    window.onkeyup = e => keys[e.code] = false;
+
+    function toggleAutoPilot(forced = null) {
+        state.isAutoPilot = forced !== null ? forced : !state.isAutoPilot;
+        autoPilotStatus.style.display = state.isAutoPilot ? 'block' : 'none';
+        if (state.isAutoPilot) showToast("AUTO-PILOT ACTIVE");
+    }
+
+    function openGPS() { state.inMenu = true; gpsMenu.style.display = 'flex'; }
+    function closeGPS() { state.inMenu = false; gpsMenu.style.display = 'none'; }
+
+    function setNavigation(loc) {
+        state.navigationTarget = loc;
+        state.job = { type: 'gps', x: loc.x, y: loc.y, name: loc.name };
+        taskEl.innerText = "NAV: " + loc.name.toUpperCase();
+        closeGPS();
+        toggleAutoPilot(true);
+    }
+
+    class Particle {
+        constructor(x, y, color, vx, vy, life, size = 6) {
+            this.x = x; this.y = y; this.color = color;
+            this.vx = vx; this.vy = vy; this.size = size;
+            this.life = life; this.maxLife = life;
+        }
+        update() { this.x += this.vx; this.y += this.vy; this.life--; }
+    }
+
+    class Taxi {
+        constructor() {
+            this.x = 0; this.y = 0; this.angle = 0;
+            this.speed = 0; this.width = 100; this.height = 48;
+            this.turnSpeed = 0.052;
+            this.maxSpeed = 16;
+            this.accel = 0.45;
+        }
+
+        update() {
+            if (state.inMenu) return;
+            
+            let driveForward = keys['ArrowUp'] || keys['KeyW'];
+            let driveBack = keys['ArrowDown'] || keys['KeyS'];
+            let turnLeft = keys['ArrowLeft'] || keys['KeyA'];
+            let turnRight = keys['ArrowRight'] || keys['KeyD'];
+            let nitroActive = keys['ShiftLeft'];
+            let drift = keys['Space'];
+
+            if (state.isAutoPilot && state.job) {
+                const dx = state.job.x - this.x;
+                const dy = state.job.y - this.y;
+                const dist = Math.hypot(dx, dy);
+                const targetAngle = Math.atan2(dy, dx);
+                
+                let diff = targetAngle - this.angle;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+
+                if (diff > 0.04) turnRight = true;
+                if (diff < -0.04) turnLeft = true;
+
+                if (dist > 300) {
+                    driveForward = true;
+                    if (dist > 2000 && Math.abs(diff) < 0.1) nitroActive = true;
+                } else if (this.speed > 1) {
+                    drift = true; 
+                    if (this.speed < 2) {
+                        toggleAutoPilot(false);
+                        if (state.job.type === 'gps') {
+                            state.job = null;
+                            taskEl.innerText = "READY FOR FARES";
+                            showToast("ARRIVED AT DESTINATION");
+                            setTimeout(generateJob, 4000);
+                        }
+                    }
+                }
+            }
+
+            const isNitro = nitroActive && state.nitro > 0 && this.speed > 2;
+            const currentMax = isNitro ? 24 : this.maxSpeed;
+            
+            if (isNitro) {
+                state.nitro -= 0.7;
+                state.particles.push(new Particle(this.x - Math.cos(this.angle)*50, this.y - Math.sin(this.angle)*50, '#38bdf8', (Math.random()-0.5)*8, (Math.random()-0.5)*8, 25, 4));
+                state.camera.shake = 3;
+            } else if (state.nitro < 100) state.nitro += 0.15;
+
+            if (driveForward) {
+                this.speed += isNitro ? this.accel * 1.8 : this.accel;
+                state.fuel -= 0.01;
+            }
+            if (driveBack) this.speed -= 0.35;
+            if (drift) {
+                this.speed *= 0.94;
+                if (Math.abs(this.speed) > 5) {
+                    state.particles.push(new Particle(this.x, this.y, 'rgba(0,0,0,0.05)', (Math.random()-0.5)*3, (Math.random()-0.5)*3, 20, 10));
+                    state.skids.push({x: this.x, y: this.y, a: this.angle, l: 60});
+                }
+            }
+
+            this.speed *= 0.982; 
+            if (this.speed > currentMax) this.speed = currentMax;
+            if (this.speed < -6) this.speed = -6;
+
+            const turnMult = Math.min(Math.abs(this.speed) / 7, 1);
+            if (turnLeft) this.angle -= this.turnSpeed * turnMult * (drift ? 1.5 : 1);
+            if (turnRight) this.angle += this.turnSpeed * turnMult * (drift ? 1.5 : 1);
+
+            this.x += Math.cos(this.angle) * this.speed;
+            this.y += Math.sin(this.angle) * this.speed;
+
+            const bound = WORLD_SIZE/2 - 200;
+            if (Math.abs(this.x) > bound || Math.abs(this.y) > bound) {
+                this.speed *= -0.4;
+                this.x = Math.max(-bound, Math.min(bound, this.x));
+                this.y = Math.max(-bound, Math.min(bound, this.y));
+                state.camera.shake = 8;
+            }
+        }
+
+        draw(c) {
+            c.save();
+            c.translate(this.x, this.y);
+            c.rotate(this.angle);
+            
+            // Car Body Shadow
+            c.fillStyle = 'rgba(0,0,0,0.15)';
+            c.fillRect(-this.width/2 + 5, -this.height/2 + 8, this.width, this.height);
+
+            // Yellow Taxi Body
+            c.fillStyle = '#facc15';
+            c.beginPath();
+            c.roundRect(-this.width/2, -this.height/2, this.width, this.height, 10);
+            c.fill();
+            
+            // Checker Striping
+            c.fillStyle = '#1e293b';
+            for(let i=0; i<3; i++) {
+                c.fillRect(-this.width/2 + 20 + i*30, -this.height/2, 10, this.height);
+            }
+            
+            // Windows
+            const g = c.createLinearGradient(0, -20, 0, 20);
+            g.addColorStop(0, '#e2e8f0'); g.addColorStop(1, '#94a3b8');
+            c.fillStyle = g;
+            c.beginPath();
+            c.roundRect(15, -this.height/2 + 6, 22, this.height - 12, 4);
+            c.roundRect(-30, -this.height/2 + 6, 18, this.height - 12, 4);
+            c.fill();
+            
+            // Headlights
+            c.shadowBlur = 10; c.shadowColor = 'rgba(255, 255, 200, 0.5)';
+            c.fillStyle = '#fef3c7';
+            c.fillRect(this.width/2 - 4, -this.height/2 + 4, 4, 10);
+            c.fillRect(this.width/2 - 4, this.height/2 - 14, 4, 10);
+            
+            c.restore();
+        }
+    }
+
+    const taxi = new Taxi();
+    const blocks = [];
+    for(let x = -WORLD_SIZE/2; x < WORLD_SIZE/2; x += BLOCK_SIZE) {
+        for(let y = -WORLD_SIZE/2; y < WORLD_SIZE/2; y += BLOCK_SIZE) {
+            const type = Math.random() > 0.8 ? 'park' : 'building';
+            blocks.push({
+                x: x + ROAD_WIDTH/2,
+                y: y + ROAD_WIDTH/2,
+                w: BLOCK_SIZE - ROAD_WIDTH,
+                h: BLOCK_SIZE - ROAD_WIDTH,
+                type: type,
+                color: type === 'park' ? '#d9f99d' : '#ffffff',
+                border: type === 'park' ? '#4ade80' : '#e2e8f0'
+            });
+        }
+    }
+
+    function showToast(msg) {
+        toast.innerText = msg;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
+
+    function generateJob() {
+        if (state.job) return;
+        state.job = { 
+            type: 'pickup', 
+            x: (Math.random()-0.5)*(WORLD_SIZE-3000), 
+            y: (Math.random()-0.5)*(WORLD_SIZE-3000) 
+        };
+        taskEl.innerText = "CLIENT PENDING... 👤";
+        showToast("NEW FARE DISPATCHED");
+    }
+
+    function update() {
+        taxi.update();
+        
+        const targetCamX = taxi.x;
+        const targetCamY = taxi.y;
+        state.camera.x += (targetCamX - state.camera.x) * 0.1;
+        state.camera.y += (targetCamY - state.camera.y) * 0.1;
+        
+        if (state.camera.shake > 0) {
+            state.camera.x += (Math.random()-0.5)*state.camera.shake;
+            state.camera.y += (Math.random()-0.5)*state.camera.shake;
+            state.camera.shake *= 0.9;
+        }
+
+        if (state.job && state.job.type !== 'gps') {
+            const d = Math.hypot(taxi.x - state.job.x, taxi.y - state.job.y);
+            distanceEl.innerText = Math.floor(d) + " M TO DEST";
+            
+            if (d < 250 && Math.abs(taxi.speed) < 3) {
+                if (state.job.type === 'pickup') {
+                    const dest = LOCATIONS[Math.floor(Math.random()*LOCATIONS.length)];
+                    state.job = { type: 'dropoff', x: dest.x, y: dest.y, name: dest.name, pay: 150 + Math.floor(Math.random()*200) };
+                    taskEl.innerText = "TARGET: " + dest.name.toUpperCase();
+                    showToast("PASSENGER ON BOARD");
+                } else {
+                    state.money += state.job.pay;
+                    state.job = null;
+                    moneyEl.innerText = "$" + state.money;
+                    taskEl.innerText = "WAITING FOR FARES...";
+                    distanceEl.innerText = "STANDBY";
+                    showToast("FARE COLLECTED");
+                    setTimeout(generateJob, 5000);
+                }
+            }
+        }
+
+        state.particles = state.particles.filter(p => { p.update(); return p.life > 0; });
+        state.skids = state.skids.filter(s => { s.l--; return s.l > 0; });
+
+        speedEl.innerText = Math.floor(Math.abs(taxi.speed) * 8).toString().padStart(2, '0');
+        fuelText.innerText = Math.max(0, Math.floor(state.fuel)) + "%";
+        nitroFill.style.width = state.nitro + "%";
+        nitroText.innerText = Math.floor(state.nitro) + "%";
+
+        draw();
+        drawMinimap();
+        requestAnimationFrame(update);
+    }
+
+    function draw() {
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        
+        // Morning Sky Background
+        ctx.fillStyle = '#f0f9ff';
+        ctx.fillRect(0,0, canvas.width, canvas.height);
+
+        ctx.save();
+        ctx.translate(canvas.width/2, canvas.height/2);
+        ctx.translate(-state.camera.x, -state.camera.y);
+
+        // Skids
+        ctx.strokeStyle = `rgba(0,0,0,0.04)`;
+        ctx.lineWidth = 14;
+        state.skids.forEach(s => {
+            ctx.globalAlpha = s.l / 120;
+            ctx.save();
+            ctx.translate(s.x, s.y);
+            ctx.rotate(s.a);
+            ctx.strokeRect(-5, -20, 10, 40);
+            ctx.restore();
+        });
+        ctx.globalAlpha = 1;
+
+        // Roads
+        for(let i = -WORLD_SIZE/2; i <= WORLD_SIZE/2; i += BLOCK_SIZE) {
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillRect(i - ROAD_WIDTH/2, -WORLD_SIZE/2, ROAD_WIDTH, WORLD_SIZE);
+            ctx.fillRect(-WORLD_SIZE/2, i - ROAD_WIDTH/2, WORLD_SIZE, ROAD_WIDTH);
+            
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 6;
+            ctx.setLineDash([40, 40]);
+            ctx.beginPath(); ctx.moveTo(i, -WORLD_SIZE/2); ctx.lineTo(i, WORLD_SIZE/2); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(-WORLD_SIZE/2, i); ctx.lineTo(WORLD_SIZE/2, i); ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Buildings/Parks
+        blocks.forEach(b => {
+            ctx.fillStyle = b.color;
+            ctx.fillRect(b.x, b.y, b.w, b.h);
+            ctx.strokeStyle = b.border;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(b.x, b.y, b.w, b.h);
+            
+            if (b.type === 'building') {
+                ctx.fillStyle = '#f1f5f9';
+                for(let row=0; row<4; row++) {
+                    for(let col=0; col<3; col++) {
+                        ctx.fillRect(b.x + 60 + col*250, b.y + 100 + row*220, 120, 80);
+                    }
+                }
+            }
+        });
+
+        // Job UI Marker
+        if (state.job) {
+            const s = 1 + Math.sin(Date.now()/300)*0.1;
+            ctx.fillStyle = state.job.type === 'pickup' ? 'rgba(74, 222, 128, 0.2)' : 'rgba(56, 189, 248, 0.2)';
+            ctx.beginPath(); ctx.arc(state.job.x, state.job.y, 250 * s, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = "#1e293b";
+            ctx.font = "bold 80px Inter";
+            ctx.textAlign = "center";
+            ctx.fillText(state.job.type === 'pickup' ? "👤" : "📍", state.job.x, state.job.y + 30);
+        }
+
+        state.particles.forEach(p => {
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.life / p.maxLife;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+
+        taxi.draw(ctx);
+        ctx.restore();
+    }
+
+    function drawMinimap() {
+        miniCanvas.width = 280;
+        miniCanvas.height = 280;
+
+        miniCtx.fillStyle = '#f8fafc';
+        miniCtx.fillRect(0, 0, miniCanvas.width, miniCanvas.height);
+
+        miniCtx.save();
+        miniCtx.translate(140, 140);
+        miniCtx.rotate(-taxi.angle - Math.PI / 2);
+
+        const scale = 0.045; 
+        miniCtx.translate(-taxi.x * scale, -taxi.y * scale);
+        
+        // Roads on Map
+        miniCtx.strokeStyle = "#e2e8f0";
+        miniCtx.lineWidth = 12;
+        for(let i = -WORLD_SIZE/2; i <= WORLD_SIZE/2; i += BLOCK_SIZE) {
+            miniCtx.beginPath();
+            miniCtx.moveTo(i * scale, -WORLD_SIZE/2 * scale);
+            miniCtx.lineTo(i * scale, WORLD_SIZE/2 * scale);
+            miniCtx.stroke();
+            miniCtx.beginPath();
+            miniCtx.moveTo(-WORLD_SIZE/2 * scale, i * scale);
+            miniCtx.lineTo(WORLD_SIZE/2 * scale, i * scale);
+            miniCtx.stroke();
+        }
+
+        if (state.job) {
+            miniCtx.strokeStyle = "#3b82f6";
+            miniCtx.lineWidth = 6;
+            miniCtx.setLineDash([4, 4]);
+            miniCtx.beginPath();
+            miniCtx.moveTo(taxi.x * scale, taxi.y * scale); 
+            miniCtx.lineTo(state.job.x * scale, state.job.y * scale);
+            miniCtx.stroke();
+            miniCtx.setLineDash([]); 
+
+            miniCtx.fillStyle = state.job.type === 'pickup' ? "#10b981" : "#ef4444";
+            miniCtx.beginPath();
+            miniCtx.arc(state.job.x * scale, state.job.y * scale, 10, 0, Math.PI * 2);
+            miniCtx.fill();
+            miniCtx.strokeStyle = "white";
+            miniCtx.lineWidth = 3;
+            miniCtx.stroke();
+        }
+        
+        miniCtx.restore();
+    }
+
+    window.onload = () => {
+        generateJob();
+        update();
+    }
+</script>
+</body>
+</html>
