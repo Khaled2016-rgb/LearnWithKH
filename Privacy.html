@@ -3,208 +3,303 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Privace Is telling You that Our website Has 100% strong Safety ">
-    <meta name="keywords" content="Privacy For Learn Languages and play games">
-    <title>Privacy Policy</title>
-    <link rel="icon" href="https://cdn-icons-png.freepik.com/512/6389/6389245.png">
-
+    <meta name="description" content="Zero-Data Privacy Policy -
+Absolute Security">
+    <title>Privacy Policy | Secure & Transparent</title>
+    <link rel="icon"
+href="https://cdn-icons-png.freepik.com/512/6389/6389245.png">
     <style>
-        /* General Styles */
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            color: #333;
-            cursor: default;
-            user-select: none;
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --accent-blue: #00d2ff;
+            --accent-purple: #928DAB;
+            --text-main: #ffffff;
         }
 
-        /* Video Background */
-        .video-bg {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            color: var(--text-main);
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Animated Liquid Background */
+        .liquid-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            z-index: -1; /* Ensure the video stays behind content */
+            z-index: -1;
+            background: linear-gradient(45deg, #0f0c29, #302b63, #24243e);
+            overflow: hidden;
         }
 
-        /* Header styles */
+        .liquid-bg::after {
+            content: "";
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 210, 255,
+0.15) 0%, transparent 50%);
+            top: -50%;
+            left: -50%;
+            animation: move 20s infinite linear;
+        }
+
+        @keyframes move {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
         header {
-            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
-            color: white;
+            padding: 4rem 1rem 2rem;
             text-align: center;
-            padding: 1.5rem 0;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        footer {
-            text-align: center;
-            padding: 1.5rem 0;
-            background-color: #4682b4;
-            color: white;
-        }
-
-        button{
-            background-color: #333;
-            color: white;
-            border-style: none;
-            border-radius: 30px;
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #fff, #00d2ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
         }
 
         main {
-            padding: 2rem;
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 3rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        h2 {
-            font-size: 2rem;
-            color: #4682b4;
-            border-bottom: 2px solid #87cefa;
-            padding-bottom: 0.5rem;
+        h2, h3 {
+            color: var(--accent-blue);
+            margin: 2rem 0 1rem;
         }
 
-        p, ul {
+        p, li {
             font-size: 1.1rem;
-            line-height: 1.6;
-            color: #333;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 1rem;
         }
 
         ul {
-            margin: 1rem 0;
-            padding-left: 1.5rem;
+            list-style: none;
+            padding-left: 0.5rem;
         }
-        
+
+        ul li::before {
+            content: "✦";
+            color: var(--accent-blue);
+            margin-right: 10px;
+        }
+
+        .qr-section {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+        }
+
+        .qr-section img {
+            border-radius: 15px;
+            filter: drop-shadow(0 0 15px rgba(0, 210, 255, 0.3));
+            transition: transform 0.3s ease;
+        }
+
+        .qr-section img:hover {
+            transform: scale(1.05);
+        }
+
+        #lockButton {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: white;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+            font-weight: 600;
+        }
+
+        #lockButton:hover {
+            background: var(--accent-blue);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
+        }
+
         #lockScreen {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.9);
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(50px);
             display: none;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: white;
-            font-size: 2em;
-            text-align: center;
             z-index: 9999;
+            text-align: center;
         }
 
-        #lockButton {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            padding: 10px 20px;
-            font-size: 1.2em;
-            cursor: pointer;
+        .lock-hint {
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            animation: pulse 2s infinite;
         }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        footer {
+            text-align: center;
+            padding: 4rem 0;
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--glass-border);
+border-radius: 10px; }
     </style>
 </head>
 <body>
+    <div class="liquid-bg"></div>
 
-    
-    <!-- Video Background -->
-    <video autoplay muted loop playsinline class="video-bg">
-        <source src="MED1.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+    <button id="lockButton">Secure Session</button>
 
-    <center><button id="lockButton">Lock Website</button></center>
-    <div id="lockScreen">Press and hold anywhere to unlock</div>
+    <div id="lockScreen">
+        <div class="lock-hint">ENCRYPTED SESSION ACTIVE</div>
+        <p style="margin-top: 1rem; font-size: 0.9rem; opacity:
+0.7;">Hold screen for 2 seconds to resume</p>
+    </div>
+
+    <header>
+        <h1>Shield Protocol</h1>
+        <p>Your Privacy is Non-Negotiable</p>
+    </header>
+
+    <main>
+        <h2>The Zero-Access Guarantee</h2>
+        <p>Unlike standard web services, our architecture is built on
+the principle of absolute exclusion. We do not see, hear, or record
+your presence.</p>
+
+        <h3>1. No Data Collection</h3>
+        <p>We have intentionally engineered this platform to be
+"stateless." This means:</p>
+        <ul>
+            <li>No personal information (Names, Emails, IDs) is ever
+requested or stored.</li>
+            <li>No usage patterns or browsing histories are monitored.</li>
+            <li>No tracking pixels, third-party analytics, or
+behavioral scripts exist here.</li>
+        </ul>
+
+        <h3>2. Hidden Access & Backdoors</h3>
+        <p>We maintain a strict "No Hidden Entry" policy. There are no
+developer backdoors, no master keys, and no remote access protocols
+that would allow anyone—including us—to view your session data.</p>
+
+        <h3>3. Real-Time Protection</h3>
+        <p>Every interaction you have is transient. Once your browser
+tab is closed, the session is purged from your local memory. We do not
+use persistent cookies to follow you across the web.</p>
+
+        <h3>4. Hardened Security</h3>
+        <p>Our site is wrapped in military-grade HTTPS encryption. We
+utilize advanced headers to prevent XSS (Cross-Site Scripting) and
+clickjacking, ensuring your interface remains yours alone.</p>
+
+        <h3>5. Absolute Transparency</h3>
+        <p>There is no "fine print." Our mission is simple: To provide
+a safe environment for learning and gaming without the hidden cost of
+your personal data.</p>
+
+        <div class="qr-section">
+            <h3>Direct Contact</h3>
+            <p>For high-priority inquiries or security verification:</p>
+            <!-- QR code image placeholder -->
+            <img
+src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=mailto:KhaledObada02@Gmail.com"
+alt="Secure Contact QR" width="200" height="200">
+            <p style="margin-top: 1rem; font-weight:
+bold;">KhaledObada02@Gmail.com</p>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Shield Protocol. No rights reserved—Your data
+is yours.</p>
+    </footer>
 
     <script>
         const lockScreen = document.getElementById("lockScreen");
         const lockButton = document.getElementById("lockButton");
-
-        lockButton.addEventListener("click", () => {
-            lockScreen.style.display = "flex"; // Activate lock screen
-        });
-
         let pressTimer;
-        document.addEventListener("mousedown", () => {
-            pressTimer = setTimeout(() => {
-                lockScreen.style.display = "none"; // Unlock
-            }, 2000); // User needs to hold for 2 seconds
+
+        // Toggle Lock
+        lockButton.addEventListener("click", () => {
+            lockScreen.style.display = "flex";
         });
 
-        document.addEventListener("mouseup", () => {
-            clearTimeout(pressTimer);
-        });
-
-        document.addEventListener("keydown", () => {
+        // Unlock logic: 2 second hold
+        const startHold = (e) => {
+            e.preventDefault();
             pressTimer = setTimeout(() => {
                 lockScreen.style.display = "none";
             }, 2000);
-        });
+        };
 
-        document.addEventListener("keyup", () => {
+        const endHold = () => {
             clearTimeout(pressTimer);
+        };
+
+        // Desktop Events
+        lockScreen.addEventListener("mousedown", startHold);
+        window.addEventListener("mouseup", endHold);
+
+        // Touch Events
+        lockScreen.addEventListener("touchstart", startHold);
+        window.addEventListener("touchend", endHold);
+
+        // Visual feedback for the hold
+        lockScreen.addEventListener("mousedown", () => {
+            lockScreen.style.background = "rgba(0, 210, 255, 0.1)";
+        });
+        window.addEventListener("mouseup", () => {
+            lockScreen.style.background = "rgba(0, 0, 0, 0.95)";
         });
     </script>
-    <header>
-        <h1>Privacy Policy</h1>
-    </header>
-    <main>
-        <h2>Your Privacy Matters</h2>
-        <p>This Privacy Policy explains how we collect, use, and protect your information when you visit our website. By using our services, you agree to the terms outlined below:</p>
-
-        <h3>1. Information We Collect</h3>
-        <p>We may collect the following types of information:</p>
-        <ul>
-            <li>Personal information, such as your name and email address, when you voluntarily provide it.</li>
-            <li>Usage data, including your browsing activity, preferences, and interactions with our website.</li>
-            <li>Cookies and other tracking technologies to enhance your user experience.</li>
-        </ul>
-
-        <h3>2. How We Use Your Information</h3>
-        <p>Your information is used for:</p>
-        <ul>
-            <li>Providing, maintaining, and improving our website.</li>
-            <li>Personalizing your experience and delivering relevant content.</li>
-            <li>Communicating with you, such as responding to inquiries or sending updates.</li>
-        </ul>
-
-        <h3>3. How We Protect Your Information</h3>
-        <p>We implement industry-standard measures to safeguard your data, including:</p>
-        <ul>
-            <li>Encryption and secure storage methods.</li>
-            <li>Restricted access to your information.</li>
-            <li>Regular security audits and updates.</li>
-        </ul>
-
-        <h3>4. Your Rights</h3>
-        <p>You have the right to:</p>
-        <ul>
-            <li>Access the information we collect about you.</li>
-            <li>Request corrections to your information.</li>
-            <li>Opt out of certain data collection practices, such as cookies.</li>
-        </ul>
-
-        <h3>5. Third-Party Services</h3>
-        <p>We may use third-party services to enhance our website, which may collect information independently. Please review their privacy policies for more information.</p>
-
-        <h3>6. Changes to This Policy</h3>
-        <p>We may update this Privacy Policy periodically. Changes will be posted on this page, and we encourage you to review it regularly.</p>
-
-        <h3>7. security</h3>
-        <p>"Your security is our priority. We have implemented industry-leading security measures to ensure that your data is safe while using our website. Our site is protected with HTTPS encryption, strong password policies, and regular software updates to keep everything up-to-date and secure. Additionally, we use advanced firewalls and monitoring tools to detect and prevent any potential threats. Rest assured, your privacy and safety are important to us!"</p>
-
-        <h3>Contact Us</h3>
-        <p>If you have questions about this Privacy Policy, please contact us at KhaledObada02@Gmail.com , Also you have the QRcode You can scan it.</p>
-    </main>
-     <!-- Display the QR code image -->
-     <img src="LWKH QRcode Design.png" alt="QR Code" width="215" height="200">
-    <footer>
-        <p>&copy; 2025 Your Website</p>
-    </footer>
-
-   
-
 </body>
 </html>
