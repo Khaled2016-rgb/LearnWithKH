@@ -1,204 +1,93 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <meta name="description" content="2048 is Just a game that you can play with and get fun ">
-    <meta name="keywords" content="2048 Puzzle Game">
-    <title>2048 Game</title>
-    <link rel="icon" href="https://m.media-amazon.com/images/I/61rJ1Zh2w-L.png">
-    <style>
-        body {
-            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
-            background: linear-gradient(135deg, #797e87 0%, #c3cfe2 100%);
-            margin: 0;
+            transition: opacity 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-            user-select: none;cursor: default;
-            color: #776e65;
+            text-align: center;
         }
-        .video-background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: -1;
-    opacity: 0.15; /* optional: adjust to make the video subtle */
-    pointer-events: none; /* allows clicks to pass through */
-   }
 
+        .level-complete.show {
+            opacity: 1;
+            pointer-events: all;
+        }
 
-        .header {
-            width: 100%;
-            max-width: 500px;
+        .level-complete-text {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #00ffaa;
+            text-shadow: 0 0 20px rgba(0, 255, 170, 0.7);
+            animation: levelCompletePulse 1.5s infinite;
+        }
+
+        @keyframes levelCompletePulse {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 20px rgba(0, 255, 170, 0.7); }
+            50% { transform: scale(1.05); text-shadow: 0 0 30px rgba(0, 255, 170, 1); }
+        }
+
+        .level-complete-subtext {
+            font-size: 1.5rem;
+            color: #a0a0ff;
+            margin-bottom: 10px;
+        }
+
+        .next-level-text {
+            font-size: 1.2rem;
+            color: #a0ffaa;
+            margin-bottom: 25px;
+            max-width: 80%;
+        }
+
+        .level-complete-stats {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .level-complete-stats div {
+            margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            gap: 20px;
         }
 
-        h1 {
-            font-size: 60px;
-            margin: 0;
-            background: linear-gradient(to right, #8e44ad, #3498db);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        .level-complete-stats span:first-child {
+            color: #a0a0ff;
         }
 
-        .score-container {
-            background: #bbada0;
-            padding: 10px 20px;
-            border-radius: 10px;
-            color: white;
+        .level-complete-stats span:last-child {
+            color: #fff;
             font-weight: bold;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        .score-title {
-            font-size: 16px;
-            text-transform: uppercase;
-        }
-
-        .score-value {
-            font-size: 24px;
-        }
-
-        .game-container {
-            background: #8c7d6e;
-            border-radius: 10px;
-            padding: 15px;
-            position: relative;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-gap: 15px;
-            background: rgba(238, 228, 218, 0.35);
-            border-radius: 6px;
-            padding: 15px;
-            position: relative;
-        }
-
-        .cell {
-            width: 100px;
-            height: 100px;
-            border-radius: 5px;
-            background: rgba(238, 228, 218, 0.35);
+        .next-level-btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(90deg, #00ffaa, #00cc88);
+            color: #003322;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-size: 1.2rem;
+            font-weight: bold;
             display: flex;
-            justify-content: center;
             align-items: center;
-            font-size: 45px;
-            font-weight: bold;
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
+            gap: 10px;
+            box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: buttonGlow 2s infinite alternate;
         }
 
-        .tile {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 45px;
-            font-weight: bold;
-            transition: all 0.15s ease;
-            animation: appear 0.2s;
-            z-index: 1;
+        @keyframes buttonGlow {
+            from { box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5); }
+            to { box-shadow: 0 8px 35px rgba(0, 255, 170, 0.8), 0 0 20px rgba(0, 255, 170, 0.4); }
         }
 
-        @keyframes appear {
-            from {
-                opacity: 0;
-                transform: scale(0.5);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .tile-2 {
-            background: #eee4da;
-            color: #776e65;
-        }
-
-        .tile-4 {
-            background: #ede0c8;
-            color: #776e65;
-        }
-
-        .tile-8 {
-            background: #f2b179;
-            color: white;
-        }
-
-        .tile-16 {
-            background: #f59563;
-            color: white;
-        }
-
-        .tile-32 {
-            background: #f67c5f;
-            color: white;
-        }
-
-        .tile-64 {
-            background: #f65e3b;
-            color: white;
-        }
-
-        .tile-128 {
-            background: #edcf72;
-            color: white;
-            font-size: 40px;
-        }
-
-        .tile-256 {
-            background: #edcc61;
-            color: white;
-            font-size: 40px;
-            box-shadow: 0 0 20px rgba(237, 204, 97, 0.5);
-        }
-
-        .tile-512 {
-            background: #edc850;
-            color: white;
-            font-size: 40px;
-            box-shadow: 0 0 20px rgba(237, 200, 80, 0.5);
-        }
-
-        .tile-1024 {
-            background: #edc53f;
-            color: white;
-            font-size: 35px;
-            box-shadow: 0 0 20px rgba(237, 197, 63, 0.5);
-        }
-
-        .tile-2048 {
-            background: #edc22e;
-            color: white;
-            font-size: 35px;
-            box-shadow: 0 0 20px rgba(237, 194, 46, 0.5);
-        }
-
-        .tile-super {
-            background: #3c3a32;
-            color: white;
-            font-size: 30px;
+        .next-level-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(0, 255, 170, 0.8), 0 0 25px rgba(0, 255, 170, 0.6);
+            background: linear-gradient(90deg, #00ffcc, #00eeaa);
         }
 
         .game-message {
@@ -207,428 +96,1214 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(238, 228, 218, 0.73);
-            z-index: 100;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 6px;
+            border-radius: 20px;
+            z-index: 10;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s;
-        }
-
-        .game-message.game-won, .game-message.game-over {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .game-message p {
-            font-size: 60px;
-            font-weight: bold;
-            margin: 0;
-            margin-bottom: 20px;
-        }
-
-        .game-message .lower {
-            display: flex;
-            gap: 15px;
-        }
-
-        .btn {
-            background: #8f7a66;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn:hover {
-            background: #9f8b77;
-            transform: translateY(-2px);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .instructions {
-            margin-top: 30px;
-            max-width: 500px;
+            transition: opacity 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            padding: 20px;
             text-align: center;
-            line-height: 1.5;
-            color: #776e65;
         }
 
-        .merge-effect {
-            animation: merge 0.3s ease;
-            z-index: 10;
+        .game-message.show {
+            opacity: 1;
+            pointer-events: all;
         }
 
-        @keyframes merge {
-            0% {
-                transform: scale(1);
+        .message-text {
+            font-size: 2.8rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #fff;
+            text-shadow: 0 2px 15px rgba(255, 255, 255, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .message-subtext {
+            font-size: 1.2rem;
+            color: #a0a0ff;
+            margin-bottom: 25px;
+            max-width: 80%;
+        }
+
+        .shortcut-hint {
+            text-align: center;
+            color: #a0a0ff;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            padding: 0 10px;
+            animation: fadeIn 1s ease-out 0.8s both;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                height: auto;
+                max-height: none;
             }
-            50% {
-                transform: scale(1.2);
+            
+            .top-bar {
+                flex-wrap: wrap;
+                gap: 15px;
             }
-            100% {
-                transform: scale(1);
+            
+            .level-progress-container {
+                order: 3;
+                margin: 0;
+                max-width: 100%;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .score-box, .best-box {
+                min-width: 100px;
+                padding: 10px 15px;
+            }
+            
+            .game-container {
+                min-height: 400px;
+            }
+            
+            .grid {
+                max-width: 100%;
+                max-height: 400px;
+            }
+            
+            .level-complete-text {
+                font-size: 2.2rem;
+            }
+            
+            .level-complete-subtext {
+                font-size: 1.2rem;
+            }
+            
+            .next-level-btn {
+                padding: 12px 30px;
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-height: 850px) {
+            .container {
+                height: auto;
+                max-height: none;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .game-container {
+                min-height: 450px;
+            }
+            
+            .level-complete-text {
+                font-size: 2.5rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Video Background -->
-<video autoplay muted loop playsinline class="video-background">
-  <source src="MED6.mp4" type="video/mp4">
-</video>
-
-    <div class="header">
-        <h1>2048</h1>
-        <div class="score-container">
-            <div class="score-title">Score</div>
-            <div class="score-value" id="score">0</div>
-        </div>
-    </div>
-
-    <div class="game-container">
-        <div class="grid" id="grid">
-            <!-- Cells will be generated here -->
-        </div>
-        <div class="game-message" id="game-message">
-            <p id="message-text"></p>
-            <div class="lower">
-                <button class="btn" id="keep-playing-btn">Keep going</button>
-                <button class="btn" id="try-again-btn">Try again</button>
+    <!-- Liquid Glass Background - Behind everything -->
+    <div class="liquid-glass-bg" id="liquid-glass-bg"></div>
+    
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-water"></i> Liquid Glass 2048</h1>
+            <p class="subtitle">Merge tiles to reach 2048 in this fluid, glass-like puzzle game</p>
+        </header>
+        
+        <div class="top-bar">
+            <div class="score-display">
+                <div class="score-box">
+                    <div class="score-label">Score</div>
+                    <div class="score">0</div>
+                </div>
+                <div class="best-box">
+                    <div class="best-label">Best</div>
+                    <div class="best">0</div>
+                </div>
+            </div>
+            
+            <div class="level-progress-container">
+                <div class="level-info">
+                    <div class="current-level">Level <span id="current-level">1</span></div>
+                    <div class="level-target">
+                        Target: <span id="target-tile">64</span>
+                        <span class="target-percentage" id="target-percentage">0%</span>
+                    </div>
+                </div>
+                <div class="level-progress-bar-container">
+                    <div class="level-progress-bar" id="level-progress-bar"></div>
+                </div>
+            </div>
+            
+            <div class="menu-container">
+                <div class="menu-button" id="menu-button">
+                    <i class="fas fa-ellipsis-v"></i>
+                </div>
+                <div class="dropdown-menu" id="dropdown-menu">
+                    <div class="menu-header">
+                        <i class="fas fa-cog"></i> Game Settings
+                    </div>
+                    
+                    <div class="difficulty-section">
+                        <div class="difficulty-label">
+                            <i class="fas fa-chart-line"></i> Difficulty Level
+                        </div>
+                        <div class="difficulty-buttons" id="difficulty-buttons">
+                            <!-- Difficulty buttons will be generated by JS -->
+                        </div>
+                    </div>
+                    
+                    <div class="instructions-section">
+                        <div class="difficulty-label">
+                            <i class="fas fa-info-circle"></i> How to Play
+                        </div>
+                        <p style="color: #e0e0ff; font-size: 0.9rem; line-height: 1.5;">
+                            Use <strong>arrow keys</strong> or <strong>swipe</strong> to merge tiles. 
+                            Reach the target tile to advance levels. There are 9 levels with increasing grid sizes.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-
-    <div class="instructions">
-        <p>Join the numbers and get to the <strong>2048 tile!</strong></p>
-        <p>Use <strong>arrow keys</strong> or <strong>swipe</strong> to move the tiles.</p>
+        
+        <!-- Single button now - removed How to Play -->
+        <div class="game-controls">
+            <button class="new-game-btn" id="new-game-btn">
+                <i class="fas fa-redo"></i> New Game
+            </button>
+        </div>
+        
+        <!-- Larger game container -->
+        <div class="game-container">
+            <div class="grid" id="grid">
+                <!-- Grid will be generated by JS -->
+            </div>
+            
+            <!-- Level Complete Screen -->
+            <div class="level-complete" id="level-complete">
+                <div class="level-complete-text">Level Complete!</div>
+                <div class="level-complete-subtext">You reached the target tile!</div>
+                
+                <div class="level-complete-stats" id="level-complete-stats">
+                    <!-- Stats will be filled by JS -->
+                </div>
+                
+                <div class="next-level-text" id="next-level-text">Get ready for the next challenge!</div>
+                <button class="next-level-btn" id="next-level-btn">
+                    <i class="fas fa-arrow-right"></i> Next Level
+                </button>
+            </div>
+            
+            <!-- Game Over Screen -->
+            <div class="game-message" id="game-message">
+                <div class="message-text" id="message-text">Game Over!</div>
+                <div class="message-subtext" id="message-subtext">No more moves available.</div>
+                <button class="new-game-btn" id="continue-btn" style="width: auto; padding: 15px 30px; margin-top: 10px;">
+                    Play Again
+                </button>
+            </div>
+        </div>
+        
+        <div class="shortcut-hint">
+            <i class="fas fa-arrow-up"></i>
+            <i class="fas fa-arrow-down"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-right"></i>
+            Use arrow keys or swipe to move tiles
+        </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const grid = document.getElementById('grid');
-            const scoreDisplay = document.getElementById('score');
-            const gameMessage = document.getElementById('game-message');
-            const messageText = document.getElementById('message-text');
-            const keepPlayingBtn = document.getElementById('keep-playing-btn');
-            const tryAgainBtn = document.getElementById('try-again-btn');
+        // Game Configuration
+        const CONFIG = {
+            // Difficulty levels: [gridSize, targetTile, levelUpThreshold]
+            1: { size: 4, target: 64, threshold: 64, name: "Beginner" },
+            2: { size: 4, target: 128, threshold: 128, name: "Easy" },
+            3: { size: 4, target: 256, threshold: 256, name: "Medium" },
+            4: { size: 5, target: 512, threshold: 512, name: "Hard" },
+            5: { size: 5, target: 1024, threshold: 1024, name: "Expert" },
+            6: { size: 5, target: 2048, threshold: 2048, name: "Master" },
+            7: { size: 6, target: 4096, threshold: 4096, name: "Grandmaster" },
+            8: { size: 6, target: 8192, threshold: 8192, name: "Legend" },
+            9: { size: 6, target: 16384, threshold: 16384, name: "Ultimate" }
+        };
 
-            let board = [];
-            let score = 0;
-            let isGameOver = false;
-            let hasWon = false;
-            let touchStartX = 0;
-            let touchStartY = 0;
-            let touchEndX = 0;
-            let touchEndY = 0;
+        // Tile colors for the liquid glass aesthetic
+        const TILE_COLORS = {
+            0: 'rgba(255, 255, 255, 0.05)',
+            2: 'linear-gradient(135deg, rgba(0, 198, 255, 0.7), rgba(0, 114, 255, 0.7))',
+            4: 'linear-gradient(135deg, rgba(0, 168, 255, 0.8), rgba(0, 80, 255, 0.8))',
+            8: 'linear-gradient(135deg, rgba(0, 138, 255, 0.9), rgba(0, 50, 255, 0.9))',
+            16: 'linear-gradient(135deg, rgba(50, 0, 255, 0.8), rgba(100, 0, 255, 0.8))',
+            32: 'linear-gradient(135deg, rgba(100, 0, 255, 0.8), rgba(150, 0, 255, 0.8))',
+            64: 'linear-gradient(135deg, rgba(150, 0, 255, 0.8), rgba(200, 0, 255, 0.8))',
+            128: 'linear-gradient(135deg, rgba(200, 0, 255, 0.8), rgba(255, 0, 220, 0.8))',
+            256: 'linear-gradient(135deg, rgba(255, 0, 200, 0.8), rgba(255, 0, 150, 0.8))',
+            512: 'linear-gradient(135deg, rgba(255, 0, 150, 0.8), rgba(255, 0, 100, 0.8))',
+            1024: 'linear-gradient(135deg, rgba(255, 0, 100, 0.9), rgba(255, 50, 0, 0.9))',
+            2048: 'linear-gradient(135deg, rgba(255, 50, 0, 0.9), rgba(255, 100, 0, 0.9))',
+            4096: 'linear-gradient(135deg, rgba(255, 100, 0, 0.9), rgba(255, 150, 0, 0.9))',
+            8192: 'linear-gradient(135deg, rgba(255, 150, 0, 0.9), rgba(255, 200, 0, 0.9))',
+            16384: 'linear-gradient(135deg, rgba(255, 200, 0, 0.9), rgba(255, 255, 0, 0.9))'
+        };
 
-            // Initialize the game
-            function initGame() {
-                // Create the grid cells
-                grid.innerHTML = '';
-                for (let i = 0; i < 16; i++) {
-                    const cell = document.createElement('div');
-                    cell.classList.add('cell');
-                    grid.appendChild(cell);
-                }
+        // Game state variables
+        let grid = [];
+        let score = 0;
+        let best = localStorage.getItem('best2048') || 0;
+        let level = 1;
+        let maxTile = 0;
+        let gameOver = false;
+        let won = false;
+        let gridSize = CONFIG[1].size;
+        let targetTile = CONFIG[1].threshold;
+        let targetPercentage = 0;
+        let levelScore = 0; // Score earned in current level
+        let levelStartTime = 0;
+        
+        // DOM Elements
+        const gridElement = document.getElementById('grid');
+        const scoreElement = document.querySelector('.score');
+        const bestElement = document.querySelector('.best');
+        const currentLevelElement = document.getElementById('current-level');
+        const targetTileElement = document.getElementById('target-tile');
+        const targetPercentageElement = document.getElementById('target-percentage');
+        const levelProgressBar = document.getElementById('level-progress-bar');
+        const levelCompleteScreen = document.getElementById('level-complete');
+        const levelCompleteStats = document.getElementById('level-complete-stats');
+        const nextLevelText = document.getElementById('next-level-text');
+        const nextLevelButton = document.getElementById('next-level-btn');
+        const gameMessage = document.getElementById('game-message');
+        const messageText = document.getElementById('message-text');
+        const messageSubtext = document.getElementById('message-subtext');
+        const continueButton = document.getElementById('continue-btn');
+        const newGameButton = document.getElementById('new-game-btn');
+        const difficultyButtonsContainer = document.getElementById('difficulty-buttons');
+        const menuButton = document.getElementById('menu-button');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+        const liquidGlassBg = document.getElementById('liquid-glass-bg');
 
-                // Initialize the board
-                board = Array(4).fill().map(() => Array(4).fill(0));
-                score = 0;
-                isGameOver = false;
-                hasWon = false;
-                updateScore();
-                hideMessage();
+        // Initialize the game
+        function initGame() {
+            // Create liquid glass background
+            createLiquidGlassBackground();
+            
+            // Set best score from localStorage
+            bestElement.textContent = best;
+            
+            // Create difficulty buttons
+            createDifficultyButtons();
+            
+            // Initialize the grid
+            initializeGrid();
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Start the game
+            startGame();
+        }
 
-                // Add two initial tiles
-                addRandomTile();
-                addRandomTile();
-
-                // Render the board
-                renderBoard();
-            }
-
-            // Add a random tile (2 or 4) to an empty cell
-            function addRandomTile() {
-                const emptyCells = [];
+        // Create liquid glass background
+        function createLiquidGlassBackground() {
+            // Clear any existing background
+            liquidGlassBg.innerHTML = '';
+            
+            // Create the main glass layer
+            const glassLayer = document.createElement('div');
+            glassLayer.className = 'glass-layer';
+            liquidGlassBg.appendChild(glassLayer);
+            
+            // Create floating bubbles
+            const bubbleCount = 12;
+            
+            for (let i = 0; i < bubbleCount; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'glass-bubble';
                 
-                for (let row = 0; row < 4; row++) {
-                    for (let col = 0; col < 4; col++) {
-                        if (board[row][col] === 0) {
-                            emptyCells.push({ row, col });
-                        }
-                    }
-                }
-
-                if (emptyCells.length > 0) {
-                    const { row, col } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                    board[row][col] = Math.random() < 0.9 ? 2 : 4;
-                    return true;
-                }
-                return false;
-            }
-
-            // Render the board
-            function renderBoard() {
-                // Clear all tiles
-                document.querySelectorAll('.tile').forEach(tile => tile.remove());
-
-                for (let row = 0; row < 4; row++) {
-                    for (let col = 0; col < 4; col++) {
-                        const value = board[row][col];
-                        if (value !== 0) {
-                            const tile = document.createElement('div');
-                            tile.classList.add('tile');
-                            tile.classList.add(`tile-${value}`);
-                            if (value > 2048) tile.classList.add('tile-super');
-                            tile.textContent = value;
-                            
-                            // Position the tile
-                            const index = row * 4 + col;
-                            const cell = grid.children[index];
-                            cell.appendChild(tile);
-                        }
-                    }
-                }
-            }
-
-            // Update the score display
-            function updateScore() {
-                scoreDisplay.textContent = score;
-            }
-
-            // Check if the game is over
-            function checkGameOver() {
-                // Check if there are any empty cells
-                for (let row = 0; row < 4; row++) {
-                    for (let col = 0; col < 4; col++) {
-                        if (board[row][col] === 0) {
-                            return false;
-                        }
-                    }
-                }
-
-                // Check if there are any possible merges
-                for (let row = 0; row < 4; row++) {
-                    for (let col = 0; col < 4; col++) {
-                        const value = board[row][col];
-                        // Check right neighbor
-                        if (col < 3 && board[row][col + 1] === value) {
-                            return false;
-                        }
-                        // Check bottom neighbor
-                        if (row < 3 && board[row + 1][col] === value) {
-                            return false;
-                        }
-                    }
-                }
-
-                return true;
-            }
-
-            // Check if the player has won
-            function checkWin() {
-                for (let row = 0; row < 4; row++) {
-                    for (let col = 0; col < 4; col++) {
-                        if (board[row][col] === 2048) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-
-            // Show game message
-            function showMessage(message, isWin) {
-                messageText.textContent = message;
-                gameMessage.classList.add(isWin ? 'game-won' : 'game-over');
-                if (isWin) {
-                    keepPlayingBtn.style.display = 'block';
-                } else {
-                    keepPlayingBtn.style.display = 'none';
-                }
-            }
-
-            // Hide game message
-            function hideMessage() {
-                gameMessage.classList.remove('game-won', 'game-over');
-            }
-
-            // Move tiles in the specified direction
-            function move(direction) {
-                if (isGameOver && !hasWon) return false;
-
-                let moved = false;
-                const newBoard = JSON.parse(JSON.stringify(board));
-
-                // Process the board based on direction
-                if (direction === 'up' || direction === 'down') {
-                    for (let col = 0; col < 4; col++) {
-                        const column = [];
-                        for (let row = 0; row < 4; row++) {
-                            column.push(board[row][col]);
-                        }
-
-                        const processed = processLine(column, direction === 'down');
-                        for (let row = 0; row < 4; row++) {
-                            if (newBoard[row][col] !== processed[row]) {
-                                moved = true;
-                                newBoard[row][col] = processed[row];
-                            }
-                        }
-                    }
-                } else { // left or right
-                    for (let row = 0; row < 4; row++) {
-                        const line = [...board[row]];
-                        const processed = processLine(line, direction === 'right');
-                        for (let col = 0; col < 4; col++) {
-                            if (newBoard[row][col] !== processed[col]) {
-                                moved = true;
-                                newBoard[row][col] = processed[col];
-                            }
-                        }
-                    }
-                }
-
-                if (moved) {
-                    board = newBoard;
-                    addRandomTile();
-                    renderBoard();
-                    updateScore();
-
-                    if (!hasWon && checkWin()) {
-                        hasWon = true;
-                        showMessage('You Win!', true);
-                    } else if (checkGameOver()) {
-                        isGameOver = true;
-                        showMessage('Game Over!', false);
-                    }
-                }
-
-                return moved;
-            }
-
-            // Process a single line (row or column)
-            function processLine(line, reverse) {
-                // Remove zeros
-                let filtered = line.filter(val => val !== 0);
+                // Random size between 40 and 150px
+                const size = Math.random() * 110 + 40;
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
                 
-                if (reverse) {
-                    filtered.reverse();
-                }
-
-                // Merge tiles
-                for (let i = 0; i < filtered.length - 1; i++) {
-                    if (filtered[i] === filtered[i + 1]) {
-                        filtered[i] *= 2;
-                        filtered[i + 1] = 0;
-                        score += filtered[i];
-                        
-                        // Add merge effect to the tile
-                        setTimeout(() => {
-                            const tiles = document.querySelectorAll('.tile');
-                            tiles.forEach(tile => {
-                                if (parseInt(tile.textContent) === filtered[i]) {
-                                    tile.classList.add('merge-effect');
-                                    setTimeout(() => {
-                                        tile.classList.remove('merge-effect');
-                                    }, 300);
-                                }
-                            });
-                        }, 150);
-                    }
-                }
-
-                // Remove zeros again after merging
-                filtered = filtered.filter(val => val !== 0);
+                // Random position
+                bubble.style.left = `${Math.random() * 100}%`;
+                bubble.style.top = `${Math.random() * 100}%`;
                 
-                // Add zeros to the end
-                while (filtered.length < 4) {
-                    filtered.push(0);
-                }
-
-                if (reverse) {
-                    filtered.reverse();
-                }
-
-                return filtered;
+                // Random animation delay and duration
+                bubble.style.animationDelay = `${Math.random() * 5}s`;
+                bubble.style.animationDuration = `${12 + Math.random() * 12}s`;
+                
+                liquidGlassBg.appendChild(bubble);
             }
+        }
 
-            // Handle keyboard events
-            function handleKeyDown(e) {
-                if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    move('up');
-                } else if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    move('down');
-                } else if (e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    move('left');
-                } else if (e.key === 'ArrowRight') {
-                    e.preventDefault();
-                    move('right');
+        // Create difficulty level buttons
+        function createDifficultyButtons() {
+            difficultyButtonsContainer.innerHTML = '';
+            for (let i = 1; i <= 9; i++) {
+                const button = document.createElement('button');
+                button.className = i === 1 ? 'difficulty-btn active' : 'difficulty-btn';
+                button.textContent = i;
+                button.title = `Level ${i}: ${CONFIG[i].name} (${CONFIG[i].size}x${CONFIG[i].size})`;
+                button.dataset.level = i;
+                button.addEventListener('click', () => {
+                    changeDifficulty(i);
+                    closeMenu();
+                });
+                button.addEventListener('mousedown', () => {
+                    button.style.transform = 'translateY(0)';
+                });
+                button.addEventListener('mouseup', () => {
+                    button.style.transform = 'translateY(-3px)';
+                });
+                difficultyButtonsContainer.appendChild(button);
+            }
+        }
+
+        // Toggle the dropdown menu
+        function toggleMenu() {
+            dropdownMenu.classList.toggle('show');
+        }
+
+        // Close the dropdown menu
+        function closeMenu() {
+            dropdownMenu.classList.remove('show');
+        }
+
+        // Change difficulty level
+        function changeDifficulty(newLevel) {
+            if (level !== newLevel) {
+                // Update active button
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (parseInt(btn.dataset.level) === newLevel) {
+                        btn.classList.add('active');
+                    }
+                });
+                
+                level = newLevel;
+                gridSize = CONFIG[level].size;
+                targetTile = CONFIG[level].threshold;
+                
+                // Update level display
+                currentLevelElement.textContent = level;
+                targetTileElement.textContent = targetTile;
+                updateTargetPercentage();
+                
+                // Start a new game with the new difficulty
+                startGame();
+            }
+        }
+
+        // Go to next level
+        function goToNextLevel() {
+            if (level < 9) {
+                changeDifficulty(level + 1);
+                levelCompleteScreen.classList.remove('show');
+            } else {
+                // If it's the last level, show a special message
+                nextLevelText.textContent = "Congratulations! You've completed all levels!";
+                nextLevelButton.innerHTML = '<i class="fas fa-trophy"></i> Play Again';
+                nextLevelButton.onclick = () => {
+                    changeDifficulty(1);
+                    levelCompleteScreen.classList.remove('show');
+                };
+            }
+        }
+
+        // Initialize the grid structure
+        function initializeGrid() {
+            grid = [];
+            for (let i = 0; i < gridSize; i++) {
+                grid[i] = [];
+                for (let j = 0; j < gridSize; j++) {
+                    grid[i][j] = 0;
                 }
             }
+        }
 
-            // Handle touch events for mobile
-            function handleTouchStart(e) {
+        // Setup event listeners
+        function setupEventListeners() {
+            // Keyboard controls
+            document.addEventListener('keydown', handleKeyPress);
+            
+            // New Game button with smooth feedback
+            newGameButton.addEventListener('click', () => {
+                // Add click animation
+                newGameButton.style.transform = 'translateY(0)';
+                setTimeout(() => {
+                    newGameButton.style.transform = 'translateY(-5px)';
+                    startGame();
+                }, 150);
+            });
+            
+            // Next Level button
+            nextLevelButton.addEventListener('click', goToNextLevel);
+            
+            // Game Over continue button
+            continueButton.addEventListener('click', () => {
+                gameMessage.classList.remove('show');
+                startGame();
+            });
+            
+            menuButton.addEventListener('click', toggleMenu);
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!menuButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    closeMenu();
+                }
+            });
+            
+            // Touch events for mobile with smooth feedback
+            let touchStartX, touchStartY;
+            
+            gridElement.addEventListener('touchstart', function(e) {
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
-            }
-
-            function handleTouchEnd(e) {
+                e.preventDefault();
+            }, { passive: false });
+            
+            gridElement.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+            
+            gridElement.addEventListener('touchend', function(e) {
                 if (!touchStartX || !touchStartY) return;
-
-                touchEndX = e.changedTouches[0].clientX;
-                touchEndY = e.changedTouches[0].clientY;
-
+                
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                
                 const dx = touchEndX - touchStartX;
                 const dy = touchEndY - touchStartY;
-
-                // Determine the direction
+                
+                // Minimum swipe distance
+                if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
+                
+                // Determine direction based on larger movement
                 if (Math.abs(dx) > Math.abs(dy)) {
+                    // Horizontal swipe
                     if (dx > 0) {
-                        move('right');
+                        moveTiles('right');
                     } else {
-                        move('left');
+                        moveTiles('left');
                     }
                 } else {
+                    // Vertical swipe
                     if (dy > 0) {
-                        move('down');
+                        moveTiles('down');
                     } else {
-                        move('up');
+                        moveTiles('up');
                     }
                 }
+                
+                touchStartX = null;
+                touchStartY = null;
+                e.preventDefault();
+            }, { passive: false });
+        }
 
-                touchStartX = 0;
-                touchStartY = 0;
+        // Handle keyboard input
+        function handleKeyPress(e) {
+            if (gameOver) return;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                    moveTiles('up');
+                    break;
+                case 'ArrowDown':
+                    moveTiles('down');
+                    break;
+                case 'ArrowLeft':
+                    moveTiles('left');
+                    break;
+                case 'ArrowRight':
+                    moveTiles('right');
+                    break;
+                case 'Escape':
+                    closeMenu();
+                    break;
+                case ' ':
+                case 'Enter':
+                    e.preventDefault();
+                    startGame();
+                    break;
             }
+        }
 
-            // Event listeners
-            document.addEventListener('keydown', handleKeyDown);
-            grid.addEventListener('touchstart', handleTouchStart, { passive: true });
-            grid.addEventListener('touchend', handleTouchEnd, { passive: true });
+        // Start a new game
+        function startGame() {
+            score = 0;
+            maxTile = 0;
+            gameOver = false;
+            won = false;
+            levelScore = 0;
+            levelStartTime = Date.now();
+            
+            // Update UI
+            scoreElement.textContent = score;
+            currentLevelElement.textContent = level;
+            targetTileElement.textContent = targetTile;
+            updateTargetPercentage();
+            updateLevelProgress();
+            
+            // Hide game message and level complete screens
+            gameMessage.classList.remove('show');
+            levelCompleteScreen.classList.remove('show');
+            
+            // Initialize the grid
+            initializeGrid();
+            
+            // Create the visual grid
+            createGridVisual();
+            
+            // Add two initial tiles with delay for smooth appearance
+            setTimeout(() => {
+                addRandomTile();
+                setTimeout(() => {
+                    addRandomTile();
+                }, 150);
+            }, 300);
+            
+            // Update the grid display
+            updateGrid();
+            
+            // Close menu if open
+            closeMenu();
+            
+            // Update next level button text
+            if (level < 9) {
+                nextLevelText.textContent = `Get ready for Level ${level + 1}: ${CONFIG[level + 1].name}!`;
+                nextLevelButton.innerHTML = '<i class="fas fa-arrow-right"></i> Next Level';
+                nextLevelButton.onclick = goToNextLevel;
+            } else {
+                nextLevelText.textContent = "You're on the final level!";
+            }
+        }
 
-            keepPlayingBtn.addEventListener('click', () => {
-                hideMessage();
-            });
+        // Update target percentage
+        function updateTargetPercentage() {
+            if (maxTile >= targetTile) {
+                targetPercentage = 100;
+            } else {
+                targetPercentage = Math.floor((maxTile / targetTile) * 100);
+            }
+            targetPercentageElement.textContent = `${targetPercentage}%`;
+            
+            // Change color based on percentage
+            if (targetPercentage >= 100) {
+                targetPercentageElement.style.background = 'rgba(0, 255, 100, 0.3)';
+                targetPercentageElement.style.boxShadow = '0 0 15px rgba(0, 255, 100, 0.4)';
+                targetPercentageElement.style.border = '1px solid rgba(0, 255, 100, 0.5)';
+            } else if (targetPercentage >= 75) {
+                targetPercentageElement.style.background = 'rgba(0, 255, 200, 0.3)';
+                targetPercentageElement.style.boxShadow = '0 0 15px rgba(0, 255, 200, 0.4)';
+                targetPercentageElement.style.border = '1px solid rgba(0, 255, 200, 0.5)';
+            } else if (targetPercentage >= 50) {
+                targetPercentageElement.style.background = 'rgba(0, 198, 255, 0.3)';
+                targetPercentageElement.style.boxShadow = '0 0 15px rgba(0, 198, 255, 0.4)';
+                targetPercentageElement.style.border = '1px solid rgba(0, 198, 255, 0.5)';
+            } else {
+                targetPercentageElement.style.background = 'rgba(0, 114, 255, 0.3)';
+                targetPercentageElement.style.boxShadow = '0 0 15px rgba(0, 114, 255, 0.4)';
+                targetPercentageElement.style.border = '1px solid rgba(0, 114, 255, 0.5)';
+            }
+        }
 
-            tryAgainBtn.addEventListener('click', initGame);
+        // Create the visual grid - Larger for better visibility
+        function createGridVisual() {
+            gridElement.innerHTML = '';
+            
+            // Set grid size
+            gridElement.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+            gridElement.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+            
+            // Calculate tile size based on grid size and container
+            // Using larger sizes for better visibility
+            const containerWidth = Math.min(gridElement.parentElement.clientWidth - 40, 550);
+            const containerHeight = Math.min(gridElement.parentElement.clientHeight - 40, 550);
+            
+            const maxTileSize = Math.min(
+                (containerWidth - (gridSize + 1) * 15) / gridSize,
+                (containerHeight - (gridSize + 1) * 15) / gridSize
+            );
+            
+            const tileSize = Math.max(60, maxTileSize); // Minimum tile size of 60px
+            
+            gridElement.style.width = `${gridSize * (tileSize + 15)}px`;
+            gridElement.style.height = `${gridSize * (tileSize + 15)}px`;
+            
+            // Create grid cells
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    // Add subtle animation to each cell
+                    cell.style.opacity = '0';
+                    cell.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        cell.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                        cell.style.opacity = '1';
+                        cell.style.transform = 'scale(1)';
+                    }, 50 * (i * gridSize + j));
+                    gridElement.appendChild(cell);
+                }
+            }
+        }
 
-            // Initialize the game
-            initGame();
+        // Add a random tile (2 or 4) to an empty cell
+        function addRandomTile() {
+            const emptyCells = [];
+            
+            // Find all empty cells
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    if (grid[i][j] === 0) {
+                        emptyCells.push({row: i, col: j});
+                    }
+                }
+            }
+            
+            // If there are empty cells, add a tile
+            if (emptyCells.length > 0) {
+                const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                // 90% chance for 2, 10% chance for 4
+                grid[randomCell.row][randomCell.col] = Math.random() < 0.9 ? 2 : 4;
+                
+                // Animate the new tile
+                animateTileAppearance(randomCell.row, randomCell.col);
+            }
+        }
+
+        // Animate tile appearance
+        function animateTileAppearance(row, col) {
+            const tileValue = grid[row][col];
+            const tile = document.querySelector(`.tile[data-row="${row}"][data-col="${col}"]`);
+            
+            if (tile) {
+                tile.style.animation = 'pop 0.3s ease';
+                setTimeout(() => {
+                    tile.style.animation = '';
+                }, 300);
+            }
+        }
+
+        // Create pop effect between two cells
+        function createPopEffect(row1, col1, row2, col2) {
+            const containerWidth = Math.min(gridElement.parentElement.clientWidth - 40, 550);
+            const containerHeight = Math.min(gridElement.parentElement.clientHeight - 40, 550);
+            
+            const maxTileSize = Math.min(
+                (containerWidth - (gridSize + 1) * 15) / gridSize,
+                (containerHeight - (gridSize + 1) * 15) / gridSize
+            );
+            
+            const tileSize = Math.max(60, maxTileSize);
+            const tileGap = 15;
+            
+            // Calculate middle point between the two cells
+            const x1 = col1 * (tileSize + tileGap) + tileGap;
+            const y1 = row1 * (tileSize + tileGap) + tileGap;
+            const x2 = col2 * (tileSize + tileGap) + tileGap;
+            const y2 = row2 * (tileSize + tileGap) + tileGap;
+            
+            const midX = (x1 + x2) / 2 + tileSize / 2;
+            const midY = (y1 + y2) / 2 + tileSize / 2;
+            
+            // Create pop effect element
+            const popEffect = document.createElement('div');
+            popEffect.className = 'pop-effect';
+            popEffect.style.left = `${midX - tileSize/2}px`;
+            popEffect.style.top = `${midY - tileSize/2}px`;
+            popEffect.style.width = `${tileSize}px`;
+            popEffect.style.height = `${tileSize}px`;
+            
+            gridElement.appendChild(popEffect);
+            
+            // Remove after animation
+            setTimeout(() => {
+                popEffect.remove();
+            }, 400);
+        }
+
+        // Update the grid display
+        function updateGrid() {
+            // Remove all existing tiles
+            document.querySelectorAll('.tile').forEach(tile => tile.remove());
+            
+            // Add tiles to the grid
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    const value = grid[i][j];
+                    if (value !== 0) {
+                        createTileElement(i, j, value);
+                        
+                        // Update max tile
+                        if (value > maxTile) {
+                            maxTile = value;
+                            updateLevelProgress();
+                            updateTargetPercentage();
+                            
+                            // Check if target reached
+                            if (maxTile >= targetTile && !won) {
+                                showLevelComplete();
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Check for game over
+            if (!hasMovesLeft() && !gameOver) {
+                setTimeout(() => {
+                    showGameOverMessage();
+                    gameOver = true;
+                }, 300);
+            }
+        }
+
+        // Show level complete screen
+        function showLevelComplete() {
+            won = true;
+            
+            // Calculate level stats
+            const levelTime = Math.floor((Date.now() - levelStartTime) / 1000);
+            const minutes = Math.floor(levelTime / 60);
+            const seconds = levelTime % 60;
+            const timeString = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+            
+            // Update stats display
+            levelCompleteStats.innerHTML = `
+                <div><span>Level Completed:</span><span>${level}</span></div>
+                <div><span>Level Score:</span><span>${levelScore}</span></div>
+                <div><span>Total Score:</span><span>${score}</span></div>
+                <div><span>Highest Tile:</span><span>${maxTile}</span></div>
+                <div><span>Time:</span><span>${timeString}</span></div>
+            `;
+            
+            // Update next level text
+            if (level < 9) {
+                nextLevelText.textContent = `Next: Level ${level + 1} - ${CONFIG[level + 1].name} (${CONFIG[level + 1].size}x${CONFIG[level + 1].size})`;
+                nextLevelButton.innerHTML = '<i class="fas fa-arrow-right"></i> Next Level';
+                nextLevelButton.onclick = goToNextLevel;
+            } else {
+                nextLevelText.textContent = "Congratulations! You've completed all 9 levels!";
+                nextLevelButton.innerHTML = '<i class="fas fa-trophy"></i> Play Again';
+                nextLevelButton.onclick = () => {
+                    changeDifficulty(1);
+                    levelCompleteScreen.classList.remove('show');
+                };
+            }
+            
+            // Show level complete screen with a slight delay for smooth transition
+            setTimeout(() => {
+                levelCompleteScreen.classList.add('show');
+            }, 500);
+        }
+
+        // Show game over message
+        function showGameOverMessage() {
+            messageText.textContent = 'Game Over!';
+            messageSubtext.textContent = `No more moves available. Your final score is ${score}.`;
+            gameMessage.classList.add('show');
+        }
+
+        // Create a tile element - Larger for better visibility
+        function createTileElement(row, col, value) {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            tile.dataset.row = row;
+            tile.dataset.col = col;
+            tile.textContent = value;
+            
+            // Calculate position and size
+            const containerWidth = Math.min(gridElement.parentElement.clientWidth - 40, 550);
+            const containerHeight = Math.min(gridElement.parentElement.clientHeight - 40, 550);
+            
+            const maxTileSize = Math.min(
+                (containerWidth - (gridSize + 1) * 15) / gridSize,
+                (containerHeight - (gridSize + 1) * 15) / gridSize
+            );
+            
+            const tileSize = Math.max(60, maxTileSize);
+            const tileGap = 15;
+            
+            tile.style.width = `${tileSize}px`;
+            tile.style.height = `${tileSize}px`;
+            tile.style.left = `${col * (tileSize + tileGap) + tileGap}px`;
+            tile.style.top = `${row * (tileSize + tileGap) + tileGap}px`;
+            
+            // Set tile color based on value
+            tile.style.background = TILE_COLORS[value] || TILE_COLORS[16384];
+            
+            // Set font size based on value length - Larger for visibility
+            if (value < 100) {
+                tile.style.fontSize = tileSize < 70 ? '1.8rem' : '2.2rem';
+            } else if (value < 1000) {
+                tile.style.fontSize = tileSize < 70 ? '1.5rem' : '1.9rem';
+            } else if (value < 10000) {
+                tile.style.fontSize = tileSize < 70 ? '1.2rem' : '1.6rem';
+            } else {
+                tile.style.fontSize = tileSize < 70 ? '1rem' : '1.3rem';
+            }
+            
+            // Text color for contrast
+            tile.style.color = value >= 8 ? '#fff' : '#333';
+            
+            // Add subtle animation
+            tile.style.opacity = '0';
+            tile.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                tile.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+                tile.style.opacity = '1';
+                tile.style.transform = 'scale(1)';
+            }, 50);
+            
+            gridElement.appendChild(tile);
+        }
+
+        // Update level progress bar
+        function updateLevelProgress() {
+            const currentThreshold = CONFIG[level].threshold;
+            const nextThreshold = level < 9 ? CONFIG[level+1].threshold : currentThreshold * 2;
+            const progress = Math.min(100, (maxTile / nextThreshold) * 100);
+            levelProgressBar.style.width = `${progress}%`;
+        }
+
+        // Check if there are any moves left
+        function hasMovesLeft() {
+            // Check for empty cells
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    if (grid[i][j] === 0) return true;
+                }
+            }
+            
+            // Check for possible merges
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    const current = grid[i][j];
+                    
+                    // Check right
+                    if (j < gridSize - 1 && grid[i][j+1] === current) return true;
+                    
+                    // Check down
+                    if (i < gridSize - 1 && grid[i+1][j] === current) return true;
+                }
+            }
+            
+            return false;
+        }
+
+        // Move tiles in the specified direction
+        function moveTiles(direction) {
+            if (gameOver) return;
+            
+            const oldGrid = JSON.parse(JSON.stringify(grid));
+            let moved = false;
+            let mergePositions = [];
+            
+            switch(direction) {
+                case 'up':
+                    moved = moveUp(mergePositions);
+                    break;
+                case 'down':
+                    moved = moveDown(mergePositions);
+                    break;
+                case 'left':
+                    moved = moveLeft(mergePositions);
+                    break;
+                case 'right':
+                    moved = moveRight(mergePositions);
+                    break;
+            }
+            
+            // If the grid changed, add a new tile and update
+            if (moved) {
+                // Create pop effects for merged tiles
+                setTimeout(() => {
+                    mergePositions.forEach(pos => {
+                        createPopEffect(pos.row, pos.col, pos.mergeRow, pos.mergeCol);
+                    });
+                }, 100);
+                
+                setTimeout(() => {
+                    addRandomTile();
+                    updateGrid();
+                    
+                    // Update score and best
+                    updateScore();
+                }, 200);
+            }
+        }
+
+        // Move tiles up
+        function moveUp(mergePositions) {
+            let moved = false;
+            
+            for (let col = 0; col < gridSize; col++) {
+                // Shift tiles up
+                for (let row = 1; row < gridSize; row++) {
+                    if (grid[row][col] !== 0) {
+                        let newRow = row;
+                        while (newRow > 0 && grid[newRow-1][col] === 0) {
+                            grid[newRow-1][col] = grid[newRow][col];
+                            grid[newRow][col] = 0;
+                            newRow--;
+                            moved = true;
+                        }
+                    }
+                }
+                
+                // Merge tiles
+                for (let row = 0; row < gridSize - 1; row++) {
+                    if (grid[row][col] !== 0 && grid[row][col] === grid[row+1][col]) {
+                        grid[row][col] *= 2;
+                        grid[row+1][col] = 0;
+                        score += grid[row][col];
+                        levelScore += grid[row][col]; // Track level score
+                        moved = true;
+                        
+                        // Record merge position for pop effect
+                        mergePositions.push({
+                            row: row,
+                            col: col,
+                            mergeRow: row+1,
+                            mergeCol: col
+                        });
+                    }
+                }
+                
+                // Shift again after merging
+                for (let row = 1; row < gridSize; row++) {
+                    if (grid[row][col] !== 0) {
+                        let newRow = row;
+                        while (newRow > 0 && grid[newRow-1][col] === 0) {
+                            grid[newRow-1][col] = grid[newRow][col];
+                            grid[newRow][col] = 0;
+                            newRow--;
+                        }
+                    }
+                }
+            }
+            
+            return moved;
+        }
+
+        // Move tiles down
+        function moveDown(mergePositions) {
+            let moved = false;
+            
+            for (let col = 0; col < gridSize; col++) {
+                // Shift tiles down
+                for (let row = gridSize - 2; row >= 0; row--) {
+                    if (grid[row][col] !== 0) {
+                        let newRow = row;
+                        while (newRow < gridSize - 1 && grid[newRow+1][col] === 0) {
+                            grid[newRow+1][col] = grid[newRow][col];
+                            grid[newRow][col] = 0;
+                            newRow++;
+                            moved = true;
+                        }
+                    }
+                }
+                
+                // Merge tiles
+                for (let row = gridSize - 1; row > 0; row--) {
+                    if (grid[row][col] !== 0 && grid[row][col] === grid[row-1][col]) {
+                        grid[row][col] *= 2;
+                        grid[row-1][col] = 0;
+                        score += grid[row][col];
+                        levelScore += grid[row][col]; // Track level score
+                        moved = true;
+                        
+                        // Record merge position for pop effect
+                        mergePositions.push({
+                            row: row,
+                            col: col,
+                            mergeRow: row-1,
+                            mergeCol: col
+                        });
+                    }
+                }
+                
+                // Shift again after merging
+                for (let row = gridSize - 2; row >= 0; row--) {
+                    if (grid[row][col] !== 0) {
+                        let newRow = row;
+                        while (newRow < gridSize - 1 && grid[newRow+1][col] === 0) {
+                            grid[newRow+1][col] = grid[newRow][col];
+                            grid[newRow][col] = 0;
+                            newRow++;
+                        }
+                    }
+                }
+            }
+            
+            return moved;
+        }
+
+        // Move tiles left
+        function moveLeft(mergePositions) {
+            let moved = false;
+            
+            for (let row = 0; row < gridSize; row++) {
+                // Shift tiles left
+                for (let col = 1; col < gridSize; col++) {
+                    if (grid[row][col] !== 0) {
+                        let newCol = col;
+                        while (newCol > 0 && grid[row][newCol-1] === 0) {
+                            grid[row][newCol-1] = grid[row][newCol];
+                            grid[row][newCol] = 0;
+                            newCol--;
+                            moved = true;
+                        }
+                    }
+                }
+                
+                // Merge tiles
+                for (let col = 0; col < gridSize - 1; col++) {
+                    if (grid[row][col] !== 0 && grid[row][col] === grid[row][col+1]) {
+                        grid[row][col] *= 2;
+                        grid[row][col+1] = 0;
+                        score += grid[row][col];
+                        levelScore += grid[row][col]; // Track level score
+                        moved = true;
+                        
+                        // Record merge position for pop effect
+                        mergePositions.push({
+                            row: row,
+                            col: col,
+                            mergeRow: row,
+                            mergeCol: col+1
+                        });
+                    }
+                }
+                
+                // Shift again after merging
+                for (let col = 1; col < gridSize; col++) {
+                    if (grid[row][col] !== 0) {
+                        let newCol = col;
+                        while (newCol > 0 && grid[row][newCol-1] === 0) {
+                            grid[row][newCol-1] = grid[row][newCol];
+                            grid[row][newCol] = 0;
+                            newCol--;
+                        }
+                    }
+                }
+            }
+            
+            return moved;
+        }
+
+        // Move tiles right
+        function moveRight(mergePositions) {
+            let moved = false;
+            
+            for (let row = 0; row < gridSize; row++) {
+                // Shift tiles right
+                for (let col = gridSize - 2; col >= 0; col--) {
+                    if (grid[row][col] !== 0) {
+                        let newCol = col;
+                        while (newCol < gridSize - 1 && grid[row][newCol+1] === 0) {
+                            grid[row][newCol+1] = grid[row][newCol];
+                            grid[row][newCol] = 0;
+                            newCol++;
+                            moved = true;
+                        }
+                    }
+                }
+                
+                // Merge tiles
+                for (let col = gridSize - 1; col > 0; col--) {
+                    if (grid[row][col] !== 0 && grid[row][col] === grid[row][col-1]) {
+                        grid[row][col] *= 2;
+                        grid[row][col-1] = 0;
+                        score += grid[row][col];
+                        levelScore += grid[row][col]; // Track level score
+                        moved = true;
+                        
+                        // Record merge position for pop effect
+                        mergePositions.push({
+                            row: row,
+                            col: col,
+                            mergeRow: row,
+                            mergeCol: col-1
+                        });
+                    }
+                }
+                
+                // Shift again after merging
+                for (let col = gridSize - 2; col >= 0; col--) {
+                    if (grid[row][col] !== 0) {
+                        let newCol = col;
+                        while (newCol < gridSize - 1 && grid[row][newCol+1] === 0) {
+                            grid[row][newCol+1] = grid[row][newCol];
+                            grid[row][newCol] = 0;
+                            newCol++;
+                        }
+                    }
+                }
+            }
+            
+            return moved;
+        }
+
+        // Update score and best
+        function updateScore() {
+            // Animate score change
+            scoreElement.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                scoreElement.style.transform = 'scale(1)';
+            }, 150);
+            
+            scoreElement.textContent = score;
+            
+            if (score > best) {
+                best = score;
+                // Animate best change
+                bestElement.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    bestElement.style.transform = 'scale(1)';
+                }, 150);
+                bestElement.textContent = best;
+                localStorage.setItem('best2048', best);
+            }
+        }
+
+        // Initialize the game when the page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            // Recreate the visual grid to adjust tile sizes
+            if (gridElement.children.length > 0) {
+                createGridVisual();
+                updateGrid();
+            }
         });
     </script>
 </body>
