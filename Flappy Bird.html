@@ -2,280 +2,623 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-   <meta name="description" content="Play Games And Get Fun With Flappy Birds">
-    <meta name="keywords" content="Flappy Bird Game">
-  <title>Flappy Bird</title>
-  <link rel="icon" href="https://cdn1.iconfinder.com/data/icons/roundettes-for-os-x-vol-vi/512/Flappy_Bird-01-512.png"/>
+  <meta name="viewport" content="width=device-width,
+initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Premium Liquid Glass Gaming
+Experience with Windows Soundset">
+  <title>Arcade - Windows Hybrid Edition</title>
+  <link rel="icon"
+href="https://cdn-icons-png.flaticon.com/512/5930/5930147.png">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap"
+rel="stylesheet">
   <style>
-    body, canvas {
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --accent: #00ffcc;
+      --accent-glow: rgba(0, 255, 204, 0.3);
+      --dark-blue: #020617;
+      --win-blue: #0078d4;
+    }
+
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
+      outline: none;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      background: var(--dark-blue);
       overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      position: fixed;
+    }
+
+    /* Animated Liquid Glass Background */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      filter: blur(40px); /* Deep blur for the liquid effect */
+      opacity: 0.6;
+    }
+
+    .glass-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: radial-gradient(circle at 50% 50%, transparent 0%,
+rgba(2, 6, 23, 0.4) 100%);
+      backdrop-filter: saturate(150%) brightness(110%);
+      pointer-events: none;
+    }
+
+    .crt-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0,
+0, 0.03) 50%),
+                  linear-gradient(90deg, rgba(255, 0, 0, 0.005),
+rgba(0, 255, 0, 0.002), rgba(0, 0, 255, 0.005));
+      background-size: 100% 4px, 4px 100%;
+      pointer-events: none;
+    }
+
+    #boot-sequence {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 1s;
+    }
+
+    .boot-orb {
+      width: 60px;
+      height: 60px;
+      background: radial-gradient(circle at 30% 30%, #fff, var(--win-blue));
+      border-radius: 50%;
+      box-shadow: 0 0 40px rgba(0, 120, 212, 0.5);
+      animation: bootPulse 2s infinite;
+    }
+
+    @keyframes bootPulse {
+      0%, 100% { transform: scale(1); filter: blur(2px); }
+      50% { transform: scale(1.1); filter: blur(5px); }
+    }
+
+    #game-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-family: Arial, sans-serif;
-      height: 100vh;
+      overflow: hidden;
     }
 
-    .video-background video {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: -1;
+    canvas#gameCanvas {
+      display: block;
+      z-index: 1;
+      max-width: 100%;
+      max-height: 100%;
     }
 
-    #game-over {
+    .game-ui {
       position: absolute;
-      font-size: 24px;
-      color: white;
+      z-index: 10;
+      pointer-events: none;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      border-radius: 16px;
+      pointer-events: auto;
+    }
+
+    #score-hud { top: 20px; left: 20px; padding: 12px 20px; display:
+flex; gap: 24px; }
+    #level-hud { top: 20px; right: 20px; padding: 12px 20px;
+text-align: right; }
+
+    .stat-label { font-size: 0.55rem; color: rgba(255,255,255,0.5);
+text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 2px;
+}
+    .stat-value { font-size: 1.1rem; font-weight: 700; color: #fff;
+text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+
+    #game-over-panel {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
       text-align: center;
-      display: none;
-      animation: fadeIn 0.5s ease-in-out;
-      top: 40%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      width: 340px;
     }
 
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      background: #e74c3c;
-      color: white;
+    #countdown-overlay {
+      display: none;
+      font-size: 6rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 30px var(--accent-glow);
+    }
+
+    .action-btn {
+      margin-top: 24px;
+      padding: 14px 32px;
+      background: var(--win-blue);
+      color: #fff;
       border: none;
-      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      border-radius: 6px;
       cursor: pointer;
-      border-radius: 5px;
+      font-size: 0.9rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(0, 120, 212, 0.3);
     }
+    .action-btn:hover { background: #0086ed; transform:
+translateY(-2px); box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4); }
 
-    #pause-btn, #resume-btn, #auto-btn {
-      position: absolute;
+    #controls-bar {
       bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      display: flex;
+      gap: 12px;
     }
 
-    #pause-btn {
-      left: 20px;
-      background: #3498db;
+    .control-btn {
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.2s;
     }
 
-    #resume-btn {
-      left: 140px;
-      background: #2ecc71;
-      display: none;
-    }
-
-    #auto-btn {
-      right: 20px;
-      background: #9b59b6;
-    }
-
-    #score, #high-score {
-      position: absolute;
-      font-size: 18px;
-      color: white;
-      text-shadow: 2px 2px 4px #000;
-    }
-
-    #score {
-      top: 10px;
-      left: 10px;
-    }
-
-    #high-score {
-      top: 10px;
-      right: 10px;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    .control-btn.active {
+      background: var(--win-blue);
+      border-color: rgba(255,255,255,0.4);
+      box-shadow: 0 0 15px rgba(0, 120, 212, 0.4);
     }
   </style>
 </head>
 <body>
-  <div class="video-background">
-    <video autoplay muted loop src="MED6.mp4"></video>
+  <div id="boot-sequence">
+    <div class="boot-orb"></div>
+    <div id="boot-text" class="boot-loading" style="margin-top: 20px;
+font-family: 'Inter'; font-size: 0.7rem; color: #aaa; letter-spacing:
+0.1em;">INITIALIZING LIQUID GLASS ARCADE...</div>
   </div>
 
-  <div id="game-over">
-    <p>Game Over!</p>
-    <button id="restart-btn">Restart</button>
+  <canvas id="bg-canvas"></canvas>
+  <div class="glass-overlay"></div>
+  <div class="crt-overlay"></div>
+
+  <div id="game-container">
+    <div id="score-hud" class="game-ui glass-panel">
+      <div>
+        <div class="stat-label">Score</div>
+        <div id="score-val" class="stat-value">0</div>
+      </div>
+      <div>
+        <div class="stat-label">Best</div>
+        <div id="high-score-val" class="stat-value">0</div>
+      </div>
+    </div>
+
+    <div id="level-hud" class="game-ui glass-panel">
+      <div class="stat-label">System Level</div>
+      <div id="level-val" class="stat-value">1</div>
+    </div>
+
+    <div id="countdown-overlay" class="game-ui">3</div>
+
+    <div id="game-over-panel" class="game-ui glass-panel">
+      <div style="color: var(--win-blue); margin-bottom: 16px;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12"
+y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01"
+y2="16"/></svg>
+      </div>
+      <h2 style="font-size: 1.2rem; margin-bottom: 8px; font-weight:
+400; letter-spacing: 0.05em;">Your session has ended</h2>
+      <div id="final-score" style="font-size: 3.5rem; font-weight:
+800; color: #fff; margin-bottom: 24px;">0</div>
+      <button id="restart-btn" class="action-btn">Restart Experience</button>
+    </div>
+
+    <div id="controls-bar" class="game-ui glass-panel">
+      <button id="pause-btn" class="control-btn">Pause</button>
+      <button id="auto-btn" class="control-btn">Auto-Pilot</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
   </div>
-
-  <canvas id="gameCanvas"></canvas>
-
-  <div id="score"></div>
-  <div id="high-score"></div>
-
-  <button id="pause-btn">Pause</button>
-  <button id="resume-btn">Resume</button>
-  <button id="auto-btn">Auto Mode: OFF</button>
 
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
+    const bgCanvas = document.getElementById("bg-canvas");
+    const bgCtx = bgCanvas.getContext("2d");
 
-    function resizeCanvas() {
+    let SCALE = 1, BIRD_RADIUS = 15, PIPE_WIDTH = 60, PIPE_GAP = 220;
+    let bird, pipes, score, highScore, frame, gameOver, isAutoPilot =
+false, paused = false, isStarting = true;
+    let level = 1, currentSpeed, currentGravity, currentFlap;
+
+    const BASE_GRAVITY = 0.22, BASE_FLAP = -5.2, BASE_SPEED = 3.2;
+
+    // --- LIQUID GLASS BACKGROUND LOGIC ---
+    let blobs = [];
+    class Blob {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * bgCanvas.width;
+        this.y = Math.random() * bgCanvas.height;
+        this.radius = 150 + Math.random() * 300;
+        this.vx = (Math.random() - 0.5) * 1.5;
+        this.vy = (Math.random() - 0.5) * 1.5;
+        // Windows-inspired colors: Win Blue, Deep Indigo, Teal
+        const colors = ['#0078d4', '#4f21b3', '#00ffcc', '#1e1e1e'];
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < -this.radius) this.x = bgCanvas.width + this.radius;
+        if (this.x > bgCanvas.width + this.radius) this.x = -this.radius;
+        if (this.y < -this.radius) this.y = bgCanvas.height + this.radius;
+        if (this.y > bgCanvas.height + this.radius) this.y = -this.radius;
+      }
+      draw() {
+        bgCtx.beginPath();
+        const grad = bgCtx.createRadialGradient(this.x, this.y, 0,
+this.x, this.y, this.radius);
+        grad.addColorStop(0, this.color);
+        grad.addColorStop(1, 'transparent');
+        bgCtx.fillStyle = grad;
+        bgCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        bgCtx.fill();
+      }
+    }
+
+    function initBackground() {
+      blobs = [];
+      for(let i = 0; i < 6; i++) blobs.push(new Blob());
+    }
+
+    function animateBackground() {
+      bgCtx.fillStyle = '#020617';
+      bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+      blobs.forEach(b => {
+        b.update();
+        b.draw();
+      });
+      requestAnimationFrame(animateBackground);
+    }
+
+    // --- SOUND ENGINE (SAME AS BEFORE) ---
+    const SOUNDS = {
+      win11_notify:
+"https://raw.githubusercontent.com/yannick-sh/windows-11-sounds/main/Windows%20Notify%20Calendar.wav",
+      win11_foreground:
+"https://raw.githubusercontent.com/yannick-sh/windows-11-sounds/main/Windows%20Foreground.wav",
+      win10_on:
+"https://raw.githubusercontent.com/yannick-sh/windows-11-sounds/main/Windows%20Navigation%20Start.wav",
+      win10_off:
+"https://raw.githubusercontent.com/yannick-sh/windows-11-sounds/main/Windows%20Menu%20Command.wav"
+    };
+
+    let audioBuffers = {};
+    let audioCtx;
+
+    const loadSounds = async () => {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const load = async (url) => {
+        try {
+          const res = await fetch(url);
+          const buf = await res.arrayBuffer();
+          return await audioCtx.decodeAudioData(buf);
+        } catch (e) { return null; }
+      };
+
+      const keys = Object.keys(SOUNDS);
+      const results = await Promise.all(keys.map(k => load(SOUNDS[k])));
+      keys.forEach((k, i) => { if(results[i]) audioBuffers[k] = results[i]; });
+    };
+
+    const playWinSynth = (type) => {
+      if (!audioCtx) return;
+      const t = audioCtx.currentTime;
+      const playTone = (freq, start, duration, vol) => {
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+        g.gain.setValueAtTime(0, start);
+        g.gain.linearRampToValueAtTime(vol, start + 0.05);
+        g.gain.exponentialRampToValueAtTime(0.001, start + duration);
+        osc.connect(g);
+        g.connect(audioCtx.destination);
+        osc.start(start);
+        osc.stop(start + duration);
+      };
+
+      if (type === 'foreground') {
+        playTone(392.00, t, 0.8, 0.15);
+        playTone(329.63, t + 0.08, 1.0, 0.12);
+      } else if (type === 'notify') {
+        playTone(880, t, 0.3, 0.08);
+      } else {
+        playTone(660, t, 0.15, 0.05);
+      }
+    };
+
+    const playSound = (name, synthType, vol = 0.5) => {
+      if (audioCtx?.state === 'suspended') audioCtx.resume();
+      if (!audioBuffers[name]) { playWinSynth(synthType); return; }
+      const source = audioCtx.createBufferSource();
+      source.buffer = audioBuffers[name];
+      const g = audioCtx.createGain();
+      g.gain.value = vol;
+      source.connect(g);
+      g.connect(audioCtx.destination);
+      source.start(0);
+    };
+
+    const playScoreSfx = () => playSound('win11_notify', 'notify', 0.4);
+    const playGameOverSfx = () => playSound('win11_foreground',
+'foreground', 0.7);
+    const playActionSfx = () => playSound('win10_on', 'nav', 0.2);
+    const playUISfx = () => playSound('win10_off', 'nav', 0.3);
+
+    // --- GAME LOGIC ---
+    function resize() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      bgCanvas.width = canvas.width;
+      bgCanvas.height = canvas.height;
+      SCALE = canvas.height / 800;
+      BIRD_RADIUS = 16 * SCALE;
+      PIPE_WIDTH = 75 * SCALE;
+      PIPE_GAP = Math.max(160 * SCALE, 240 * SCALE - (level * 5));
+      if (bird) bird.radius = BIRD_RADIUS;
+      initBackground();
     }
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
 
-    const GRAVITY = 0.4;
-    const FLAP = -8;
-    const INITIAL_PIPE_SPEED = 10;
-    const PIPE_GAP = 250;
-    const PIPE_WIDTH = 60;
-    const BIRD_RADIUS = 15;
-    const BIRD_COLOR = "yellow";
-    const PIPE_COLOR = "green";
-
-    let bird, pipes, score, highScore, frame, pipeSpeed, gameOver, isAutoPilot, targetPipe;
-    let paused = false;
-
-    function initializeGame() {
-      bird = { x: 50, y: canvas.height / 2, radius: BIRD_RADIUS, velocity: 0 };
+    function initGame() {
+      level = 1;
+      resize();
+      bird = { x: canvas.width * 0.25, y: canvas.height / 2, radius:
+BIRD_RADIUS, velocity: 0, tilt: 0 };
       pipes = [];
       score = 0;
-      highScore = localStorage.getItem("highScore") || 0;
       frame = 0;
-      pipeSpeed = INITIAL_PIPE_SPEED;
       gameOver = false;
-      isAutoPilot = false;
-      targetPipe = null;
       paused = false;
+      isStarting = true;
+      currentSpeed = BASE_SPEED * SCALE;
+      currentGravity = BASE_GRAVITY * SCALE;
+      currentFlap = BASE_FLAP * SCALE;
+      highScore = localStorage.getItem("winArcadeHS") || 0;
 
-      document.getElementById("game-over").style.display = "none";
-      document.getElementById("pause-btn").style.display = "inline";
-      document.getElementById("resume-btn").style.display = "none";
-      document.getElementById("auto-btn").innerText = "Auto Mode: OFF";
+      document.getElementById("high-score-val").innerText = highScore;
+      document.getElementById("score-val").innerText = "0";
+      document.getElementById("level-val").innerText = level;
+      document.getElementById("game-over-panel").style.display = "none";
+
+      startCountdown();
+    }
+
+    function startCountdown() {
+      const el = document.getElementById("countdown-overlay");
+      el.style.display = "block";
+      let count = 3;
+      el.innerText = count;
+      playWinSynth('nav');
+      const timer = setInterval(() => {
+        count--;
+        if (count > 0) {
+          el.innerText = count;
+          playWinSynth('nav');
+        } else {
+          clearInterval(timer);
+          el.style.display = "none";
+          isStarting = false;
+          update();
+        }
+      }, 800);
+    }
+
+    function flap() {
+      if (!gameOver && !paused && !isStarting && !isAutoPilot) {
+        bird.velocity = currentFlap;
+        playActionSfx();
+      }
+    }
+
+    function update() {
+      if (gameOver || paused || isStarting) return;
+
+      bird.velocity += currentGravity;
+      bird.y += bird.velocity;
+      bird.tilt = Math.min(Math.PI/4, Math.max(-Math.PI/4,
+bird.velocity * 0.1));
+
+      if (isAutoPilot) {
+        const next = pipes.find(p => p.x + PIPE_WIDTH > bird.x - bird.radius);
+        const targetY = next ? (next.top + next.bottom)/2 : canvas.height/2;
+        if (bird.y > targetY + 10) { bird.velocity = currentFlap; }
+      }
+
+      if (frame % 100 === 0) {
+        const h = 100 * SCALE + Math.random() * (canvas.height -
+PIPE_GAP - 200 * SCALE);
+        pipes.push({ x: canvas.width, top: h, bottom: h + PIPE_GAP,
+passed: false });
+      }
+
+      pipes.forEach(p => {
+        p.x -= currentSpeed;
+        if (!p.passed && bird.x > p.x + PIPE_WIDTH) {
+          p.passed = true;
+          score++;
+          document.getElementById("score-val").innerText = score;
+          playScoreSfx();
+          if (score % 5 === 0) {
+            level++;
+            currentSpeed += 0.2 * SCALE;
+            document.getElementById("level-val").innerText = level;
+          }
+        }
+        if (bird.x + bird.radius > p.x && bird.x - bird.radius < p.x +
+PIPE_WIDTH) {
+          if (bird.y - bird.radius < p.top || bird.y + bird.radius >
+p.bottom) die();
+        }
+      });
+
+      if (bird.y + bird.radius > canvas.height || bird.y - bird.radius
+< 0) die();
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPipes();
+      drawBird();
+      frame++;
+      requestAnimationFrame(update);
     }
 
     function drawBird() {
-      ctx.fillStyle = BIRD_COLOR;
+      ctx.save();
+      ctx.translate(bird.x, bird.y);
+      ctx.rotate(bird.tilt);
+
+      // Glass Orb Bird
+      const grad = ctx.createRadialGradient(-bird.radius/3,
+-bird.radius/3, 0, 0, 0, bird.radius);
+      grad.addColorStop(0, "rgba(255, 255, 255, 0.4)");
+      grad.addColorStop(1, "rgba(255, 255, 255, 0.1)");
+
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "rgba(0, 255, 204, 0.4)";
+      ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
+      ctx.arc(0, 0, bird.radius, 0, Math.PI*2);
       ctx.fill();
+
+      // Core highlight
+      ctx.fillStyle = "#fff";
+      ctx.beginPath();
+      ctx.arc(-bird.radius/3, -bird.radius/3, bird.radius/5, 0, Math.PI*2);
+      ctx.fill();
+
+      ctx.restore();
     }
 
     function drawPipes() {
-      pipes.forEach(pipe => {
-        ctx.fillStyle = PIPE_COLOR;
-        ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.top);
-        ctx.fillRect(pipe.x, pipe.bottom, PIPE_WIDTH, canvas.height - pipe.bottom);
+      pipes.forEach(p => {
+        // Upper Pipe
+        const g1 = ctx.createLinearGradient(p.x, 0, p.x + PIPE_WIDTH, 0);
+        g1.addColorStop(0, "rgba(255,255,255,0.05)");
+        g1.addColorStop(0.5, "rgba(255,255,255,0.15)");
+        g1.addColorStop(1, "rgba(255,255,255,0.05)");
+        ctx.fillStyle = g1;
+        ctx.fillRect(p.x, 0, PIPE_WIDTH, p.top);
+
+        // Lower Pipe
+        const g2 = ctx.createLinearGradient(p.x, 0, p.x + PIPE_WIDTH, 0);
+        g2.addColorStop(0, "rgba(255,255,255,0.05)");
+        g2.addColorStop(0.5, "rgba(255,255,255,0.15)");
+        g2.addColorStop(1, "rgba(255,255,255,0.05)");
+        ctx.fillStyle = g2;
+        ctx.fillRect(p.x, p.bottom, PIPE_WIDTH, canvas.height - p.bottom);
+
+        // Windows Accent edges
+        ctx.fillStyle = "rgba(0, 255, 204, 0.3)";
+        ctx.fillRect(p.x, p.top - 4, PIPE_WIDTH, 4);
+        ctx.fillRect(p.x, p.bottom, PIPE_WIDTH, 4);
       });
     }
 
-    function spawnPipe() {
-      const topHeight = Math.random() * (canvas.height - PIPE_GAP);
-      pipes.push({ x: canvas.width, top: topHeight, bottom: topHeight + PIPE_GAP });
+    function die() {
+      if (gameOver) return;
+      gameOver = true;
+      playGameOverSfx();
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("winArcadeHS", highScore);
+      }
+      document.getElementById("final-score").innerText = score;
+      document.getElementById("game-over-panel").style.display = "flex";
     }
 
-    function movePipes() {
-      pipes.forEach(pipe => pipe.x -= pipeSpeed);
-      pipes = pipes.filter(pipe => pipe.x + PIPE_WIDTH > 0);
-      if (frame % 100 === 0) spawnPipe();
-    }
-
-    function checkCollision() {
-      if (bird.y + bird.radius >= canvas.height || bird.y - bird.radius <= 0) return true;
-      return pipes.some(pipe =>
-        bird.x + bird.radius > pipe.x &&
-        bird.x - bird.radius < pipe.x + PIPE_WIDTH &&
-        (bird.y - bird.radius < pipe.top || bird.y + bird.radius > pipe.bottom)
-      );
-    }
-
-    function updateGame() {
-      if (gameOver || paused) return;
-
-      bird.velocity += GRAVITY;
-      bird.y += bird.velocity;
-
-      if (isAutoPilot) {
-        targetPipe = pipes.find(pipe => pipe.x + PIPE_WIDTH > bird.x) || pipes[0];
-        if (targetPipe) {
-          let safeZoneY = (targetPipe.top + targetPipe.bottom) / 2;
-          if (bird.y > safeZoneY + 20) {
-            bird.velocity = FLAP;
-          }
-        }
-      }
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawBird();
-      movePipes();
-      drawPipes();
-
-      if (checkCollision()) {
-        gameOver = true;
-        document.getElementById("game-over").style.display = "block";
-        localStorage.setItem("highScore", Math.max(score, highScore));
-        return;
-      } else {
-        frame++;
-        if (frame % 100 === 0) score++;
-        document.getElementById("score").innerText = "Score: " + score;
-        document.getElementById("high-score").innerText = "High Score: " + highScore;
-      }
-
-      requestAnimationFrame(updateGame);
-    }
-
-    // Keyboard Controls
-    document.addEventListener("keydown", e => {
-      if (e.code === "Space") {
-        bird.velocity = FLAP;
-      } else if (e.code === "KeyA") {
-        toggleAutoPilot();
-      }
+    // --- CONTROLS ---
+    window.addEventListener('mousedown', flap);
+    window.addEventListener('touchstart', (e) => { e.preventDefault();
+flap(); }, {passive: false});
+    window.addEventListener('keydown', e => {
+      if(e.code === 'Space') flap();
+      if(e.key === 'p') togglePause();
     });
 
-    // Touch Controls
-    document.addEventListener("touchstart", () => {
-      if (!gameOver && !paused && !isAutoPilot) {
-        bird.velocity = FLAP;
-      }
-    });
+    const togglePause = () => {
+      if (gameOver || isStarting) return;
+      paused = !paused;
+      playUISfx();
+      document.getElementById("pause-btn").classList.toggle("active", paused);
+      if (!paused) update();
+    };
 
-    // Restart
-    document.getElementById("restart-btn").addEventListener("click", () => {
-      initializeGame();
-      updateGame();
-    });
-
-    // Pause/Resume
-    document.getElementById("pause-btn").addEventListener("click", () => {
-      paused = true;
-      document.getElementById("pause-btn").style.display = "none";
-      document.getElementById("resume-btn").style.display = "inline";
-    });
-
-    document.getElementById("resume-btn").addEventListener("click", () => {
-      paused = false;
-      document.getElementById("resume-btn").style.display = "none";
-      document.getElementById("pause-btn").style.display = "inline";
-      updateGame();
-    });
-
-    // ✅ Auto Button
-    document.getElementById("auto-btn").addEventListener("click", () => {
-      toggleAutoPilot();
-    });
-
-    function toggleAutoPilot() {
+    document.getElementById("pause-btn").onclick = togglePause;
+    document.getElementById("auto-btn").onclick = () => {
       isAutoPilot = !isAutoPilot;
-      targetPipe = isAutoPilot ? pipes[0] : null;
-      document.getElementById("auto-btn").innerText = "Auto Mode: " + (isAutoPilot ? "ON" : "OFF");
-    }
+      playUISfx();
+      document.getElementById("auto-btn").classList.toggle("active",
+isAutoPilot);
+    };
+    document.getElementById("restart-btn").onclick = () => {
+playUISfx(); initGame(); };
 
-    initializeGame();
-    updateGame();
+    window.onload = async () => {
+      initBackground();
+      animateBackground();
+      await loadSounds();
+      setTimeout(() => {
+        document.getElementById("boot-sequence").style.opacity = "0";
+        setTimeout(() => {
+          document.getElementById("boot-sequence").style.display = "none";
+          initGame();
+        }, 1000);
+      }, 2000);
+    };
+
+    window.onresize = resize;
   </script>
 </body>
 </html>
