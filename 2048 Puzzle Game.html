@@ -1,3 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Glass 2048</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #0a081f;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            color: #fff;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Liquid Glass Background - Behind everything */
+        .liquid-glass-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .glass-layer {
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 198, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(0, 114, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 40% 80%, rgba(100, 0, 255, 0.1) 0%, transparent 40%);
+            filter: blur(40px);
+            animation: liquidMove 20s infinite alternate ease-in-out;
+        }
+
+        .glass-bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            animation: float 15s infinite ease-in-out;
+        }
+
+        @keyframes liquidMove {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(2%, 1%) rotate(1deg); }
+            50% { transform: translate(-1%, 2%) rotate(-1deg); }
+            75% { transform: translate(1%, -1%) rotate(0.5deg); }
+            100% { transform: translate(-2%, 0) rotate(-0.5deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0) scale(1); }
+            25% { transform: translateY(-20px) translateX(10px) scale(1.05); }
+            50% { transform: translateY(-10px) translateX(-10px) scale(0.95); }
+            75% { transform: translateY(10px) translateX(5px) scale(1.02); }
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: 96vh;
+            max-height: 1000px;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+            padding: 0 10px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 5px;
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 5px 20px rgba(0, 114, 255, 0.4);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 5px 15px rgba(0, 114, 255, 0.4); }
+            to { text-shadow: 0 5px 25px rgba(0, 114, 255, 0.7), 0 0 30px rgba(0, 114, 255, 0.3); }
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #a0a0ff;
+            margin-bottom: 10px;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 0 10px;
+            animation: fadeIn 1s ease-out 0.2s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .score-display {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .score-box, .best-box {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 12px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            text-align: center;
+            min-width: 120px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .score-box:hover, .best-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .score-label, .best-label {
+            font-size: 0.9rem;
+            color: #a0a0ff;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .score, .best {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .level-progress-container {
+            flex: 1;
+            margin: 0 20px;
+            max-width: 350px;
+        }
+
+        .level-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .current-level {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #00c6ff;
+            text-shadow: 0 0 10px rgba(0, 198, 255, 0.5);
+        }
+
+        .level-target {
+            font-size: 0.95rem;
+            color: #a0a0ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .target-percentage {
+            background: rgba(0, 198, 255, 0.25);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            border: 1px solid rgba(0, 198, 255, 0.4);
+            box-shadow: 0 0 10px rgba(0, 198, 255, 0.2);
+        }
+
+        .level-progress-bar-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            height: 14px;
+            border-radius: 7px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .level-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-radius: 7px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 114, 255, 0.5);
+        }
+
+        .level-progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .menu-container {
+            position: relative;
+        }
+
+        .menu-button {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            width: 55px;
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #fff;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .menu-button:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: rotate(90deg);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: rgba(15, 10, 40, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 20px;
+            width: 300px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px) scale(0.9);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .menu-header {
+            font-size: 1.3rem;
+            color: #00c6ff;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            text-shadow: 0 0 10px rgba(0, 198, 255, 0.5);
+        }
+
+        .difficulty-section, .instructions-section {
+            margin-bottom: 20px;
+        }
+
+        .difficulty-label, .instructions-label {
+            font-size: 1rem;
+            color: #a0a0ff;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .difficulty-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .difficulty-btn {
+            padding: 12px 5px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-size: 0.9rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .difficulty-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .difficulty-btn.active {
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            box-shadow: 0 4px 15px rgba(0, 114, 255, 0.5);
+            transform: translateY(-3px);
+            border: 1px solid rgba(0, 198, 255, 0.5);
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 0 10px;
+            animation: fadeIn 1s ease-out 0.4s both;
+        }
+
+        .new-game-btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 8px 25px rgba(0, 114, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .new-game-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0, 114, 255, 0.7);
+            background: linear-gradient(90deg, #00d2ff, #0080ff);
+        }
+
+        /* Larger game container */
+        .game-container {
+            flex: 1;
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: fadeIn 1s ease-out 0.6s both;
+            min-height: 500px;
+        }
+
+        .grid {
+            display: grid;
+            grid-gap: 15px;
+            margin: auto;
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            height: 100%;
+            max-width: 550px;
+            max-height: 550px;
+        }
+
+        .grid-cell {
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .grid-cell:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .tile {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            border-radius: 10px;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 2;
+            box-shadow: 
+                0 6px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Pop animation for joining tiles */
+        .pop-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 70%);
+            z-index: 3;
+            pointer-events: none;
+            animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.3); opacity: 1; }
+            70% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* Level Complete Animation */
+        .level-complete {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
             transition: opacity 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
             padding: 20px;
             text-align: center;
@@ -921,390 +1405,3 @@
             // Show level complete screen with a slight delay for smooth transition
             setTimeout(() => {
                 levelCompleteScreen.classList.add('show');
-            }, 500);
-        }
-
-        // Show game over message
-        function showGameOverMessage() {
-            messageText.textContent = 'Game Over!';
-            messageSubtext.textContent = `No more moves available. Your final score is ${score}.`;
-            gameMessage.classList.add('show');
-        }
-
-        // Create a tile element - Larger for better visibility
-        function createTileElement(row, col, value) {
-            const tile = document.createElement('div');
-            tile.className = 'tile';
-            tile.dataset.row = row;
-            tile.dataset.col = col;
-            tile.textContent = value;
-            
-            // Calculate position and size
-            const containerWidth = Math.min(gridElement.parentElement.clientWidth - 40, 550);
-            const containerHeight = Math.min(gridElement.parentElement.clientHeight - 40, 550);
-            
-            const maxTileSize = Math.min(
-                (containerWidth - (gridSize + 1) * 15) / gridSize,
-                (containerHeight - (gridSize + 1) * 15) / gridSize
-            );
-            
-            const tileSize = Math.max(60, maxTileSize);
-            const tileGap = 15;
-            
-            tile.style.width = `${tileSize}px`;
-            tile.style.height = `${tileSize}px`;
-            tile.style.left = `${col * (tileSize + tileGap) + tileGap}px`;
-            tile.style.top = `${row * (tileSize + tileGap) + tileGap}px`;
-            
-            // Set tile color based on value
-            tile.style.background = TILE_COLORS[value] || TILE_COLORS[16384];
-            
-            // Set font size based on value length - Larger for visibility
-            if (value < 100) {
-                tile.style.fontSize = tileSize < 70 ? '1.8rem' : '2.2rem';
-            } else if (value < 1000) {
-                tile.style.fontSize = tileSize < 70 ? '1.5rem' : '1.9rem';
-            } else if (value < 10000) {
-                tile.style.fontSize = tileSize < 70 ? '1.2rem' : '1.6rem';
-            } else {
-                tile.style.fontSize = tileSize < 70 ? '1rem' : '1.3rem';
-            }
-            
-            // Text color for contrast
-            tile.style.color = value >= 8 ? '#fff' : '#333';
-            
-            // Add subtle animation
-            tile.style.opacity = '0';
-            tile.style.transform = 'scale(0.8)';
-            setTimeout(() => {
-                tile.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
-                tile.style.opacity = '1';
-                tile.style.transform = 'scale(1)';
-            }, 50);
-            
-            gridElement.appendChild(tile);
-        }
-
-        // Update level progress bar
-        function updateLevelProgress() {
-            const currentThreshold = CONFIG[level].threshold;
-            const nextThreshold = level < 9 ? CONFIG[level+1].threshold : currentThreshold * 2;
-            const progress = Math.min(100, (maxTile / nextThreshold) * 100);
-            levelProgressBar.style.width = `${progress}%`;
-        }
-
-        // Check if there are any moves left
-        function hasMovesLeft() {
-            // Check for empty cells
-            for (let i = 0; i < gridSize; i++) {
-                for (let j = 0; j < gridSize; j++) {
-                    if (grid[i][j] === 0) return true;
-                }
-            }
-            
-            // Check for possible merges
-            for (let i = 0; i < gridSize; i++) {
-                for (let j = 0; j < gridSize; j++) {
-                    const current = grid[i][j];
-                    
-                    // Check right
-                    if (j < gridSize - 1 && grid[i][j+1] === current) return true;
-                    
-                    // Check down
-                    if (i < gridSize - 1 && grid[i+1][j] === current) return true;
-                }
-            }
-            
-            return false;
-        }
-
-        // Move tiles in the specified direction
-        function moveTiles(direction) {
-            if (gameOver) return;
-            
-            const oldGrid = JSON.parse(JSON.stringify(grid));
-            let moved = false;
-            let mergePositions = [];
-            
-            switch(direction) {
-                case 'up':
-                    moved = moveUp(mergePositions);
-                    break;
-                case 'down':
-                    moved = moveDown(mergePositions);
-                    break;
-                case 'left':
-                    moved = moveLeft(mergePositions);
-                    break;
-                case 'right':
-                    moved = moveRight(mergePositions);
-                    break;
-            }
-            
-            // If the grid changed, add a new tile and update
-            if (moved) {
-                // Create pop effects for merged tiles
-                setTimeout(() => {
-                    mergePositions.forEach(pos => {
-                        createPopEffect(pos.row, pos.col, pos.mergeRow, pos.mergeCol);
-                    });
-                }, 100);
-                
-                setTimeout(() => {
-                    addRandomTile();
-                    updateGrid();
-                    
-                    // Update score and best
-                    updateScore();
-                }, 200);
-            }
-        }
-
-        // Move tiles up
-        function moveUp(mergePositions) {
-            let moved = false;
-            
-            for (let col = 0; col < gridSize; col++) {
-                // Shift tiles up
-                for (let row = 1; row < gridSize; row++) {
-                    if (grid[row][col] !== 0) {
-                        let newRow = row;
-                        while (newRow > 0 && grid[newRow-1][col] === 0) {
-                            grid[newRow-1][col] = grid[newRow][col];
-                            grid[newRow][col] = 0;
-                            newRow--;
-                            moved = true;
-                        }
-                    }
-                }
-                
-                // Merge tiles
-                for (let row = 0; row < gridSize - 1; row++) {
-                    if (grid[row][col] !== 0 && grid[row][col] === grid[row+1][col]) {
-                        grid[row][col] *= 2;
-                        grid[row+1][col] = 0;
-                        score += grid[row][col];
-                        levelScore += grid[row][col]; // Track level score
-                        moved = true;
-                        
-                        // Record merge position for pop effect
-                        mergePositions.push({
-                            row: row,
-                            col: col,
-                            mergeRow: row+1,
-                            mergeCol: col
-                        });
-                    }
-                }
-                
-                // Shift again after merging
-                for (let row = 1; row < gridSize; row++) {
-                    if (grid[row][col] !== 0) {
-                        let newRow = row;
-                        while (newRow > 0 && grid[newRow-1][col] === 0) {
-                            grid[newRow-1][col] = grid[newRow][col];
-                            grid[newRow][col] = 0;
-                            newRow--;
-                        }
-                    }
-                }
-            }
-            
-            return moved;
-        }
-
-        // Move tiles down
-        function moveDown(mergePositions) {
-            let moved = false;
-            
-            for (let col = 0; col < gridSize; col++) {
-                // Shift tiles down
-                for (let row = gridSize - 2; row >= 0; row--) {
-                    if (grid[row][col] !== 0) {
-                        let newRow = row;
-                        while (newRow < gridSize - 1 && grid[newRow+1][col] === 0) {
-                            grid[newRow+1][col] = grid[newRow][col];
-                            grid[newRow][col] = 0;
-                            newRow++;
-                            moved = true;
-                        }
-                    }
-                }
-                
-                // Merge tiles
-                for (let row = gridSize - 1; row > 0; row--) {
-                    if (grid[row][col] !== 0 && grid[row][col] === grid[row-1][col]) {
-                        grid[row][col] *= 2;
-                        grid[row-1][col] = 0;
-                        score += grid[row][col];
-                        levelScore += grid[row][col]; // Track level score
-                        moved = true;
-                        
-                        // Record merge position for pop effect
-                        mergePositions.push({
-                            row: row,
-                            col: col,
-                            mergeRow: row-1,
-                            mergeCol: col
-                        });
-                    }
-                }
-                
-                // Shift again after merging
-                for (let row = gridSize - 2; row >= 0; row--) {
-                    if (grid[row][col] !== 0) {
-                        let newRow = row;
-                        while (newRow < gridSize - 1 && grid[newRow+1][col] === 0) {
-                            grid[newRow+1][col] = grid[newRow][col];
-                            grid[newRow][col] = 0;
-                            newRow++;
-                        }
-                    }
-                }
-            }
-            
-            return moved;
-        }
-
-        // Move tiles left
-        function moveLeft(mergePositions) {
-            let moved = false;
-            
-            for (let row = 0; row < gridSize; row++) {
-                // Shift tiles left
-                for (let col = 1; col < gridSize; col++) {
-                    if (grid[row][col] !== 0) {
-                        let newCol = col;
-                        while (newCol > 0 && grid[row][newCol-1] === 0) {
-                            grid[row][newCol-1] = grid[row][newCol];
-                            grid[row][newCol] = 0;
-                            newCol--;
-                            moved = true;
-                        }
-                    }
-                }
-                
-                // Merge tiles
-                for (let col = 0; col < gridSize - 1; col++) {
-                    if (grid[row][col] !== 0 && grid[row][col] === grid[row][col+1]) {
-                        grid[row][col] *= 2;
-                        grid[row][col+1] = 0;
-                        score += grid[row][col];
-                        levelScore += grid[row][col]; // Track level score
-                        moved = true;
-                        
-                        // Record merge position for pop effect
-                        mergePositions.push({
-                            row: row,
-                            col: col,
-                            mergeRow: row,
-                            mergeCol: col+1
-                        });
-                    }
-                }
-                
-                // Shift again after merging
-                for (let col = 1; col < gridSize; col++) {
-                    if (grid[row][col] !== 0) {
-                        let newCol = col;
-                        while (newCol > 0 && grid[row][newCol-1] === 0) {
-                            grid[row][newCol-1] = grid[row][newCol];
-                            grid[row][newCol] = 0;
-                            newCol--;
-                        }
-                    }
-                }
-            }
-            
-            return moved;
-        }
-
-        // Move tiles right
-        function moveRight(mergePositions) {
-            let moved = false;
-            
-            for (let row = 0; row < gridSize; row++) {
-                // Shift tiles right
-                for (let col = gridSize - 2; col >= 0; col--) {
-                    if (grid[row][col] !== 0) {
-                        let newCol = col;
-                        while (newCol < gridSize - 1 && grid[row][newCol+1] === 0) {
-                            grid[row][newCol+1] = grid[row][newCol];
-                            grid[row][newCol] = 0;
-                            newCol++;
-                            moved = true;
-                        }
-                    }
-                }
-                
-                // Merge tiles
-                for (let col = gridSize - 1; col > 0; col--) {
-                    if (grid[row][col] !== 0 && grid[row][col] === grid[row][col-1]) {
-                        grid[row][col] *= 2;
-                        grid[row][col-1] = 0;
-                        score += grid[row][col];
-                        levelScore += grid[row][col]; // Track level score
-                        moved = true;
-                        
-                        // Record merge position for pop effect
-                        mergePositions.push({
-                            row: row,
-                            col: col,
-                            mergeRow: row,
-                            mergeCol: col-1
-                        });
-                    }
-                }
-                
-                // Shift again after merging
-                for (let col = gridSize - 2; col >= 0; col--) {
-                    if (grid[row][col] !== 0) {
-                        let newCol = col;
-                        while (newCol < gridSize - 1 && grid[row][newCol+1] === 0) {
-                            grid[row][newCol+1] = grid[row][newCol];
-                            grid[row][newCol] = 0;
-                            newCol++;
-                        }
-                    }
-                }
-            }
-            
-            return moved;
-        }
-
-        // Update score and best
-        function updateScore() {
-            // Animate score change
-            scoreElement.style.transform = 'scale(1.1)';
-            setTimeout(() => {
-                scoreElement.style.transform = 'scale(1)';
-            }, 150);
-            
-            scoreElement.textContent = score;
-            
-            if (score > best) {
-                best = score;
-                // Animate best change
-                bestElement.style.transform = 'scale(1.1)';
-                setTimeout(() => {
-                    bestElement.style.transform = 'scale(1)';
-                }, 150);
-                bestElement.textContent = best;
-                localStorage.setItem('best2048', best);
-            }
-        }
-
-        // Initialize the game when the page loads
-        window.addEventListener('DOMContentLoaded', initGame);
-        
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            // Recreate the visual grid to adjust tile sizes
-            if (gridElement.children.length > 0) {
-                createGridVisual();
-                updateGrid();
-            }
-        });
-    </script>
-</body>
-</html>
