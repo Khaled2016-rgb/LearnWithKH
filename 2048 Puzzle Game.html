@@ -1405,3 +1405,390 @@
             // Show level complete screen with a slight delay for smooth transition
             setTimeout(() => {
                 levelCompleteScreen.classList.add('show');
+            }, 500);
+        }
+
+        // Show game over message
+        function showGameOverMessage() {
+            messageText.textContent = 'Game Over!';
+            messageSubtext.textContent = `No more moves available. Your final score is ${score}.`;
+            gameMessage.classList.add('show');
+        }
+
+        // Create a tile element - Larger for better visibility
+        function createTileElement(row, col, value) {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            tile.dataset.row = row;
+            tile.dataset.col = col;
+            tile.textContent = value;
+            
+            // Calculate position and size
+            const containerWidth = Math.min(gridElement.parentElement.clientWidth - 40, 550);
+            const containerHeight = Math.min(gridElement.parentElement.clientHeight - 40, 550);
+            
+            const maxTileSize = Math.min(
+                (containerWidth - (gridSize + 1) * 15) / gridSize,
+                (containerHeight - (gridSize + 1) * 15) / gridSize
+            );
+            
+            const tileSize = Math.max(60, maxTileSize);
+            const tileGap = 15;
+            
+            tile.style.width = `${tileSize}px`;
+            tile.style.height = `${tileSize}px`;
+            tile.style.left = `${col * (tileSize + tileGap) + tileGap}px`;
+            tile.style.top = `${row * (tileSize + tileGap) + tileGap}px`;
+            
+            // Set tile color based on value
+            tile.style.background = TILE_COLORS[value] || TILE_COLORS[16384];
+            
+            // Set font size based on value length - Larger for visibility
+            if (value < 100) {
+                tile.style.fontSize = tileSize < 70 ? '1.8rem' : '2.2rem';
+            } else if (value < 1000) {
+                tile.style.fontSize = tileSize < 70 ? '1.5rem' : '1.9rem';
+            } else if (value < 10000) {
+                tile.style.fontSize = tileSize < 70 ? '1.2rem' : '1.6rem';
+            } else {
+                tile.style.fontSize = tileSize < 70 ? '1rem' : '1.3rem';
+            }
+            
+            // Text color for contrast
+            tile.style.color = value >= 8 ? '#fff' : '#333';
+            
+            // Add subtle animation
+            tile.style.opacity = '0';
+            tile.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                tile.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+                tile.style.opacity = '1';
+                tile.style.transform = 'scale(1)';
+            }, 50);
+            
+            gridElement.appendChild(tile);
+        }
+
+        // Update level progress bar
+        function updateLevelProgress() {
+            const currentThreshold = CONFIG[level].threshold;
+            const nextThreshold = level < 9 ? CONFIG[level+1].threshold : currentThreshold * 2;
+            const progress = Math.min(100, (maxTile / nextThreshold) * 100);
+            levelProgressBar.style.width = `${progress}%`;
+        }
+
+        // Check if there are any moves left
+        function hasMovesLeft() {
+            // Check for empty cells
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    if (grid[i][j] === 0) return true;
+                }
+            }
+            
+            // Check for possible merges
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    const current = grid[i][j];
+                    
+                    // Check right
+                    if (j < gridSize - 1 && grid[i][j+1] === current) return true;
+                    
+                    // Check down
+                    if (i < gridSize - 1 && grid[i+1][j] === current) return true;
+                }
+            }
+            
+            return false;
+        }
+
+        // Move tiles in the specified direction
+        function moveTiles(direction) {
+            if (gameOver) return;
+            
+            const oldGrid = JSON.parse(JSON.stringify(grid));
+            let moved = false;
+            let mergePositions = [];
+            
+            switch(direction) {
+                case 'up':
+                    moved = moveUp(mergePositions);
+                    break;
+                case 'down':
+                    moved = moveDown(mergePositions);
+                    break;
+                case 'left':
+                    moved = moveLeft(mergePositions);
+                    break;
+                case 'right':
+                    moved = moveRight(mergePositions);
+                    break;
+            }
+            
+            // If the grid changed, add a new tile and update
+            if (moved) {
+                // Create pop effects for merged tiles
+                setTimeout(() => {
+                    mergePositions.forEach(pos => {
+                        createPopEffect(pos.row, pos.col, pos.mergeRow, pos.mergeCol);
+                    });
+                }, 100);
+                
+                setTimeout(() => {
+                    addRandomTile();
+                    updateGrid();
+                    
+                    // Update score and best
+                    updateScore();
+                }, 200);
+            }
+        }
+
+        // Move tiles up
+        function moveUp(mergePositions) {
+            let moved = false;
+            
+            for (let col = 0; col < gridSize; col++) {
+                // Shift tiles up
+                for (let row = 1; row < gridSize; row++) {
+                    if (grid[row][col] !== 0) {
+                        let newRow = row;
+                        while (newRow > 0 && grid[newRow-1][col] === 0) {
+                            grid[newRow-1][col] = grid[newRow][col];
+                            grid[newRow][col] = 0;
+                            newRow--;
+                            moved = true;
+                        }
+                    }
+                }
+                
+                // Merge tiles
+                for (let row = 0; row < gridSize - 1; row++) {
+                    if (grid[row][col] !== 0 && grid[row][col] === grid[row+1][col]) {
+                        grid[row][col] *= 2;
+                        grid[row+1][col] = 0;
+                        score += grid[row][col];
+                        levelScore += grid[row][col]; // Track level score
+                        moved = true;
+                        
+                        // Record merge position for pop effect
+                        mergePositions.push({
+                            row: row,
+                            col: col,
+                            mergeRow: row+1,
+                            mergeCol: col
+                        });
+                    }
+                }
+                
+                // Shift again after merging
+                for (let row = 1; row < gridSize; row++) {
+                    if (grid[row][col] !== 0) {
+                        let newRow = row;
+                        while (newRow > 0 && grid[newRow-1][col] === 0) {
+                            grid[newRow-1][col] = grid[newRow][col];
+                            grid[newRow][col] = 0;
+                            newRow--;
+                        }
+                    }
+                }
+            }
+            
+            return moved;
+        }
+
+        // Move tiles down
+        function moveDown(mergePositions) {
+            let moved = false;
+            
+            for (let col = 0; col < gridSize; col++) {
+                // Shift tiles down
+                for (let row = gridSize - 2; row >= 0; row--) {
+                    if (grid[row][col] !== 0) {
+                        let newRow = row;
+                        while (newRow < gridSize - 1 && grid[newRow+1][col] === 0) {
+                            grid[newRow+1][col] = grid[newRow][col];
+                            grid[newRow][col] = 0;
+                            newRow++;
+                            moved = true;
+                        }
+                    }
+                }
+                
+                // Merge tiles
+                for (let row = gridSize - 1; row > 0; row--) {
+                    if (grid[row][col] !== 0 && grid[row][col] === grid[row-1][col]) {
+                        grid[row][col] *= 2;
+                        grid[row-1][col] = 0;
+                        score += grid[row][col];
+                        levelScore += grid[row][col]; // Track level score
+                        moved = true;
+                        
+                        // Record merge position for pop effect
+                        mergePositions.push({
+                            row: row,
+                            col: col,
+                            mergeRow: row-1,
+                            mergeCol: col
+                        });
+                    }
+                }
+                
+                // Shift again after merging
+                for (let row = gridSize - 2; row >= 0; row--) {
+                    if (grid[row][col] !== 0) {
+                        let newRow = row;
+                        while (newRow < gridSize - 1 && grid[newRow+1][col] === 0) {
+                            grid[newRow+1][col] = grid[newRow][col];
+                            grid[newRow][col] = 0;
+                            newRow++;
+                        }
+                    }
+                }
+            }
+            
+            return moved;
+        }
+
+        // Move tiles left
+        function moveLeft(mergePositions) {
+            let moved = false;
+            
+            for (let row = 0; row < gridSize; row++) {
+                // Shift tiles left
+                for (let col = 1; col < gridSize; col++) {
+                    if (grid[row][col] !== 0) {
+                        let newCol = col;
+                        while (newCol > 0 && grid[row][newCol-1] === 0) {
+                            grid[row][newCol-1] = grid[row][newCol];
+                            grid[row][newCol] = 0;
+                            newCol--;
+                            moved = true;
+                        }
+                    }
+                }
+                
+                // Merge tiles
+                for (let col = 0; col < gridSize - 1; col++) {
+                    if (grid[row][col] !== 0 && grid[row][col] === grid[row][col+1]) {
+                        grid[row][col] *= 2;
+                        grid[row][col+1] = 0;
+                        score += grid[row][col];
+                        levelScore += grid[row][col]; // Track level score
+                        moved = true;
+                        
+                        // Record merge position for pop effect
+                        mergePositions.push({
+                            row: row,
+                            col: col,
+                            mergeRow: row,
+                            mergeCol: col+1
+                        });
+                    }
+                }
+                
+                // Shift again after merging
+                for (let col = 1; col < gridSize; col++) {
+                    if (grid[row][col] !== 0) {
+                        let newCol = col;
+                        while (newCol > 0 && grid[row][newCol-1] === 0) {
+                            grid[row][newCol-1] = grid[row][newCol];
+                            grid[row][newCol] = 0;
+                            newCol--;
+                        }
+                    }
+                }
+            }
+            
+            return moved;
+        }
+
+        // Move tiles right
+        function moveRight(mergePositions) {
+            let moved = false;
+            
+            for (let row = 0; row < gridSize; row++) {
+                // Shift tiles right
+                for (let col = gridSize - 2; col >= 0; col--) {
+                    if (grid[row][col] !== 0) {
+                        let newCol = col;
+                        while (newCol < gridSize - 1 && grid[row][newCol+1] === 0) {
+                            grid[row][newCol+1] = grid[row][newCol];
+                            grid[row][newCol] = 0;
+                            newCol++;
+                            moved = true;
+                        }
+                    }
+                }
+                
+                // Merge tiles
+                for (let col = gridSize - 1; col > 0; col--) {
+                    if (grid[row][col] !== 0 && grid[row][col] === grid[row][col-1]) {
+                        grid[row][col] *= 2;
+                        grid[row][col-1] = 0;
+                        score += grid[row][col];
+                        levelScore += grid[row][col]; // Track level score
+                        moved = true;
+                        
+                        // Record merge position for pop effect
+                        mergePositions.push({
+                            row: row,
+                            col: col,
+                            mergeRow: row,
+                            mergeCol: col-1
+                        });
+                    }
+                }
+                
+                // Shift again after merging
+                for (let col = gridSize - 2; col >= 0; col--) {
+                    if (grid[row][col] !== 0) {
+                        let newCol = col;
+                        while (newCol < gridSize - 1 && grid[row][newCol+1] === 0) {
+                            grid[row][newCol+1] = grid[row][newCol];
+                            grid[row][newCol] = 0;
+                            newCol++;
+                        }
+                    }
+                }
+            }
+            
+            return moved;
+        }
+
+        // Update score and best
+        function updateScore() {
+            // Animate score change
+            scoreElement.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                scoreElement.style.transform = 'scale(1)';
+            }, 150);
+            
+            scoreElement.textContent = score;
+            
+            if (score > best) {
+                best = score;
+                // Animate best change
+                bestElement.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    bestElement.style.transform = 'scale(1)';
+                }, 150);
+                bestElement.textContent = best;
+                localStorage.setItem('best2048', best);
+            }
+        }
+
+        // Initialize the game when the page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            // Recreate the visual grid to adjust tile sizes
+            if (gridElement.children.length > 0) {
+                createGridVisual();
+                updateGrid();
+            }
+        });
+    </script>
+</body>
+</html>
