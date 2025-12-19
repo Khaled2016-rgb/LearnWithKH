@@ -1,1038 +1,330 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Business Calculator</title>
-    <link rel="icon" href="https://www.citypng.com/public/uploads/preview/hd-calculator-app-logo-icon-transparent-background-701751694975010wqimodh0br.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            transition: background 1s ease;
-        }
-        
-        /* Lock Page Styles */
-        .lock-page {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            color: white;
-            text-align: center;
-            padding: 20px;
-            transition: opacity 0.5s ease;
-        }
-        
-        .lock-content {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            animation: fadeIn 0.8s ease;
-        }
-        
-        .lock-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            color: gold;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-        }
-        
-        .lock-title {
-            font-size: 2rem;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        
-        .lock-message {
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            line-height: 1.6;
-            opacity: 0.9;
-        }
-        
-        .subscribe-btn {
-            background: linear-gradient(to right, #ff9a00, #ff6a00);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(255, 106, 0, 0.3);
-            font-weight: 600;
-            letter-spacing: 1px;
-            margin-bottom: 20px;
-            display: inline-block;
-        }
-        
-        .subscribe-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(255, 106, 0, 0.4);
-        }
-        
-        .subscribe-btn:active {
-            transform: translateY(1px);
-        }
-        
-        .lock-footer {
-            margin-top: 30px;
-            font-size: 0.9rem;
-            opacity: 0.7;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        /* Calculator Styles */
-        .calculator-container {
-            width: 100%;
-            max-width: 400px;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(12px);
-            border-radius: 28px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25),
-                        inset 0 8px 15px rgba(255, 255, 255, 0.1);
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            transform: translateZ(0);
-            will-change: transform;
-            opacity: 0;
-            transform: scale(0.9);
-            transition: opacity 0.5s, transform 0.5s;
-        }
-        
-        .calculator-container.show {
-            opacity: 1;
-            transform: scale(1);
-        }
-        
-        .calculator-header {
-            padding: 22px;
-            background: rgba(0, 0, 0, 0.18);
-            text-align: center;
-            color: white;
-            position: relative;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .calculator-header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 5%;
-            width: 90%;
-            height: 1px;
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
-        }
-        
-        .calculator-header h1 {
-            font-weight: 400;
-            font-size: 1.4rem;
-            letter-spacing: 1.5px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        
-        .header-controls {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .header-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-        
-        .header-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-        
-        .display {
-            background-color: rgba(0, 0, 0, 0.25);
-            color: white;
-            padding: 35px 25px;
-            text-align: right;
-            min-height: 160px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        
-        .display::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.25), transparent);
-        }
-        
-        .previous-operation {
-            color: rgba(255, 255, 255, 0.75);
-            font-size: 1.25rem;
-            min-height: 1.5rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-bottom: 12px;
-            transition: all 0.4s ease;
-            font-weight: 300;
-        }
-        
-        .current-input {
-            font-size: 3.2rem;
-            font-weight: 300;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-        
-        .buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1px;
-            padding: 1px;
-            background-color: rgba(0, 0, 0, 0.1);
-        }
-        
-        button {
-            border: none;
-            padding: 26px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
-            transition: all 0.2s cubic-bezier(0.215, 0.610, 0.355, 1);
-            position: relative;
-            overflow: hidden;
-            outline: none;
-            transform: translateZ(0);
-            will-change: transform, background;
-        }
-        
-        button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(rgba(255, 255, 255, 0.1), transparent);
-            clip-path: polygon(0 0, 100% 0, 100% 80%, 0 100%);
-            z-index: 1;
-        }
-        
-        button::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 5px;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            opacity: 0;
-            z-index: 0;
-        }
-        
-        button:hover {
-            background: rgba(255, 255, 255, 0.12);
-            transform: translateY(-3px) translateZ(0);
-        }
-        
-        button:active {
-            background: rgba(255, 255, 255, 0.18);
-            transform: translateY(1px) translateZ(0);
-            transition: transform 0.05s cubic-bezier(0.215, 0.610, 0.355, 1);
-        }
-        
-        button:active::after {
-            animation: ripple 0.6s ease-out;
-        }
-        
-        .operator {
-            background: rgba(255, 215, 0, 0.15);
-            font-weight: 500;
-        }
-        
-        .operator:hover {
-            background: rgba(255, 215, 0, 0.2);
-        }
-        
-        .equals {
-            background: linear-gradient(to bottom, #ff9a00, #ff6a00);
-            font-weight: 500;
-            grid-column: span 2;
-        }
-        
-        .equals:hover {
-            background: linear-gradient(to bottom, #ffa91f, #ff7c1f);
-        }
-        
-        .clear {
-            background: rgba(255, 80, 80, 0.2);
-        }
-        
-        .clear:hover {
-            background: rgba(255, 100, 100, 0.3);
-        }
-        
-        .zero {
-            grid-column: span 2;
-        }
-        
-        .decimal {
-            font-weight: bold;
-        }
-        
-        .calculator-footer {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.6);
-            padding: 18px;
-            font-size: 0.9rem;
-            background-color: rgba(0, 0, 0, 0.18);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-        
-        .calculator-footer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 5%;
-            width: 90%;
-            height: 1px;
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.15), transparent);
-        }
-        
-        .calculator-footer i {
-            margin: 0 8px;
-            color: gold;
-            text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
-        }
-        
-        /* Customization Panel */
-        .customization-panel {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
-            background: rgba(30, 30, 40, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            width: 90%;
-            max-width: 500px;
-            z-index: 2000;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            color: white;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .customization-panel.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translate(-50%, -50%) scale(1);
-        }
-        
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .panel-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-        
-        .close-panel {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.3s;
-        }
-        
-        .close-panel:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .background-options {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .bg-option {
-            height: 80px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-            border: 2px solid transparent;
-        }
-        
-        .bg-option:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-        
-        .bg-option.active {
-            border-color: #ff9a00;
-            box-shadow: 0 0 0 3px rgba(255, 154, 0, 0.3);
-        }
-        
-        .shortcuts-list {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-        
-        .shortcut-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .shortcut-item:last-child {
-            border-bottom: none;
-        }
-        
-        .shortcut-key {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-family: monospace;
-        }
-        
-        /* Toast notification */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: rgba(40, 40, 50, 0.9);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            z-index: 3000;
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-        
-        .toast i {
-            color: #ff9a00;
-        }
-        
-        /* Ripple animation */
-        @keyframes ripple {
-            0% {
-                transform: translate(-50%, -50%) scale(0);
-                opacity: 1;
-            }
-            100% {
-                transform: translate(-50%, -50%) scale(30);
-                opacity: 0;
-            }
-        }
-        
-        /* Button press animation */
-        @keyframes buttonPress {
-            0% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(2px) scale(0.98); }
-            100% { transform: translateY(0) scale(1); }
-        }
-        
-        button:active {
-            animation: buttonPress 0.3s cubic-bezier(0.215, 0.610, 0.355, 1);
-        }
-        
-        /* Display animation for calculation */
-        @keyframes calculateAnim {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-            100% { transform: translateY(0); }
-        }
-        
-        /* Responsive design */
-        @media (max-width: 480px) {
-            button {
-                padding: 22px;
-            }
-            
-            .current-input {
-                font-size: 2.8rem;
-            }
-            
-            .lock-title {
-                font-size: 1.7rem;
-            }
-            
-            .lock-message {
-                font-size: 1.1rem;
-            }
-            
-            .background-options {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,
+initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Liquid Glass - Ultra Dark</title>
+  <!-- Critical CSS for immediate rendering -->
+  <style>
+    :root {
+      --accent: #00ffcc;
+      --win-blue: #0078d4;
+      --hazard: #ff3366;
+      --bg-dark: #010307;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+system-ui, sans-serif;
+      color: #ffffff;
+      background: var(--bg-dark);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: var(--bg-dark);
+    }
+
+    #calc-container {
+      position: relative;
+      width: 92%;
+      max-width: 400px;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 32px;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.9);
+      z-index: 10;
+      opacity: 0;
+      animation: rapidBoot 0.15s ease-out forwards;
+    }
+
+    @keyframes rapidBoot {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    #display-area {
+      width: 100%;
+      margin-bottom: 24px;
+      padding: 24px 20px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 24px;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      min-height: 140px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    #history {
+      font-size: 0.9rem;
+      color: var(--accent);
+      min-height: 1.4rem;
+      margin-bottom: 6px;
+      font-family: 'Orbitron', 'Courier New', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      opacity: 0.7;
+    }
+
+    #current-val {
+      font-family: 'Orbitron', 'Courier New', monospace;
+      font-size: 2.6rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      line-height: 1.1;
+      color: #fff;
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .key {
+      aspect-ratio: 1/1;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.08s, transform 0.08s;
+    }
+
+    .key:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .key:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .key.operator { color: var(--accent); font-weight: 700; }
+    .key.action { color: var(--hazard); }
+    .key.equals {
+      background: linear-gradient(135deg, var(--win-blue), #004d8c);
+      grid-column: span 2;
+      aspect-ratio: auto;
+      color: white;
+      font-weight: 700;
+      box-shadow: 0 8px 25px rgba(0, 120, 212, 0.4);
+    }
+
+    #current-val::-webkit-scrollbar { display: none; }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600&display=swap"
+rel="stylesheet">
 </head>
 <body>
-    <!-- Lock Page -->
-    <div class="lock-page" id="lockPage">
-        <div class="lock-content">
-            <div class="lock-icon">
-                <i class="fas fa-lock"></i>
-            </div>
-            <h2 class="lock-title">Calculator Locked</h2>
-            <p class="lock-message">Disable Mode: Please Subscribe to unlock the calculator and finish your calculations more quickly!</p>
-            <button class="subscribe-btn" id="unlockBtn">Subscribe Now</button>
-            <div class="lock-footer">
-                <p>Premium features require subscription</p>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Calculator -->
-    <div class="calculator-container" id="calculatorContainer">
-        <div class="calculator-header">
-            <h1>PREMIUM BUSINESS CALCULATOR</h1>
-            <div class="header-controls">
-                <button class="header-btn" id="settingsBtn" title="Customize (S)">
-                    <i class="fas fa-palette"></i>
-                </button>
-                <button class="header-btn" id="helpBtn" title="Keyboard Shortcuts (?)">
-                    <i class="fas fa-question"></i>
-                </button>
-            </div>
-        </div>
-        
-        <div class="display">
-            <div class="previous-operation"></div>
-            <div class="current-input">0</div>
-        </div>
-        
-        <div class="buttons">
-            <button class="clear" data-action="clear">C</button>
-            <button data-action="backspace"><i class="fas fa-backspace"></i></button>
-            <button class="operator" data-operator="÷"><i class="fas fa-divide"></i></button>
-            <button class="operator" data-operator="×"><i class="fas fa-times"></i></button>
-            
-            <button data-number="7">7</button>
-            <button data-number="8">8</button>
-            <button data-number="9">9</button>
-            <button class="operator" data-operator="-"><i class="fas fa-minus"></i></button>
-            
-            <button data-number="4">4</button>
-            <button data-number="5">5</button>
-            <button data-number="6">6</button>
-            <button class="operator" data-operator="+"><i class="fas fa-plus"></i></button>
-            
-            <button data-number="1">1</button>
-            <button data-number="2">2</button>
-            <button data-number="3">3</button>
-            <button class="equals" data-action="calculate"><i class="fas fa-equals"></i></button>
-            
-            <button class="zero" data-number="0">0</button>
-            <button class="decimal" data-number="."><i class="fas fa-circle"></i></button>
-        </div>
-        
-        <div class="calculator-footer">
-            <i class="fas fa-calculator"></i>
-            <span>Business Calculator Elite v3.0</span>
-            <i class="fas fa-chart-line"></i>
-        </div>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <div id="calc-container">
+    <div id="display-area">
+      <div id="history"></div>
+      <div id="current-val">0</div>
     </div>
 
-    <!-- Customization Panel -->
-    <div class="customization-panel" id="customizationPanel">
-        <div class="panel-header">
-            <h2 class="panel-title">Customize Calculator</h2>
-            <button class="close-panel" id="closePanel">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <h3>Background Theme</h3>
-        <div class="background-options">
-            <div class="bg-option active" data-bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"></div>
-            <div class="bg-option" data-bg="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"></div>
-            <div class="bg-option" data-bg="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"></div>
-            <div class="bg-option" data-bg="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"></div>
-            <div class="bg-option" data-bg="linear-gradient(135deg, #fa709a 0%, #fee140 100%)" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)"></div>
-            <div class="bg-option" data-bg="linear-gradient(135deg, #30cfd0 0%, #330867 100%)" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%)"></div>
-        </div>
-        
-        <h3>Keyboard Shortcuts</h3>
-        <div class="shortcuts-list">
-            <div class="shortcut-item">
-                <span>Clear calculator</span>
-                <span class="shortcut-key">Esc</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Delete last digit</span>
-                <span class="shortcut-key">Backspace</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Calculate result</span>
-                <span class="shortcut-key">Enter or =</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Basic operations</span>
-                <span class="shortcut-key">+ - * /</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Show shortcuts</span>
-                <span class="shortcut-key">?</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Open settings</span>
-                <span class="shortcut-key">S</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Square root</span>
-                <span class="shortcut-key">@</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Percentage</span>
-                <span class="shortcut-key">%</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Toggle sign</span>
-                <span class="shortcut-key">_</span>
-            </div>
-        </div>
-    </div>
+    <div class="keypad">
+      <div class="key action" onclick="clearCalc()">AC</div>
+      <div class="key action" onclick="deleteLast()">DEL</div>
+      <div class="key operator" onclick="appendInput('%')">%</div>
+      <div class="key operator" onclick="appendInput('/')">÷</div>
 
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">
-        <i class="fas fa-keyboard"></i>
-        <span id="toastMessage">Shortcut activated</span>
-    </div>
+      <div class="key" onclick="appendInput('7')">7</div>
+      <div class="key" onclick="appendInput('8')">8</div>
+      <div class="key" onclick="appendInput('9')">9</div>
+      <div class="key operator" onclick="appendInput('*')">×</div>
 
-    <script>
-        // Lock Page Logic
-        const lockPage = document.getElementById('lockPage');
-        const calculatorContainer = document.getElementById('calculatorContainer');
-        const unlockBtn = document.getElementById('unlockBtn');
-        const settingsBtn = document.getElementById('settingsBtn');
-        const helpBtn = document.getElementById('helpBtn');
-        const customizationPanel = document.getElementById('customizationPanel');
-        const closePanel = document.getElementById('closePanel');
-        const bgOptions = document.querySelectorAll('.bg-option');
-        const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toastMessage');
-        
-        // Show toast notification
-        function showToast(message) {
-            toastMessage.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2000);
-        }
-        
-        // Open YouTube channel when Subscribe button is clicked
-        unlockBtn.addEventListener('click', function() {
-            window.open('https://www.youtube.com/channel/UC-y6BeP404_1LLcfy7pXAoA', '_blank');
-            
-            // Hide lock page and show calculator
-            lockPage.style.opacity = '0';
-            setTimeout(() => {
-                lockPage.classList.add('hidden');
-                calculatorContainer.classList.add('show');
-            }, 500);
+      <div class="key" onclick="appendInput('4')">4</div>
+      <div class="key" onclick="appendInput('5')">5</div>
+      <div class="key" onclick="appendInput('6')">6</div>
+      <div class="key operator" onclick="appendInput('-')">−</div>
+
+      <div class="key" onclick="appendInput('1')">1</div>
+      <div class="key" onclick="appendInput('2')">2</div>
+      <div class="key" onclick="appendInput('3')">3</div>
+      <div class="key operator" onclick="appendInput('+')">+</div>
+
+      <div class="key" onclick="appendInput('0')">0</div>
+      <div class="key" onclick="appendInput('.')">.</div>
+      <div class="key equals" onclick="calculate()">=</div>
+    </div>
+  </div>
+
+  <script>
+    // --- Immediate Initialization ---
+    const currentValDisplay = document.getElementById("current-val");
+    const historyDisplay = document.getElementById("history");
+    const bg = document.getElementById("bg-canvas");
+    const bgCtx = bg.getContext("2d", { alpha: false });
+
+    let formula = "0";
+    let lastResult = null;
+    let isResetMode = false;
+
+    function updateDisplay() {
+      const displayStr = formula.replace(/\*/g, '×').replace(/\//g, '÷');
+      currentValDisplay.innerText = displayStr || "0";
+      const len = displayStr.length;
+      currentValDisplay.style.fontSize = len > 18 ? "1.3rem" : len >
+12 ? "1.8rem" : "2.6rem";
+      currentValDisplay.scrollLeft = currentValDisplay.scrollWidth;
+    }
+
+    function appendInput(val) {
+      const ops = ['+', '-', '*', '/', '%'];
+      if (isResetMode) {
+        formula = ops.includes(val) ? lastResult + val : (val === '.'
+? "0." : val);
+        isResetMode = false;
+      } else {
+        if (formula === "0" && !ops.includes(val) && val !== '.') formula = val;
+        else if (ops.includes(val) && ops.includes(formula.slice(-1)))
+formula = formula.slice(0, -1) + val;
+        else formula += val;
+      }
+      updateDisplay();
+    }
+
+    function clearCalc() {
+      formula = "0"; lastResult = null; historyDisplay.innerText = "";
+isResetMode = false;
+      updateDisplay();
+    }
+
+    function deleteLast() {
+      if (isResetMode) return clearCalc();
+      formula = formula.length > 1 ? formula.slice(0, -1) : "0";
+      updateDisplay();
+    }
+
+    function calculate() {
+      try {
+        const tokens = formula.replace(/÷/g, '/').replace(/×/g,
+'*').match(/(\d+\.?\d*)|([\+\-\*\/\%])/g);
+        if (!tokens) return;
+
+        let expression = tokens.join(' ');
+        let result = Function('"use strict"; return (' + expression + ')')();
+
+        historyDisplay.innerText = formula.replace(/\*/g,
+'×').replace(/\//g, '÷') + " =";
+        let formatted = parseFloat(result.toFixed(10)).toString();
+        formula = formatted;
+        lastResult = formatted;
+        isResetMode = true;
+        updateDisplay();
+      } catch (e) {
+        formula = "ERR"; isResetMode = true; updateDisplay();
+      }
+    }
+
+    // --- High-Performance Animated Dark Background ---
+    let particles = [];
+    const resize = () => {
+      bg.width = window.innerWidth;
+      bg.height = window.innerHeight;
+      particles = [];
+      const count = Math.min(window.innerWidth / 10, 60);
+      for(let i=0; i<count; i++) {
+        particles.push({
+          x: Math.random() * bg.width,
+          y: Math.random() * bg.height,
+          r: Math.random() * 2 + 0.5,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
+          o: Math.random()
         });
-        
-        // Open customization panel
-        settingsBtn.addEventListener('click', function() {
-            customizationPanel.classList.add('show');
-        });
-        
-        // Close customization panel
-        closePanel.addEventListener('click', function() {
-            customizationPanel.classList.remove('show');
-        });
-        
-        // Change background
-        bgOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                // Remove active class from all options
-                bgOptions.forEach(opt => opt.classList.remove('active'));
-                
-                // Add active class to clicked option
-                this.classList.add('active');
-                
-                // Change body background
-                const bg = this.getAttribute('data-bg');
-                document.body.style.background = bg;
-                showToast('Background changed');
-            });
-        });
-        
-        // Show help on button click
-        helpBtn.addEventListener('click', function() {
-            customizationPanel.classList.add('show');
-            showToast('Shortcuts panel opened');
-        });
-        
-        // Calculator Logic
-        document.addEventListener('DOMContentLoaded', function() {
-            const display = document.querySelector('.current-input');
-            const previousOperation = document.querySelector('.previous-operation');
-            const buttons = document.querySelectorAll('button');
-            const displayContainer = document.querySelector('.display');
-            
-            let currentValue = '0';
-            let previousValue = '';
-            let operation = null;
-            let resetScreen = false;
-            
-            // Update display with smooth animation
-            function updateDisplay() {
-                display.textContent = formatNumber(currentValue);
-                if (previousValue) {
-                    previousOperation.textContent = `${formatNumber(previousValue)} ${operation}`;
-                } else {
-                    previousOperation.textContent = '';
-                }
-            }
-            
-            // Format number with thousand separators
-            function formatNumber(num) {
-                if (num === 'Error') return num;
-                
-                const parts = num.split('.');
-                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                return parts.join('.');
-            }
-            
-            // Reset calculator
-            function resetCalculator() {
-                currentValue = '0';
-                previousValue = '';
-                operation = null;
-                resetScreen = false;
-                updateDisplay();
-                showToast('Calculator cleared');
-            }
-            
-            // Delete last character
-            function deleteLast() {
-                if (currentValue.length === 1) {
-                    currentValue = '0';
-                } else {
-                    currentValue = currentValue.slice(0, -1);
-                }
-                updateDisplay();
-                showToast('Last digit deleted');
-            }
-            
-            // Append number to current value
-            function appendNumber(number) {
-                if (currentValue === '0' || resetScreen) {
-                    currentValue = '';
-                    resetScreen = false;
-                }
-                
-                // Prevent multiple decimal points
-                if (number === '.' && currentValue.includes('.')) return;
-                
-                // Limit input length
-                if (currentValue.length >= 12) return;
-                
-                currentValue += number;
-                updateDisplay();
-            }
-            
-            // Choose operation
-            function chooseOperation(op) {
-                if (currentValue === '0') return;
-                
-                if (previousValue !== '') {
-                    calculate();
-                }
-                
-                operation = op;
-                previousValue = currentValue;
-                resetScreen = true;
-                updateDisplay();
-                showToast(`Operation: ${op}`);
-            }
-            
-            // Calculate square root
-            function squareRoot() {
-                const value = parseFloat(currentValue.replace(/,/g, ''));
-                if (value < 0) {
-                    currentValue = 'Error';
-                } else {
-                    currentValue = Math.sqrt(value).toString();
-                    if (currentValue.length > 12) {
-                        currentValue = parseFloat(currentValue).toFixed(8);
-                    }
-                }
-                updateDisplay();
-                showToast('Square root calculated');
-            }
-            
-            // Calculate percentage
-            function percentage() {
-                const value = parseFloat(currentValue.replace(/,/g, ''));
-                currentValue = (value / 100).toString();
-                updateDisplay();
-                showToast('Percentage calculated');
-            }
-            
-            // Toggle positive/negative
-            function toggleSign() {
-                if (currentValue !== '0' && currentValue !== 'Error') {
-                    if (currentValue.startsWith('-')) {
-                        currentValue = currentValue.substring(1);
-                    } else {
-                        currentValue = '-' + currentValue;
-                    }
-                    updateDisplay();
-                    showToast('Sign toggled');
-                }
-            }
-            
-            // Calculate result with smooth animation
-            function calculate() {
-                let computation;
-                const prev = parseFloat(previousValue.replace(/,/g, ''));
-                const current = parseFloat(currentValue.replace(/,/g, ''));
-                
-                if (isNaN(prev) || isNaN(current)) return;
-                
-                switch (operation) {
-                    case '+':
-                        computation = prev + current;
-                        break;
-                    case '-':
-                        computation = prev - current;
-                        break;
-                    case '×':
-                        computation = prev * current;
-                        break;
-                    case '÷':
-                        if (current === 0) {
-                            computation = 'Error';
-                        } else {
-                            computation = prev / current;
-                        }
-                        break;
-                    default:
-                        return;
-                }
-                
-                // Format result
-                if (computation === 'Error') {
-                    currentValue = computation;
-                } else {
-                    currentValue = computation.toString();
-                    
-                    // Round if too long
-                    if (currentValue.length > 12) {
-                        currentValue = parseFloat(currentValue).toFixed(8);
-                    }
-                }
-                
-                // Add animation to display
-                displayContainer.style.animation = 'none';
-                setTimeout(() => {
-                    displayContainer.style.animation = 'calculateAnim 0.4s ease';
-                }, 10);
-                
-                operation = null;
-                previousValue = '';
-                resetScreen = true;
-                updateDisplay();
-                showToast('Calculation complete');
-            }
-            
-            // Add event listeners to buttons with smooth feedback
-            buttons.forEach(button => {
-                button.addEventListener('click', (e) => {
-                    // Add ripple effect
-                    const ripple = document.createElement('span');
-                    ripple.classList.add('ripple');
-                    button.appendChild(ripple);
-                    
-                    const x = e.clientX - button.getBoundingClientRect().left;
-                    const y = e.clientY - button.getBoundingClientRect().top;
-                    
-                    ripple.style.left = `${x}px`;
-                    ripple.style.top = `${y}px`;
-                    
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
-                    
-                    if (button.hasAttribute('data-number')) {
-                        appendNumber(button.getAttribute('data-number'));
-                    } else if (button.hasAttribute('data-operator')) {
-                        chooseOperation(button.getAttribute('data-operator'));
-                    } else if (button.hasAttribute('data-action')) {
-                        const action = button.getAttribute('data-action');
-                        if (action === 'clear') {
-                            resetCalculator();
-                        } else if (action === 'calculate') {
-                            calculate();
-                        } else if (action === 'backspace') {
-                            deleteLast();
-                        }
-                    }
-                });
-            });
-            
-            // Keyboard support with real shortcuts
-            document.addEventListener('keydown', (event) => {
-                // Don't process keys if customization panel is open
-                if (customizationPanel.classList.contains('show')) {
-                    if (event.key === 'Escape') {
-                        customizationPanel.classList.remove('show');
-                        showToast('Panel closed');
-                    }
-                    return;
-                }
-                
-                // Don't process keys if lock page is visible
-                if (!lockPage.classList.contains('hidden')) {
-                    return;
-                }
-                
-                // Process calculator shortcuts
-                if (event.key === 's' || event.key === 'S') {
-                    event.preventDefault();
-                    customizationPanel.classList.add('show');
-                    showToast('Settings opened');
-                    return;
-                }
-                
-                if (event.key === '?') {
-                    event.preventDefault();
-                    customizationPanel.classList.add('show');
-                    showToast('Shortcuts panel opened');
-                    return;
-                }
-                
-                if (event.key === '@') {
-                    event.preventDefault();
-                    squareRoot();
-                    return;
-                }
-                
-                if (event.key === '%') {
-                    event.preventDefault();
-                    percentage();
-                    return;
-                }
-                
-                if (event.key === '_') {
-                    event.preventDefault();
-                    toggleSign();
-                    return;
-                }
-                
-                if (/[0-9]/.test(event.key)) {
-                    appendNumber(event.key);
-                } else if (event.key === '.') {
-                    appendNumber('.');
-                } else if (event.key === '+' || event.key === '-') {
-                    chooseOperation(event.key);
-                } else if (event.key === '*') {
-                    chooseOperation('×');
-                } else if (event.key === '/') {
-                    chooseOperation('÷');
-                } else if (event.key === 'Enter' || event.key === '=') {
-                    calculate();
-                } else if (event.key === 'Escape') {
-                    resetCalculator();
-                } else if (event.key === 'Backspace') {
-                    deleteLast();
-                }
-            });
-            
-            // Initialize display
-            updateDisplay();
-        });
-    </script>
+      }
+    };
+
+    const draw = () => {
+      bgCtx.fillStyle = '#010307';
+      bgCtx.fillRect(0, 0, bg.width, bg.height);
+
+      // Floating Orbs for depth
+      const time = Date.now() * 0.0005;
+      const orbs = [
+        { x: 0.2, y: 0.3, r: 400, c: '#001a33' },
+        { x: 0.8, y: 0.7, r: 500, c: '#14082e' },
+        { x: 0.5, y: 0.5, r: 450, c: '#00261f' }
+      ];
+
+      bgCtx.globalCompositeOperation = 'screen';
+      orbs.forEach((o, i) => {
+        const dx = (o.x + Math.sin(time + i) * 0.1) * bg.width;
+        const dy = (o.y + Math.cos(time * 0.8 + i) * 0.1) * bg.height;
+        const g = bgCtx.createRadialGradient(dx, dy, 0, dx, dy, o.r);
+        g.addColorStop(0, o.c);
+        g.addColorStop(1, 'transparent');
+        bgCtx.fillStyle = g;
+        bgCtx.fillRect(0, 0, bg.width, bg.height);
+      });
+
+      // Subtle Stars
+      bgCtx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if(p.x < 0) p.x = bg.width;
+        if(p.x > bg.width) p.x = 0;
+        if(p.y < 0) p.y = bg.height;
+        if(p.y > bg.height) p.y = 0;
+        bgCtx.beginPath();
+        bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        bgCtx.fill();
+      });
+
+      requestAnimationFrame(draw);
+    };
+
+    window.addEventListener('resize', resize);
+    resize();
+    draw();
+    updateDisplay();
+
+    // Key Listeners
+    window.addEventListener('keydown', (e) => {
+      if (/[0-9\.]/.test(e.key)) appendInput(e.key);
+      else if (['+', '-', '*', '/', '%'].includes(e.key)) appendInput(e.key);
+      else if (e.key === 'Enter' || e.key === '=') calculate();
+      else if (e.key === 'Backspace') deleteLast();
+      else if (e.key === 'Escape') clearCalc();
+    });
+  </script>
 </body>
 </html>
