@@ -113,6 +113,110 @@
             letter-spacing: 1px;
         }
 
+        /* --- LIQUID GLASS RIGHT-CLICK MENU --- */
+        .liquid-context-menu {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            padding: 12px 0;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            min-width: 220px;
+            transform-origin: top left;
+            overflow: hidden;
+        }
+
+        .liquid-context-menu::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            opacity: 0.5;
+            z-index: -1;
+            animation: liquidRipple 15s infinite linear;
+        }
+
+        @keyframes liquidRipple {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .context-menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            margin: 0 8px;
+            border-radius: 12px;
+        }
+
+        .context-menu-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .context-menu-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+
+        .context-menu-item:hover::before {
+            transform: translateX(100%);
+        }
+
+        .context-menu-item i {
+            width: 24px;
+            margin-right: 12px;
+            font-style: normal;
+            font-size: 18px;
+        }
+
+        .context-menu-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 8px 20px;
+            border-radius: 1px;
+        }
+
+        .menu-open-animation {
+            animation: liquidMenuAppear 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes liquidMenuAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(-10px);
+                filter: blur(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                filter: blur(0);
+            }
+        }
+
         /* --- iOS 26.2 ENTRANCE ANIMATIONS --- */
         /* A futuristic, high-blur, fluid entrance style */
         @keyframes iosFutureEntrance {
@@ -549,8 +653,18 @@
 
         /* Restart Overlay */
         .restart-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(20px);
+            z-index: 9998;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
         }
         
         .restart-container {
@@ -559,6 +673,89 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
             border-radius: 30px;
+            padding: 40px;
+            text-align: center;
+            min-width: 300px;
+        }
+
+        .restart-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .restart-subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+
+        .restart-loader {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 20px auto;
+        }
+
+        .restart-loader-inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px solid transparent;
+            border-top-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .restart-loader-inner:nth-child(2) {
+            animation: spin 1s linear infinite reverse;
+            border-top-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .restart-loader-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+        }
+
+        .restart-progress {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .restart-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            animation: progressBar 3s linear;
+            border-radius: 2px;
+        }
+
+        .restart-countdown {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .restart-message {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes progressBar {
+            0% { width: 0%; }
+            100% { width: 100%; }
         }
 
         /* --- DARK MODE OVERRIDES --- */
@@ -611,11 +808,53 @@
             #currentDateTop {
                 font-size: 0.75rem;
             }
+            
+            /* Adjust context menu for mobile */
+            .liquid-context-menu {
+                min-width: 200px;
+                padding: 8px 0;
+            }
+            
+            .context-menu-item {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body class="font-medium">
     
+    <!-- Liquid Glass Right-Click Menu -->
+    <div class="liquid-context-menu" id="contextMenu">
+        <div class="context-menu-item" onclick="copyCurrentUrl()">
+            <i>🔗</i> Copy URL
+        </div>
+        <div class="context-menu-item" onclick="copyPageTitle()">
+            <i>📋</i> Copy Page Title
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" onclick="printPage()">
+            <i>🖨️</i> Print Page
+        </div>
+        <div class="context-menu-item" onclick="sharePage()">
+            <i>📤</i> Share Page
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" onclick="toggleDarkMode()">
+            <i>🌙</i> Toggle Dark Mode
+        </div>
+        <div class="context-menu-item" onclick="refreshPage()">
+            <i>🔄</i> Refresh Page
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" onclick="showRestartAnimation()">
+            <i>⚡</i> Restart Page
+        </div>
+        <div class="context-menu-item" onclick="viewSource()">
+            <i>👁️</i> View Source
+        </div>
+    </div>
+
     <!-- Liquid Blobs for Background Animation -->
     <div class="liquid-blob blob-1"></div>
     <div class="liquid-blob blob-2"></div>
@@ -644,7 +883,7 @@
             <div class="menu-item" id="highContrastToggle"><i>⚫</i> High Contrast</div>
             <div class="menu-item" id="printPage"><i>🖨️</i> Print Page</div>
             <div class="menu-item" id="copyUrl"><i>🔗</i> Copy URL</div>
-            <div class="menu-item" id="restartPage" style="display:none;"><i></i></div>
+            <div class="menu-item" id="restartPage"><i>⚡</i> Restart Page</div>
             <a href="https://www.youtube.com/@LWKHOKHO" style="text-decoration:none;"><div class="menu-item"><i>📺</i>Go to YouTube channel</div></a>
         </div>
     </div>
@@ -782,6 +1021,128 @@
         menuContent.addEventListener('click', function(e) {
             e.stopPropagation();
         });
+
+        // --- LIQUID GLASS RIGHT-CLICK MENU ---
+        const contextMenu = document.getElementById('contextMenu');
+        
+        // Show context menu on right-click
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            
+            // Get viewport dimensions
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            // Get menu dimensions
+            const menuWidth = 220;
+            const menuHeight = 400;
+            
+            // Calculate position
+            let posX = e.pageX;
+            let posY = e.pageY;
+            
+            // Adjust if menu would go off screen
+            if (posX + menuWidth > viewportWidth) {
+                posX = viewportWidth - menuWidth - 10;
+            }
+            
+            if (posY + menuHeight > viewportHeight) {
+                posY = viewportHeight - menuHeight - 10;
+            }
+            
+            // Position the menu
+            contextMenu.style.left = posX + 'px';
+            contextMenu.style.top = posY + 'px';
+            
+            // Show menu with animation
+            contextMenu.style.display = 'block';
+            contextMenu.classList.add('menu-open-animation');
+            
+            // Remove animation class after animation completes
+            setTimeout(() => {
+                contextMenu.classList.remove('menu-open-animation');
+            }, 300);
+        });
+        
+        // Hide context menu on click
+        document.addEventListener('click', function(e) {
+            if (!contextMenu.contains(e.target)) {
+                contextMenu.style.display = 'none';
+            }
+        });
+        
+        // Hide context menu on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                contextMenu.style.display = 'none';
+            }
+        });
+
+        // Context menu functions
+        function copyCurrentUrl() {
+            navigator.clipboard.writeText(window.location.href)
+                .then(() => {
+                    showToast('URL copied to clipboard');
+                    contextMenu.style.display = 'none';
+                })
+                .catch(err => {
+                    showToast('Failed to copy URL');
+                    console.error('Failed to copy URL: ', err);
+                });
+        }
+        
+        function copyPageTitle() {
+            navigator.clipboard.writeText(document.title)
+                .then(() => {
+                    showToast('Page title copied');
+                    contextMenu.style.display = 'none';
+                })
+                .catch(err => {
+                    showToast('Failed to copy title');
+                    console.error('Failed to copy title: ', err);
+                });
+        }
+        
+        function printPage() {
+            window.print();
+            contextMenu.style.display = 'none';
+        }
+        
+        function sharePage() {
+            if (navigator.share) {
+                navigator.share({
+                    title: document.title,
+                    text: 'Check out this awesome website!',
+                    url: window.location.href
+                })
+                .then(() => {
+                    showToast('Page shared successfully');
+                })
+                .catch(err => {
+                    showToast('Sharing cancelled or failed');
+                });
+            } else {
+                showToast('Web Share API not supported');
+            }
+            contextMenu.style.display = 'none';
+        }
+        
+        function toggleDarkMode() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeButton(isDark);
+            showToast(isDark ? 'Dark mode enabled' : 'Light mode enabled');
+            contextMenu.style.display = 'none';
+        }
+        
+        function refreshPage() {
+            location.reload();
+        }
+        
+        function viewSource() {
+            window.open(window.location.href, '_blank');
+            contextMenu.style.display = 'none';
+        }
         
         // --- Persistence Functions ---
         
@@ -921,9 +1282,15 @@
         function showRestartAnimation() {
             const restartOverlay = document.getElementById('restartOverlay');
             const countdownElement = document.getElementById('restartCountdown');
+            const progressBar = document.querySelector('.restart-progress-bar');
             
             // Show the restart overlay
             restartOverlay.style.display = 'flex';
+            
+            // Reset progress bar
+            progressBar.style.width = '0%';
+            void progressBar.offsetWidth; // Trigger reflow
+            progressBar.style.width = '100%';
             
             let countdown = 3;
             countdownElement.textContent = countdown;
@@ -976,4 +1343,4 @@
         });
     </script>
 </body>
-</html> 
+</html>
