@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CLOCK INTERFACE - LWKHO </title>
+    <title>Ultimate Clock Pro - LWKHO </title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -199,6 +199,7 @@
             transition: 0.4s var(--liquid); pointer-events: none;
         }
         
+        /* Updated hover effect: GMT disappears completely */
         .world-item:hover .zone-info { opacity: 0; transform: translateY(-10px); }
         .world-item:hover .countries-list { opacity: 1; transform: scale(1); pointer-events: auto; }
         .world-item:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.4); transform: scale(1.02); z-index: 5; }
@@ -359,14 +360,45 @@
             runtime: { tInt: null, tRem: 0, tTotal: 0, swInt: null, swMs: 0 },
             audio: new Audio(),
             zones: [
-                { offset: 0, name: "GMT +0 (Prime)", countries: "United Kingdom, Ireland, Portugal, Iceland, Ghana" },
-                { offset: 1, name: "GMT +1 (CET)", countries: "France, Germany, Italy, Spain, Nigeria, Poland, Sweden" },
-                { offset: 2, name: "GMT +2 (EET)", countries: "Egypt, South Africa, Greece, Ukraine, Israel, Libya" },
-                { offset: 3, name: "GMT +3 (AST)", countries: "Saudi Arabia, Kuwait, Qatar, Iraq, Russia, Turkey" },
-                { offset: 4, name: "GMT +4 (GST)", countries: "United Arab Emirates, Oman, Georgia, Armenia" },
+                // Negative GMT offsets
+                { offset: -12, name: "GMT -12", countries: "Baker Island, Howland Island (USA)" },
+                { offset: -11, name: "GMT -11", countries: "American Samoa, Niue, Midway Islands" },
+                { offset: -10, name: "GMT -10 (HST)", countries: "Hawaii (USA), French Polynesia (Tahiti), Cook Islands" },
+                { offset: -9, name: "GMT -9 (AKST)", countries: "Alaska (USA), Gambier Islands (French Polynesia)" },
+                { offset: -8, name: "GMT -8 (PST)", countries: "USA (California, Washington, Oregon), Canada (British Columbia), Mexico (Baja California)" },
+                { offset: -7, name: "GMT -7 (MST)", countries: "USA (Arizona, Colorado), Canada (Alberta), Mexico (Sonora)" },
+                { offset: -6, name: "GMT -6 (CST)", countries: "USA (Texas, Illinois), Canada (Manitoba), Mexico (Mexico City), Costa Rica, Honduras" },
+                { offset: -5, name: "GMT -5 (EST)", countries: "USA (New York, Florida), Canada (Ontario, Quebec), Colombia, Peru, Cuba, Jamaica" },
+                { offset: -4, name: "GMT -4 (AST)", countries: "Canada (Atlantic), Venezuela, Bolivia, Chile, Paraguay, Barbados, Dominican Republic" },
+                { offset: -3, name: "GMT -3", countries: "Argentina, Brazil (São Paulo, Rio), Uruguay, Falkland Islands, Greenland (most)" },
+                { offset: -2, name: "GMT -2", countries: "South Georgia, Fernando de Noronha (Brazil), Azores (summer)" },
+                { offset: -1, name: "GMT -1", countries: "Cape Verde, Azores (Portugal), Greenland (east coast)" },
+                
+                // GMT 0
+                { offset: 0, name: "GMT 0 (GMT/UTC)", countries: "United Kingdom, Ireland, Portugal, Iceland, Ghana, Senegal, Ivory Coast, Morocco, Burkina Faso" },
+                
+                // Positive GMT offsets
+                { offset: 1, name: "GMT +1 (CET)", countries: "Germany, France, Italy, Spain, Poland, Sweden, Norway, Switzerland, Belgium, Netherlands, Austria" },
+                { offset: 2, name: "GMT +2 (EET)", countries: "Egypt, South Africa, Greece, Ukraine, Israel, Finland, Romania, Bulgaria, Cyprus, Lebanon, Libya" },
+                { offset: 3, name: "GMT +3 (MSK)", countries: "Russia (Moscow), Saudi Arabia, Turkey, Iraq, Qatar, Kuwait, Bahrain, Kenya, Ethiopia, Madagascar" },
+                { offset: 3.5, name: "GMT +3:30 (IRST)", countries: "Iran" },
+                { offset: 4, name: "GMT +4 (GST)", countries: "United Arab Emirates (Dubai, Abu Dhabi), Oman, Georgia, Armenia, Azerbaijan, Seychelles, Réunion" },
+                { offset: 4.5, name: "GMT +4:30", countries: "Afghanistan" },
+                { offset: 5, name: "GMT +5 (PKT)", countries: "Pakistan, Uzbekistan, Tajikistan, Turkmenistan, Maldives, Kazakhstan (west)" },
                 { offset: 5.5, name: "GMT +5:30 (IST)", countries: "India, Sri Lanka" },
-                { offset: -5, name: "GMT -5 (EST)", countries: "USA (New York), Canada (Toronto), Colombia, Peru" },
-                { offset: -8, name: "GMT -8 (PST)", countries: "USA (Los Angeles), Canada (Vancouver), Mexico" }
+                { offset: 5.75, name: "GMT +5:45", countries: "Nepal" },
+                { offset: 6, name: "GMT +6 (BST)", countries: "Bangladesh, Bhutan, Kazakhstan (Almaty), Kyrgyzstan, British Indian Ocean Territory" },
+                { offset: 6.5, name: "GMT +6:30", countries: "Myanmar (Burma), Cocos Islands" },
+                { offset: 7, name: "GMT +7 (ICT)", countries: "Thailand, Vietnam, Cambodia, Laos, Indonesia (Java, Bali), Christmas Island" },
+                { offset: 8, name: "GMT +8 (CST)", countries: "China, Singapore, Malaysia, Philippines, Taiwan, Hong Kong, Macau, Australia (Perth), Brunei" },
+                { offset: 9, name: "GMT +9 (JST)", countries: "Japan, South Korea, North Korea, Indonesia (Papua), Palau, East Timor" },
+                { offset: 9.5, name: "GMT +9:30 (ACST)", countries: "Australia (Northern Territory, South Australia)" },
+                { offset: 10, name: "GMT +10 (AEST)", countries: "Australia (Sydney, Melbourne, Brisbane), Papua New Guinea, Guam, Micronesia" },
+                { offset: 10.5, name: "GMT +10:30", countries: "Lord Howe Island (Australia)" },
+                { offset: 11, name: "GMT +11", countries: "New Caledonia, Vanuatu, Solomon Islands, Norfolk Island" },
+                { offset: 12, name: "GMT +12", countries: "New Zealand, Fiji, Kiribati (Gilbert Islands), Marshall Islands, Tuvalu, Wallis and Futuna" },
+                { offset: 13, name: "GMT +13", countries: "Samoa, Tonga, Tokelau, Kiribati (Phoenix Islands)" },
+                { offset: 14, name: "GMT +14", countries: "Kiribati (Line Islands)" }
             ],
 
             init() {
@@ -400,7 +432,6 @@
             },
 
             save() {
-                // Ensure the current inputs are captured in the save state
                 this.state.timerDefaults = {
                     h: document.getElementById('th').value,
                     m: document.getElementById('tm').value,
@@ -437,7 +468,6 @@
                     wp.classList.toggle('active', wp.dataset.url === this.state.bg);
                 });
 
-                // Restore Laps
                 const lapHtml = this.state.laps.map((l, i) => `<div class="lap-item"><span>Lap ${this.state.laps.length - i}</span> <strong>${l}</strong></div>`).join('');
                 get('laps').innerHTML = lapHtml;
             },
@@ -476,12 +506,24 @@
                 if (document.getElementById('world').classList.contains('active')) {
                     if (listEl.children.length === 0) {
                         listEl.innerHTML = this.zones.map(z => {
-                            const t = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (z.offset * 3600000));
-                            return `<div class="world-item"><div class="zone-info"><strong>${z.name}</strong><span>${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}</span></div><div class="countries-list">${z.countries}</div></div>`;
+                            const offsetMs = z.offset * 3600000;
+                            const t = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + offsetMs);
+                            const offsetStr = z.offset >= 0 ? `+${z.offset}` : z.offset;
+                            const timeStr = `${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`;
+                            return `<div class="world-item">
+                                <div class="zone-info">
+                                    <strong>GMT ${offsetStr}</strong>
+                                    <span>${timeStr}</span>
+                                </div>
+                                <div class="countries-list">
+                                    ${z.countries}
+                                </div>
+                            </div>`;
                         }).join('');
                     } else {
                         this.zones.forEach((z, i) => {
-                            const t = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (z.offset * 3600000));
+                            const offsetMs = z.offset * 3600000;
+                            const t = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + offsetMs);
                             listEl.children[i].querySelector('span').innerText = `${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`;
                         });
                     }
@@ -491,7 +533,6 @@
             bind() {
                 const get = id => document.getElementById(id);
                 
-                // Auto-save triggers
                 get('opacitySlider').oninput = e => {
                     this.state.opacity = e.target.value;
                     get('opacityVal').innerText = e.target.value + '%';
@@ -518,6 +559,9 @@
                         document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
                         btn.classList.add('active');
                         get(btn.dataset.tab).classList.add('active');
+                        if (btn.dataset.tab === 'world') {
+                            setTimeout(() => app.renderWorld(), 100);
+                        }
                     };
                 });
 
@@ -609,4 +653,3 @@
     </script>
 </body>
 </html>
-
