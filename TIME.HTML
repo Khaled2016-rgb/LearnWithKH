@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ultimate Clock Pro | iOS 26.3 Edition</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-blur: 30px;
+            --accent: #ffffff;
+            --text: #ffffff;
+            --bg-url: url('https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?q=80&w=2000');
+            --spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --liquid: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body.light-mode {
+            --text: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --accent: #0f172a;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            outline: none;
+            scrollbar-width: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        *::-webkit-scrollbar { display: none; }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #000;
+            transition: color 0.5s var(--liquid);
+        }
+
+        .bg-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-url) no-repeat center center;
+            background-size: cover;
+            z-index: -2;
+            filter: brightness(0.5) contrast(1.1);
+            transform: scale(1.02);
+            transition: background-image 1.2s var(--liquid), filter 0.8s var(--liquid);
+        }
+
+        .container { 
+            width: 100%; 
+            max-width: 440px; 
+            z-index: 1; 
+            display: flex; 
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+            border-radius: 32px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: background 0.3s var(--liquid), backdrop-filter 0.3s;
+        }
+
+        /* Custom Context Menu */
+        #contextMenu {
+            position: fixed;
+            z-index: 10000;
+            width: 200px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px) saturate(200%);
+            -webkit-backdrop-filter: blur(40px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            animation: menuPop 0.3s var(--spring);
+        }
+        @keyframes menuPop { from { opacity: 0; transform: scale(0.9) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .menu-item:hover { background: rgba(255,255,255,0.15); }
+
+        #currentTime {
+            font-size: clamp(4rem, 18vw, 5.5rem);
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: -4px;
+            font-variant-numeric: tabular-nums;
+            margin: 0;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        #currentDate {
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            opacity: 0.7;
+        }
+
+        .nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 8px; }
+        .tab-btn {
+            background: none; border: none; color: var(--text); padding: 12px 0;
+            border-radius: 18px; font-size: 10px; font-weight: 800;
+            cursor: pointer; opacity: 0.3; transition: 0.4s var(--liquid);
+        }
+        .tab-btn.active { opacity: 1; background: rgba(255,255,255,0.15); transform: scale(1.05); }
+
+        .tab-content { display: none; max-height: 480px; overflow-y: auto; }
+        .tab-content.active { display: block; animation: slideIn 0.6s var(--liquid); }
+        
+        @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        input, select {
+            width: 100%; background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1); color: var(--text);
+            padding: 16px; border-radius: 20px; margin-bottom: 10px;
+            font-size: 14px; font-weight: 600; appearance: none;
+            user-select: text;
+        }
+
+        .btn {
+            padding: 18px; border: none; border-radius: 22px;
+            font-weight: 800; cursor: pointer; font-size: 13px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; transition: transform 0.2s var(--spring), background 0.3s;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: var(--accent); color: #000; }
+        body.light-mode .btn-primary { background: #0f172a; color: #fff; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: var(--text); }
+
+        .big-disp { font-size: 3.2rem; font-weight: 800; text-align: center; margin: 15px 0; font-variant-numeric: tabular-nums; }
+
+        .progress-container {
+            width: 100%; height: 12px; background: rgba(255,255,255,0.1);
+            border-radius: 20px; overflow: hidden; margin: 20px 0;
+            display: none; position: relative;
+        }
+        .progress-bar {
+            height: 100%; width: 0%; background: var(--accent);
+            box-shadow: 0 0 20px var(--accent);
+            transition: width 1s linear;
+        }
+
+        .setting-label { display: flex; justify-content: space-between; font-size: 10px; font-weight: 800; opacity: 0.5; text-transform: uppercase; margin: 12px 0 6px 0; letter-spacing: 1px; }
+
+        #laps { margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
+        .lap-item { display: flex; justify-content: space-between; padding: 10px 0; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        .world-item { 
+            margin-bottom: 8px; border-radius: 20px; 
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); 
+            padding: 20px; transition: all 0.5s var(--liquid);
+            position: relative; cursor: default;
+            overflow: hidden; min-height: 68px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        .zone-info { width: 100%; display: flex; justify-content: space-between; align-items: center; transition: 0.4s; }
+        .world-item .countries-list {
+            position: absolute; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            padding: 15px; font-size: 12px; font-weight: 700;
+            opacity: 0; color: var(--accent); text-align: center;
+            background: rgba(0, 0, 0, 0.6); transform: scale(1.1);
+            transition: 0.4s var(--liquid); pointer-events: none;
+        }
+        
+        .world-item:hover .zone-info { opacity: 0; transform: translateY(-10px); }
+        .world-item:hover .countries-list { opacity: 1; transform: scale(1); pointer-events: auto; }
+        .world-item:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.4); transform: scale(1.02); z-index: 5; }
+
+        .registry-category {
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 28px; padding: 20px; margin-bottom: 24px;
+        }
+        .countdown-card { background: rgba(0,0,0,0.2); border-radius: 20px; padding: 20px; text-align: center; }
+        .countdown-time { font-size: 24px; font-weight: 800; margin-top: 15px; letter-spacing: -1px; display: flex; justify-content: center; gap: 10px; }
+        .countdown-unit { font-size: 9px; text-transform: uppercase; opacity: 0.5; display: block; margin-top: 4px; }
+
+        #toast {
+            position: fixed; bottom: 30px; background: #fff; color: #000; 
+            padding: 14px 28px; border-radius: 50px; font-weight: 800; font-size: 12px; 
+            transform: translateY(150px); transition: 0.5s var(--spring); z-index: 9999;
+        }
+
+        input[type="range"] { -webkit-appearance: none; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; width: 100%; margin: 10px 0; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; cursor: pointer; border: 4px solid rgba(0,0,0,0.1); }
+
+        .wp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .wp-item { aspect-ratio: 1/1; border-radius: 16px; cursor: pointer; background-size: cover; background-position: center; border: 2.5px solid transparent; transition: 0.4s var(--liquid); }
+        .wp-item.active { border-color: var(--accent); transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+        .sonic-row { display: grid; grid-template-columns: 1fr 60px; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .listen-btn { height: 50px; border-radius: 16px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; transition: 0.3s; color: var(--text); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="dark-mode">
+
+    <div class="bg-layer" id="bgLayer"></div>
+    <div id="toast">SYSTEM ONLINE</div>
+
+    <div id="contextMenu">
+        <div class="menu-item" onclick="app.setTheme('dark')">🌙 Dark Mode</div>
+        <div class="menu-item" onclick="app.setTheme('light')">☀️ Light Mode</div>
+        <div class="menu-item" onclick="location.reload()">🔄 Refresh System</div>
+        <div style="height:1px; background:rgba(255,255,255,0.1); margin:4px 0;"></div>
+        <div class="menu-item" onclick="app.toast('ULTRACLOCK v11.6')">ℹ️ System Info</div>
+    </div>
+
+    <div class="container" id="mainApp">
+        <div class="glass" style="padding-bottom: 30px;">
+            <div id="currentTime">00:00</div>
+            <div id="currentDate">SYNCING...</div>
+        </div>
+
+        <div class="glass nav">
+            <button class="tab-btn active" data-tab="timer">TMR</button>
+            <button class="tab-btn" data-tab="sw">SW</button>
+            <button class="tab-btn" data-tab="world">WLD</button>
+            <button class="tab-btn" data-tab="alarm">ALM</button>
+            <button class="tab-btn" data-tab="sets">SET</button>
+        </div>
+
+        <!-- Timer -->
+        <div id="timer" class="tab-content active glass">
+            <div id="tInp" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+                <input type="number" id="th" value="0" placeholder="HH">
+                <input type="number" id="tm" value="5" placeholder="MM">
+                <input type="number" id="ts" value="0" placeholder="SS">
+            </div>
+            <div id="tDisp" class="big-disp" style="display:none;">00:00:00</div>
+            <div class="progress-container" id="tProgCont">
+                <div class="progress-bar" id="tProg"></div>
+            </div>
+            <div style="display:flex; gap:8px; margin-top: 8px;">
+                <button class="btn btn-primary" id="tBtn">INITIALIZE</button>
+                <button class="btn btn-secondary" id="tResetBtn" style="width: 80px;">⟲</button>
+            </div>
+        </div>
+
+        <!-- Stopwatch -->
+        <div id="sw" class="tab-content glass">
+            <div id="swDisp" class="big-disp">00:00:00.00</div>
+            <div style="display:flex; gap:8px;">
+                <button class="btn btn-primary" id="swBtn">START</button>
+                <button class="btn btn-secondary" id="swLapBtn" style="width: 80px;">LAP</button>
+                <button class="btn btn-secondary" id="swResetBtn" style="width: 80px;">⟲</button>
+            </div>
+            <div id="laps"></div>
+        </div>
+
+        <!-- World -->
+        <div id="world" class="tab-content glass">
+            <div class="registry-category">
+                <span class="setting-label">Registry: Temporal Target</span>
+                <div class="countdown-card">
+                    <input type="date" id="cdDate" style="text-align: center; background: rgba(255,255,255,0.03); border-radius: 12px;">
+                    <div id="cdDisp" class="countdown-time">
+                        <div>00<span class="countdown-unit">Days</span></div>
+                        <div>00<span class="countdown-unit">Hrs</span></div>
+                        <div>00<span class="countdown-unit">Min</span></div>
+                    </div>
+                </div>
+            </div>
+            <div id="worldList"></div>
+        </div>
+
+        <!-- Alarm -->
+        <div id="alarm" class="tab-content glass">
+            <input type="time" id="alTime" style="font-size: 2.5rem; text-align: center; font-weight: 800;">
+            <button class="btn btn-primary" id="alSetBtn">ARM SENSORS</button>
+        </div>
+
+        <!-- Settings -->
+        <div id="sets" class="tab-content glass">
+            <span class="setting-label">Atmosphere</span>
+            <div class="wp-grid" id="wpGrid">
+                <div class="wp-item" data-url="https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?q=80&w=1000"></div>
+                <div class="wp-item" data-url="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=1000"></div>
+                <div class="wp-item" data-url="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000"></div>
+                <div class="wp-item" data-url="https://c.ndtvimg.com/2025-12/eej4ppgo_omanmainndtv_625x300_17_December_25.jpg?im=FaceCrop,algorithm=dnn,width=1200,height=738"></div>
+                <div class="wp-item" data-url="https://media.cntraveller.com/photos/611bf3f0042ccafe9a9ae8b8/16:9/w_2560%2Cc_limit/doha-skyline-istock.jpg"></div>
+                <div class="wp-item" data-url="https://cdn.sanity.io/images/nxpteyfv/goguides/597dbe82b11f8d8502e0a7bac063849da34eb461-1600x1066.jpg"></div>
+                <div class="wp-item" data-url="https://www.al-monitor.com/sites/default/files/styles/newsletter/public/2022-03/d71c86e18392cd3ded4120be5ad6abf4d874a1e7.jpg?itok=O7FHk_LF"></div>
+                <div class="wp-item" data-url="https://amazingarchitecture.com/storage/10759/museum-of-the-future-uae.jpg"></div>
+                <div class="wp-item" data-url="https://footontheroad.com/wp-content/uploads/2024/10/kuwait-city.webp"></div>
+                <div class="wp-item" data-url="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/15/33/fb/89/bahrain.jpg?w=1400&h=1400&s=1&cx=2368&cy=517&chk=v1_427c23761d46f39623e8"></div>
+                <div class="wp-item" data-url="https://media.cntravellerme.com/photos/6798b1d5ef028473ebb86e99/16:9/w_2560%2Cc_limit/1379966790"></div>
+                <div class="wp-item" data-url="https://images.unsplash.com/photo-1476610182048-b716b8518aae?q=80&w=1000"></div>
+            </div>
+
+            <span class="setting-label"><span>Glass Opacity</span><span id="opacityVal">10%</span></span>
+            <input type="range" id="opacitySlider" min="5" max="95" value="10">
+
+            <span class="setting-label"><span>Blur Intensity</span><span id="blurVal">30px</span></span>
+            <input type="range" id="blurSlider" min="0" max="80" value="30">
+
+            <span class="setting-label">Alert Tone</span>
+            <div class="sonic-row">
+                <select id="ringtoneSel" style="margin-bottom:0;">
+                    <option value="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3">Digital Pulse</option>
+                    <option value="https://assets.mixkit.co/active_storage/sfx/1014/1014-preview.mp3">Classic Bell</option>
+                    <option value="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3">Zen Bowl</option>
+                </select>
+                <div class="listen-btn" onclick="app.playAlert()">🔊</div>
+            </div>
+
+            <span class="setting-label"><span>Volume</span><span id="alVolVal">80%</span></span>
+            <input type="range" id="alVolSlider" min="0" max="100" value="80">
+            
+            <button class="btn btn-primary" id="saveBtn" style="margin-top:20px;">HARD SAVE CONFIG</button>
+        </div>
+    </div>
+
+    <script>
+        const app = {
+            state: {
+                theme: 'dark', vol: 80, opacity: 10, blur: 30,
+                bg: 'https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?q=80&w=1000',
+                tone: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',
+                alarmTime: null, countdownDate: '',
+                timerDefaults: { h: 0, m: 5, s: 0 },
+                laps: []
+            },
+            runtime: { tInt: null, tRem: 0, tTotal: 0, swInt: null, swMs: 0 },
+            audio: new Audio(),
+            zones: [
+                { offset: 0, name: "GMT +0 (Prime)", countries: "United Kingdom, Ireland, Portugal, Iceland, Ghana" },
+                { offset: 1, name: "GMT +1 (CET)", countries: "France, Germany, Italy, Spain, Nigeria, Poland, Sweden" },
+                { offset: 2, name: "GMT +2 (EET)", countries: "Egypt, South Africa, Greece, Ukraine, Israel, Libya" },
+                { offset: 3, name: "GMT +3 (AST)", countries: "Saudi Arabia, Kuwait, Qatar, Iraq, Russia, Turkey" },
+                { offset: 4, name: "GMT +4 (GST)", countries: "United Arab Emirates, Oman, Georgia, Armenia" },
+                { offset: 5.5, name: "GMT +5:30 (IST)", countries: "India, Sri Lanka" },
+                { offset: -5, name: "GMT -5 (EST)", countries: "USA (New York), Canada (Toronto), Colombia, Peru" },
+                { offset: -8, name: "GMT -8 (PST)", countries: "USA (Los Angeles), Canada (Vancouver), Mexico" }
+            ],
+
+            init() {
+                this.load();
+                this.bind();
+                setInterval(() => this.tick(), 1000);
+                this.setupContextMenu();
+                this.toast("CORE SYNC COMPLETE");
+            },
+
+            setupContextMenu() {
+                const menu = document.getElementById('contextMenu');
+                window.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    menu.style.display = 'block';
+                    menu.style.left = e.pageX + 'px';
+                    menu.style.top = e.pageY + 'px';
+                });
+                window.addEventListener('click', () => menu.style.display = 'none');
+            },
+
+            load() {
+                const s = localStorage.getItem('ultimate_clock_v11');
+                if (s) {
+                    try {
+                        const parsed = JSON.parse(s);
+                        Object.assign(this.state, parsed);
+                    } catch(e) { console.error("Corrupt data"); }
+                }
+                this.applyState();
+            },
+
+            save() {
+                // Ensure the current inputs are captured in the save state
+                this.state.timerDefaults = {
+                    h: document.getElementById('th').value,
+                    m: document.getElementById('tm').value,
+                    s: document.getElementById('ts').value
+                };
+                localStorage.setItem('ultimate_clock_v11', JSON.stringify(this.state));
+            },
+
+            applyState() {
+                const get = id => document.getElementById(id);
+                document.body.className = this.state.theme + '-mode';
+                get('bgLayer').style.backgroundImage = `url(${this.state.bg})`;
+                get('cdDate').value = this.state.countdownDate;
+                get('alTime').value = this.state.alarmTime;
+                
+                get('th').value = this.state.timerDefaults.h;
+                get('tm').value = this.state.timerDefaults.m;
+                get('ts').value = this.state.timerDefaults.s;
+
+                const baseColor = this.state.theme === 'dark' ? '255,255,255' : '15,23,42';
+                document.documentElement.style.setProperty('--glass-bg', `rgba(${baseColor},${this.state.opacity/100})`);
+                document.documentElement.style.setProperty('--glass-blur', `${this.state.blur}px`);
+                
+                get('opacityVal').innerText = this.state.opacity + '%';
+                get('opacitySlider').value = this.state.opacity;
+                get('blurVal').innerText = this.state.blur + 'px';
+                get('blurSlider').value = this.state.blur;
+                get('alVolVal').innerText = this.state.vol + '%';
+                get('alVolSlider').value = this.state.vol;
+                get('ringtoneSel').value = this.state.tone;
+
+                document.querySelectorAll('.wp-item').forEach(wp => {
+                    wp.style.backgroundImage = `url(${wp.dataset.url.replace('1000','200')})`;
+                    wp.classList.toggle('active', wp.dataset.url === this.state.bg);
+                });
+
+                // Restore Laps
+                const lapHtml = this.state.laps.map((l, i) => `<div class="lap-item"><span>Lap ${this.state.laps.length - i}</span> <strong>${l}</strong></div>`).join('');
+                get('laps').innerHTML = lapHtml;
+            },
+
+            tick() {
+                const now = new Date();
+                const h = now.getHours().toString().padStart(2, '0');
+                const m = now.getMinutes().toString().padStart(2, '0');
+                document.getElementById('currentTime').innerText = `${h}:${m}`;
+                document.getElementById('currentDate').innerText = now.toLocaleDateString(undefined, { weekday:'long', month:'short', day:'numeric' });
+
+                if (this.state.alarmTime === `${h}:${m}` && now.getSeconds() === 0) this.playAlert();
+                this.renderWorld();
+                this.updateCountdown();
+            },
+
+            updateCountdown() {
+                const disp = document.getElementById('cdDisp');
+                if(!this.state.countdownDate) {
+                    disp.innerHTML = `<div>00<span class="countdown-unit">Days</span></div><div>00<span class="countdown-unit">Hrs</span></div><div>00<span class="countdown-unit">Min</span></div>`;
+                    return;
+                }
+                const target = new Date(this.state.countdownDate);
+                const diff = target - new Date();
+                if(diff < 0) {
+                    disp.innerHTML = `<span style="font-size: 14px; opacity:0.5; font-weight:800;">TARGET REACHED</span>`;
+                    return;
+                }
+                const d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000), m = Math.floor((diff % 3600000) / 60000);
+                disp.innerHTML = `<div>${d.toString().padStart(2,'0')}<span class="countdown-unit">Days</span></div><div>${h.toString().padStart(2,'0')}<span class="countdown-unit">Hrs</span></div><div>${m.toString().padStart(2,'0')}<span class="countdown-unit">Min</span></div>`;
+            },
+
+            renderWorld() {
+                const now = new Date();
+                const listEl = document.getElementById('worldList');
+                if (document.getElementById('world').classList.contains('active')) {
+                    if (listEl.children.length === 0) {
+                        listEl.innerHTML = this.zones.map(z => {
+                            const t = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (z.offset * 3600000));
+                            return `<div class="world-item"><div class="zone-info"><strong>${z.name}</strong><span>${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}</span></div><div class="countries-list">${z.countries}</div></div>`;
+                        }).join('');
+                    } else {
+                        this.zones.forEach((z, i) => {
+                            const t = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (z.offset * 3600000));
+                            listEl.children[i].querySelector('span').innerText = `${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`;
+                        });
+                    }
+                }
+            },
+
+            bind() {
+                const get = id => document.getElementById(id);
+                
+                // Auto-save triggers
+                get('opacitySlider').oninput = e => {
+                    this.state.opacity = e.target.value;
+                    get('opacityVal').innerText = e.target.value + '%';
+                    this.applyState(); this.save();
+                };
+                get('blurSlider').oninput = e => {
+                    this.state.blur = e.target.value;
+                    get('blurVal').innerText = e.target.value + 'px';
+                    this.applyState(); this.save();
+                };
+                get('alVolSlider').oninput = e => {
+                    this.state.vol = e.target.value;
+                    get('alVolVal').innerText = e.target.value + '%';
+                    this.save();
+                };
+                get('ringtoneSel').onchange = e => { this.state.tone = e.target.value; this.save(); };
+                get('cdDate').onchange = e => { this.state.countdownDate = e.target.value; this.save(); };
+                get('alTime').onchange = e => { this.state.alarmTime = e.target.value; this.save(); };
+
+                get('saveBtn').onclick = () => { this.save(); this.toast("CONFIG HARD-SAVED"); };
+
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.onclick = () => {
+                        document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
+                        btn.classList.add('active');
+                        get(btn.dataset.tab).classList.add('active');
+                    };
+                });
+
+                document.querySelectorAll('.wp-item').forEach(wp => {
+                    wp.onclick = () => { this.state.bg = wp.dataset.url; this.applyState(); this.save(); };
+                });
+
+                get('tBtn').onclick = () => this.toggleTimer();
+                get('tResetBtn').onclick = () => this.resetTimer();
+                get('swBtn').onclick = () => this.toggleSW();
+                get('swLapBtn').onclick = () => this.addLap();
+                get('swResetBtn').onclick = () => this.resetSW();
+                get('alSetBtn').onclick = () => { this.state.alarmTime = get('alTime').value; this.save(); this.toast("ALARM SET"); };
+            },
+
+            toggleTimer() {
+                const get = id => document.getElementById(id);
+                if(this.runtime.tInt) {
+                    clearInterval(this.runtime.tInt); this.runtime.tInt = null;
+                    get('tBtn').innerText = "RESUME";
+                } else {
+                    if(this.runtime.tRem <= 0) {
+                        this.runtime.tRem = (parseInt(get('th').value)||0)*3600 + (parseInt(get('tm').value)||0)*60 + (parseInt(get('ts').value)||0);
+                        this.runtime.tTotal = this.runtime.tRem;
+                    }
+                    if(this.runtime.tRem <= 0) return;
+                    get('tInp').style.display = 'none'; get('tDisp').style.display = 'block'; get('tProgCont').style.display = 'block'; get('tBtn').innerText = "PAUSE";
+                    this.runtime.tInt = setInterval(() => {
+                        this.runtime.tRem--;
+                        const h = Math.floor(this.runtime.tRem / 3600).toString().padStart(2,'0'), m = Math.floor((this.runtime.tRem % 3600) / 60).toString().padStart(2,'0'), s = (this.runtime.tRem % 60).toString().padStart(2,'0');
+                        get('tDisp').innerText = `${h}:${m}:${s}`;
+                        get('tProg').style.width = ((this.runtime.tRem / this.runtime.tTotal) * 100) + '%';
+                        if(this.runtime.tRem <= 0) { this.resetTimer(); this.playAlert(); }
+                    }, 1000);
+                }
+            },
+
+            resetTimer() {
+                clearInterval(this.runtime.tInt); this.runtime.tInt = null; this.runtime.tRem = 0;
+                document.getElementById('tInp').style.display = 'grid'; document.getElementById('tDisp').style.display = 'none'; document.getElementById('tProgCont').style.display = 'none'; document.getElementById('tBtn').innerText = "INITIALIZE";
+            },
+
+            toggleSW() {
+                const btn = document.getElementById('swBtn');
+                if(this.runtime.swInt) {
+                    clearInterval(this.runtime.swInt); this.runtime.swInt = null;
+                    btn.innerText = "RESUME";
+                } else {
+                    const start = Date.now() - this.runtime.swMs;
+                    this.runtime.swInt = setInterval(() => {
+                        this.runtime.swMs = Date.now() - start;
+                        const d = new Date(this.runtime.swMs);
+                        document.getElementById('swDisp').innerText = d.toISOString().substr(11, 8) + "." + Math.floor(d.getMilliseconds()/10).toString().padStart(2,'0');
+                    }, 40);
+                    btn.innerText = "PAUSE";
+                }
+            },
+
+            addLap() {
+                if(!this.runtime.swMs) return;
+                const d = new Date(this.runtime.swMs);
+                const time = d.toISOString().substr(11, 8) + "." + Math.floor(d.getMilliseconds()/10).toString().padStart(2,'0');
+                this.state.laps.unshift(time);
+                this.save();
+                this.applyState();
+            },
+
+            resetSW() {
+                clearInterval(this.runtime.swInt); this.runtime.swInt = null; this.runtime.swMs = 0; this.state.laps = [];
+                document.getElementById('swDisp').innerText = "00:00:00.00"; document.getElementById('swBtn').innerText = "START"; document.getElementById('laps').innerHTML = "";
+                this.save();
+            },
+
+            setTheme(mode) { this.state.theme = mode; this.applyState(); this.save(); },
+
+            playAlert() {
+                this.audio.src = this.state.tone; this.audio.volume = this.state.vol / 100; this.audio.play();
+                this.toast("ALERT TRIGGERED");
+            },
+
+            toast(m) {
+                const t = document.getElementById('toast'); t.innerText = m;
+                t.style.transform = 'translateY(0)';
+                setTimeout(() => t.style.transform = 'translateY(150px)', 2000);
+            }
+        };
+
+        window.onload = () => app.init();
+    </script>
+</body>
+</html>
