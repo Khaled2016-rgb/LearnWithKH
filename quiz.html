@@ -1,14 +1,13 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <meta name="description" content="Ultimate Knowledge Quiz with
-Liquid Glass Style">
-    <title>Ultimate Knowledge Quiz (Liquid Glass Edition)</title>
+    <meta name="description" content="Ultimate Knowledge Quiz with Liquid Glass Style">
+    <title>Ultimate Knowledge Quiz </title>
     <!-- Updated Icon -->
-    <link rel="icon"href="https://cdn-icons-png.flaticon.com/512/2784/2784530.png">
-
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2784/2784530.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -17,16 +16,12 @@ Liquid Glass Style">
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     keyframes: {
                         'blob-move': {
-                            '0%, 100%': { transform: 'translate(0, 0)
-scale(1)' },
-                            '33%': { transform: 'translate(8vw, 4vh)
-scale(1.1) rotate(5deg)' },
-                            '66%': { transform: 'translate(-4vw, -8vh)
-scale(0.95) rotate(-5deg)' },
+                            '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+                            '33%': { transform: 'translate(8vw, 4vh) scale(1.1) rotate(5deg)' },
+                            '66%': { transform: 'translate(-4vw, -8vh) scale(0.95) rotate(-5deg)' },
                         },
                     },
-                    animation: { 'blob-move': 'blob-move 20s
-ease-in-out infinite' }
+                    animation: { 'blob-move': 'blob-move 20s ease-in-out infinite' }
                 }
             }
         }
@@ -60,13 +55,9 @@ ease-in-out infinite' }
             will-change: transform;
         }
 
-        #blob1 { width: 60vw; height: 60vw; background: #6366f1; top:
--10%; left: -10%; animation: blob-move 18s infinite alternate; }
-        #blob2 { width: 70vw; height: 70vw; background: #10b981;
-bottom: -15%; right: -10%; animation: blob-move 22s infinite
-alternate-reverse; }
-        #blob3 { width: 50vw; height: 50vw; background: #f43f5e; top:
-40%; left: 30%; animation: blob-move 25s infinite linear; }
+        #blob1 { width: 60vw; height: 60vw; background: #6366f1; top: -10%; left: -10%; animation: blob-move 18s infinite alternate; }
+        #blob2 { width: 70vw; height: 70vw; background: #10b981; bottom: -15%; right: -10%; animation: blob-move 22s infinite alternate-reverse; }
+        #blob3 { width: 50vw; height: 50vw; background: #f43f5e; top: 40%; left: 30%; animation: blob-move 25s infinite linear; }
 
         /* Liquid Glass Card */
         .glass-card {
@@ -93,10 +84,8 @@ alternate-reverse; }
 
         .glass-button:active:not(:disabled) { transform: translateY(0); }
 
-        .correct-choice { background: rgba(34, 197, 94, 0.4)
-!important; border-color: #4ade80 !important; }
-        .incorrect-choice { background: rgba(239, 68, 68, 0.4)
-!important; border-color: #f87171 !important; }
+        .correct-choice { background: rgba(34, 197, 94, 0.4) !important; border-color: #4ade80 !important; }
+        .incorrect-choice { background: rgba(239, 68, 68, 0.4) !important; border-color: #f87171 !important; }
 
         #lockScreen {
             z-index: 10000;
@@ -116,36 +105,28 @@ alternate-reverse; }
 
     <!-- Lock Controls -->
     <div class="fixed top-6 left-6 z-[50]">
-        <button id="lockButton" class="glass-button px-5 py-2
-rounded-full text-sm font-medium">
+        <button id="lockButton" class="glass-button px-5 py-2 rounded-full text-sm font-medium">
             Lock App
         </button>
     </div>
 
-    <div id="lockScreen" class="fixed inset-0 flex flex-col
-justify-center items-center text-center p-6">
-        <h2 class="text-3xl md:text-5xl font-bold mb-4
-animate-pulse">Device Locked</h2>
-        <p class="text-lg text-white/60">Press and hold anywhere for 2
-seconds to unlock</p>
+    <div id="lockScreen" class="fixed inset-0 flex flex-col justify-center items-center text-center p-6">
+        <h2 class="text-3xl md:text-5xl font-bold mb-4 animate-pulse">Device Locked</h2>
+        <p class="text-lg text-white/60">Press and hold anywhere for 2 seconds to unlock</p>
     </div>
 
     <!-- Quiz Core -->
-    <main id="quiz-container" class="glass-card w-full max-w-xl
-rounded-3xl p-6 md:p-10 relative overflow-hidden">
+    <main id="quiz-container" class="glass-card w-full max-w-xl rounded-3xl p-6 md:p-10 relative overflow-hidden">
         <div class="relative z-10">
             <header class="mb-8">
-                <h1 class="text-3xl font-black mb-2
-tracking-tight">Knowledge Quiz</h1>
+                <h1 class="text-3xl font-black mb-2 tracking-tight">Knowledge Quiz</h1>
                 <div id="progress-container" class="space-y-2">
-                    <div class="flex justify-between text-xs font-bold
-uppercase tracking-widest text-white/50">
+                    <div class="flex justify-between text-xs font-bold uppercase tracking-widest text-white/50">
                         <span id="subject-label">Subject</span>
                         <span id="progress-text">0/0</span>
                     </div>
                     <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                        <div id="progress-fill" class="h-full
-bg-indigo-500 transition-all duration-500 w-0"></div>
+                        <div id="progress-fill" class="h-full bg-indigo-500 transition-all duration-500 w-0"></div>
                     </div>
                 </div>
             </header>
@@ -155,10 +136,7 @@ bg-indigo-500 transition-all duration-500 w-0"></div>
             </div>
 
             <footer class="mt-8">
-                <button id="next-btn" onclick="handleNext()" disabled
-class="glass-button w-full py-4 rounded-2xl font-bold uppercase
-tracking-widest text-sm disabled:opacity-30
-disabled:cursor-not-allowed">
+                <button id="next-btn" onclick="handleNext()" disabled class="glass-button w-full py-4 rounded-2xl font-bold uppercase tracking-widest text-sm disabled:opacity-30 disabled:cursor-not-allowed">
                     Next Question
                 </button>
             </footer>
@@ -188,29 +166,18 @@ disabled:cursor-not-allowed">
             const math = Array.from({length: 15}, (_, i) => ({
                 subject: "Mathematics",
                 question: `Evaluate: ${i+5} × ${i+2}`,
-                options: shuffle([`${(i+5)*(i+2)}`, `${(i+5)+(i+2)}`,
-`${(i+5)*2}`, `${(i+2)*5}`]),
+                options: shuffle([`${(i+5)*(i+2)}`, `${(i+5)+(i+2)}`, `${(i+5)*2}`, `${(i+2)*5}`]),
                 answer: `${(i+5)*(i+2)}`
             }));
 
             const general = [
-                { subject: "Science", question: "Which element has the
-atomic symbol 'Au'?", options: ["Silver", "Gold", "Copper", "Iron"],
-answer: "Gold" },
-                { subject: "Geography", question: "What is the
-smallest country in the world?", options: ["Monaco", "Malta", "Vatican
-City", "San Marino"], answer: "Vatican City" },
-                { subject: "History", question: "Who was the first
-woman to win a Nobel Prize?", options: ["Marie Curie", "Mother
-Teresa", "Jane Addams", "Rosa Parks"], answer: "Marie Curie" },
-                { subject: "Tech", question: "What does CPU stand
-for?", options: ["Central Process Unit", "Computer Personal Unit",
-"Central Processing Unit", "Central Peripheral Unit"], answer:
-"Central Processing Unit" }
+                { subject: "Science", question: "Which element has the atomic symbol 'Au'?", options: ["Silver", "Gold", "Copper", "Iron"], answer: "Gold" },
+                { subject: "Geography", question: "What is the smallest country in the world?", options: ["Monaco", "Malta", "Vatican City", "San Marino"], answer: "Vatican City" },
+                { subject: "History", question: "Who was the first woman to win a Nobel Prize?", options: ["Marie Curie", "Mother Teresa", "Jane Addams", "Rosa Parks"], answer: "Marie Curie" },
+                { subject: "Tech", question: "What does CPU stand for?", options: ["Central Process Unit", "Computer Personal Unit", "Central Processing Unit", "Central Peripheral Unit"], answer: "Central Processing Unit" }
             ];
 
-            state.quizData = shuffle([...math, ...general]).slice(0,
-10); // Limit to 10 for better flow
+            state.quizData = shuffle([...math, ...general]).slice(0, 10); // Limit to 10 for better flow
             renderQuestion();
         }
 
@@ -222,18 +189,14 @@ for?", options: ["Central Process Unit", "Computer Personal Unit",
             const q = state.quizData[state.currentIndex];
             elements.nextBtn.disabled = true;
             elements.subject.textContent = q.subject;
-            elements.progressText.textContent = `${state.currentIndex
-+ 1} / ${state.quizData.length}`;
-            elements.progressFill.style.width =
-`${((state.currentIndex + 1) / state.quizData.length) * 100}%`;
+            elements.progressText.textContent = `${state.currentIndex + 1} / ${state.quizData.length}`;
+            elements.progressFill.style.width = `${((state.currentIndex + 1) / state.quizData.length) * 100}%`;
 
             elements.content.innerHTML = `
-                <h2 class="text-2xl font-bold mb-6
-leading-tight">${q.question}</h2>
+                <h2 class="text-2xl font-bold mb-6 leading-tight">${q.question}</h2>
                 <div class="grid gap-3">
                     ${q.options.map(opt => `
-                        <button class="glass-button text-left p-4
-rounded-xl transition-all" onclick="checkAnswer(this, '${opt}')">
+                        <button class="glass-button text-left p-4 rounded-xl transition-all" onclick="checkAnswer(this, '${opt}')">
                             ${opt}
                         </button>
                     `).join('')}
@@ -252,8 +215,7 @@ rounded-xl transition-all" onclick="checkAnswer(this, '${opt}')">
             } else {
                 btn.classList.add('incorrect-choice');
                 btns.forEach(b => {
-                    if (b.textContent.trim() === q.answer)
-b.classList.add('correct-choice');
+                    if (b.textContent.trim() === q.answer) b.classList.add('correct-choice');
                 });
             }
             elements.nextBtn.disabled = false;
@@ -269,19 +231,14 @@ b.classList.add('correct-choice');
         }
 
         function showResults() {
-            const percent = Math.round((state.score /
-state.quizData.length) * 100);
+            const percent = Math.round((state.score / state.quizData.length) * 100);
             elements.container.innerHTML = `
                 <div class="text-center py-8">
                     <div class="text-6xl mb-6">🏆</div>
                     <h2 class="text-4xl font-black mb-2">Quiz Complete!</h2>
-                    <p class="text-white/60 mb-8 font-medium">You
-scored ${state.score} out of ${state.quizData.length}</p>
-                    <div class="text-5xl font-black text-indigo-400
-mb-10">${percent}%</div>
-                    <button onclick="location.reload()"
-class="glass-button px-10 py-4 rounded-2xl font-bold uppercase
-tracking-widest text-sm">
+                    <p class="text-white/60 mb-8 font-medium">You scored ${state.score} out of ${state.quizData.length}</p>
+                    <div class="text-5xl font-black text-indigo-400 mb-10">${percent}%</div>
+                    <button onclick="location.reload()" class="glass-button px-10 py-4 rounded-2xl font-bold uppercase tracking-widest text-sm">
                         Try Again
                     </button>
                 </div>
@@ -290,9 +247,8 @@ tracking-widest text-sm">
 
         // Lock Logic
         let lockTimer;
-        elements.lockBtn.onclick = () => {
-elements.lockScreen.style.display = 'flex'; state.isLocked = true; };
-
+        elements.lockBtn.onclick = () => { elements.lockScreen.style.display = 'flex'; state.isLocked = true; };
+        
         const unlock = () => {
             clearTimeout(lockTimer);
             if (state.isLocked) {
@@ -315,4 +271,3 @@ elements.lockScreen.style.display = 'flex'; state.isLocked = true; };
     </script>
 </body>
 </html>
-
