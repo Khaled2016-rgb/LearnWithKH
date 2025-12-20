@@ -74,6 +74,45 @@
             cursor: text;
         }
 
+        /* --- TIME DISPLAY IN TOP LEFT --- */
+        .time-display-top {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            text-align: left;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            min-width: 180px;
+            animation: iosFutureEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+            animation-delay: 0.1s;
+        }
+
+        #currentTimeTop {
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0;
+            line-height: 1;
+            letter-spacing: -1px;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        #currentDateTop {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 5px 0 0 0;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         /* --- iOS 26.2 ENTRANCE ANIMATIONS --- */
         /* A futuristic, high-blur, fluid entrance style */
         @keyframes iosFutureEntrance {
@@ -556,6 +595,22 @@
             .profile-pic-container { top: 20px; right: 15px; }
             #profile-pic { width: 45px; height: 45px; }
             .menu-button { width: 45px; height: 45px; }
+            
+            /* Adjust time display for mobile */
+            .time-display-top {
+                top: 15px;
+                left: 15px;
+                padding: 12px 15px;
+                min-width: 150px;
+            }
+            
+            #currentTimeTop {
+                font-size: 1.6rem;
+            }
+            
+            #currentDateTop {
+                font-size: 0.75rem;
+            }
         }
     </style>
 </head>
@@ -565,6 +620,12 @@
     <div class="liquid-blob blob-1"></div>
     <div class="liquid-blob blob-2"></div>
     <div class="liquid-blob blob-3"></div>
+
+    <!-- Time Display in Top Left -->
+    <div class="time-display-top">
+        <div id="currentTimeTop">8:05 PM</div>
+        <div id="currentDateTop">SYNCING...</div>
+    </div>
 
     <!-- Video Background (Preserved as fallback/option) -->
     <video autoplay muted loop class="video-background">
@@ -631,7 +692,6 @@
                     <h2>Play Games</h2>
                     <p>Play Games and have fun!</p>
                 </div>
-            
 
             <!-- QR Section -->
             <div class="qr-section">
@@ -674,6 +734,36 @@
     <div class="toast" id="toast"></div>
 
     <script>
+        // Time display logic from 2nd code - MODIFIED FOR 12-HOUR FORMAT
+        function updateTimeDisplay() {
+            const now = new Date();
+            
+            // Get hours in 12-hour format
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            // Convert to 12-hour format
+            hours = hours % 12;
+            hours = hours ? hours : 12; // If hour is 0, make it 12
+            
+            // Update time display
+            document.getElementById('currentTimeTop').innerText = `${hours}:${minutes} ${ampm}`;
+            
+            // Update date display
+            const options = { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+            };
+            document.getElementById('currentDateTop').innerText = now.toLocaleDateString(undefined, options);
+        }
+
+        // Initialize time display
+        updateTimeDisplay();
+        setInterval(updateTimeDisplay, 1000);
+
         // Menu toggle functionality
         const menuButton = document.getElementById('menuButton');
         const menuContent = document.getElementById('menuContent');
@@ -886,4 +976,4 @@
         });
     </script>
 </body>
-</html>
+</html> 
