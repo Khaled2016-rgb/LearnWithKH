@@ -1,415 +1,318 @@
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <meta name="description" content="Ultimate Knowledge Quiz with Liquid Glass Style">
-        <title>Ultimate Knowledge Quiz (Liquid Glass Edition)</title>
-        <link rel="icon" href="https://cdn-icons-png.freepik.com/256/7128/7128236.png?semt=ais_hybrid">
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Ultimate Knowledge Quiz with
+Liquid Glass Style">
+    <title>Ultimate Knowledge Quiz (Liquid Glass Edition)</title>
+    <!-- Updated Icon -->
+    <link rel="icon"href="https://cdn-icons-png.flaticon.com/512/2784/2784530.png">
 
-        <!-- Tailwind CSS CDN for utility classes -->
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script>
-            tailwind.config = {
-                theme: {
-                    extend: {
-                        fontFamily: {
-                            sans: ['Inter', 'sans-serif'],
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    keyframes: {
+                        'blob-move': {
+                            '0%, 100%': { transform: 'translate(0, 0)
+scale(1)' },
+                            '33%': { transform: 'translate(8vw, 4vh)
+scale(1.1) rotate(5deg)' },
+                            '66%': { transform: 'translate(-4vw, -8vh)
+scale(0.95) rotate(-5deg)' },
                         },
-                        keyframes: {
-                            'blob-move': {
-                                '0%': { transform: 'translate(0, 0) scale(1)' },
-                                '33%': { transform: 'translate(10vw, 5vh) scale(1.15) rotate(10deg)' },
-                                '66%': { transform: 'translate(-5vw, -10vh) scale(0.9) rotate(-10deg)' },
-                                '100%': { transform: 'translate(0, 0) scale(1)' },
-                            },
-                        },
-                        animation: {
-                            'blob-move': 'blob-move 25s ease-in-out infinite alternate',
-                        }
-                    }
+                    },
+                    animation: { 'blob-move': 'blob-move 20s
+ease-in-out infinite' }
                 }
             }
-        </script>
-        <style>
-            /* Base styles and Container Setup */
-            body {
-                font-family: 'Inter', sans-serif;
-                min-height: 100vh;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 1rem;
-                color: white; 
-                background: #111827; /* Dark base color to let the blobs shine */
-                transition: all 0.3s ease;
-            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: #0f172a;
+            color: white;
+            overflow-x: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-            /* --- Color Rippling Background (Animated Blobs) --- */
-            .rippling-background {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
-                z-index: -1; 
-            }
+        /* Optimized Background Blobs */
+        .rippling-background {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
 
-            .blob {
-                position: absolute;
-                border-radius: 50%;
-                opacity: 0.5; /* High opacity for a liquid, dense color */
-                filter: blur(150px); /* Heavy blur for the rippling/liquid effect */
-                transition: background 0.5s ease;
-            }
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.45;
+            will-change: transform;
+        }
 
-            #blob1 {
-                width: 700px;
-                height: 700px;
-                background: #6366f1; /* Indigo */
-                top: 5%;
-                left: 5%;
-                animation: blob-move 20s infinite alternate;
-                animation-delay: 0s;
-            }
+        #blob1 { width: 60vw; height: 60vw; background: #6366f1; top:
+-10%; left: -10%; animation: blob-move 18s infinite alternate; }
+        #blob2 { width: 70vw; height: 70vw; background: #10b981;
+bottom: -15%; right: -10%; animation: blob-move 22s infinite
+alternate-reverse; }
+        #blob3 { width: 50vw; height: 50vw; background: #f43f5e; top:
+40%; left: 30%; animation: blob-move 25s infinite linear; }
 
-            #blob2 {
-                width: 900px;
-                height: 900px;
-                background: #34d399; /* Emerald Green */
-                bottom: -150px;
-                right: -150px;
-                animation: blob-move 25s infinite alternate;
-                animation-delay: -5s;
-            }
+        /* Liquid Glass Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
 
-            #blob3 {
-                width: 600px;
-                height: 600px;
-                background: #f87171; /* Red/Pink */
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                animation: blob-move 18s infinite alternate;
-                animation-delay: -10s;
-            }
+        .glass-button {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.2s ease;
+        }
 
-            /* --- Liquid Glass Effect (iOS 26.2 Style) --- */
-            .glass-card {
-                /* Core Glass Properties */
-                background: rgba(255, 255, 255, 0.08); /* Subtle background color */
-                backdrop-filter: blur(25px) saturate(180%); /* Strong blur and saturation */
-                -webkit-backdrop-filter: blur(25px) saturate(180%);
-                border: 1px solid rgba(255, 255, 255, 0.3); /* Clear white border */
-                box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); /* Stronger outer shadow */
-                
-                /* Enhanced Aesthetics */
-                position: relative;
-                z-index: 10;
-                overflow: hidden;
-                /* Subtle tilt on hover */
-                transition: transform 0.3s ease-in-out;
-                transform: perspective(1000px) rotateX(0deg);
-            }
-            
-            .glass-card:hover {
-                transform: perspective(1000px) rotateX(1deg) scale(1.01);
-            }
+        .glass-button:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
 
-            /* Inner highlight/shine for 'liquid' luminosity */
-            .glass-card::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                border-radius: inherit;
-                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4), /* Inner border highlight */
-                            inset 0 0 30px rgba(255, 255, 255, 0.05); /* Soft inner glow */
-                pointer-events: none;
-                z-index: 10;
-            }
+        .glass-button:active:not(:disabled) { transform: translateY(0); }
 
-            /* Liquid Glass Buttons */
-            .glass-button {
-                background: rgba(255, 255, 255, 0.15);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.5);
-                color: #ffffff;
-                font-weight: 600;
-                transition: all 0.3s ease, transform 0.1s ease;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-                position: relative;
-            }
+        .correct-choice { background: rgba(34, 197, 94, 0.4)
+!important; border-color: #4ade80 !important; }
+        .incorrect-choice { background: rgba(239, 68, 68, 0.4)
+!important; border-color: #f87171 !important; }
 
-            .glass-button:hover:not(:disabled) {
-                background: rgba(255, 255, 255, 0.4); 
-                transform: translateY(-3px);
-                box-shadow: 0 6px 25px rgba(255, 255, 255, 0.2);
-            }
+        #lockScreen {
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(15px);
+            display: none;
+        }
+    </style>
+</head>
+<body class="p-4">
 
-            .glass-button:disabled {
-                background: rgba(100, 100, 100, 0.1);
-                border-color: rgba(100, 100, 100, 0.4);
-                color: #ccc;
-                transform: none;
-                box-shadow: none;
-                cursor: not-allowed;
-                display: none;
-            }
+    <div class="rippling-background">
+        <div id="blob1" class="blob"></div>
+        <div id="blob2" class="blob"></div>
+        <div id="blob3" class="blob"></div>
+    </div>
 
-            /* Custom text colors for feedback */
-            .correct { color: #84cc16; font-weight: bold; }
-            .incorrect { color: #ef4444; font-weight: bold; }
-                
-            /* Lock Screen Styling */
-            #lockScreen {
-                z-index: 99999;
-                background: rgba(0, 0, 0, 0.95);
-                font-size: 2.5em;
-                text-shadow: 0 0 10px #ffffff;
-                animation: pulse 2s infinite;
-            }
+    <!-- Lock Controls -->
+    <div class="fixed top-6 left-6 z-[50]">
+        <button id="lockButton" class="glass-button px-5 py-2
+rounded-full text-sm font-medium">
+            Lock App
+        </button>
+    </div>
 
-            @keyframes pulse {
-                0% { opacity: 0.8; }
-                50% { opacity: 1; }
-                100% { opacity: 0.8; }
-            }
-        </style>
-    </head>
-    <body class="p-4 md:p-8">
+    <div id="lockScreen" class="fixed inset-0 flex flex-col
+justify-center items-center text-center p-6">
+        <h2 class="text-3xl md:text-5xl font-bold mb-4
+animate-pulse">Device Locked</h2>
+        <p class="text-lg text-white/60">Press and hold anywhere for 2
+seconds to unlock</p>
+    </div>
 
-        <!-- --- Color Rippling Background Container --- -->
-        <div class="rippling-background">
-            <div id="blob1" class="blob"></div>
-            <div id="blob2" class="blob"></div>
-            <div id="blob3" class="blob"></div>
-        </div>
-        <!-- ----------------------------------------- -->
-
-        <!-- Lock Button and Screen -->
-        <div class="fixed top-4 left-4 z-[10000]">
-            <button id="lockButton" class="glass-button text-sm md:text-base px-4 py-2 rounded-full shadow-lg hover:shadow-xl">
-                Lock Website
-            </button>
-        </div>
-
-        <div id="lockScreen" class="fixed inset-0 hidden justify-center items-center text-white text-center">
-            Press and hold anywhere to unlock
-        </div>
-        
-        <!-- Quiz Container (Liquid Glass Card) -->
-        <div id="quiz-container" class="glass-card w-full max-w-xl p-6 md:p-10 rounded-2xl text-center shadow-2xl transition-all duration-500">
-            <h1 class="text-3xl md:text-4xl font-extrabold mb-4 text-white drop-shadow-lg">
-                Ultimate Knowledge Quiz
-            </h1>
-
-            <!-- Progress Bar -->
-            <div class="mb-6">
-                <div id="progress-bar" class="h-2 bg-white/20 rounded-full mx-auto w-full max-w-lg overflow-hidden">
-                    <div id="progress-fill" class="h-full bg-indigo-400/80 transition-all duration-300 ease-in-out shadow-lg"></div>
+    <!-- Quiz Core -->
+    <main id="quiz-container" class="glass-card w-full max-w-xl
+rounded-3xl p-6 md:p-10 relative overflow-hidden">
+        <div class="relative z-10">
+            <header class="mb-8">
+                <h1 class="text-3xl font-black mb-2
+tracking-tight">Knowledge Quiz</h1>
+                <div id="progress-container" class="space-y-2">
+                    <div class="flex justify-between text-xs font-bold
+uppercase tracking-widest text-white/50">
+                        <span id="subject-label">Subject</span>
+                        <span id="progress-text">0/0</span>
+                    </div>
+                    <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div id="progress-fill" class="h-full
+bg-indigo-500 transition-all duration-500 w-0"></div>
+                    </div>
                 </div>
-                <p id="progress" class="text-lg mt-2 text-white/80">Progress: 0/0</p>
+            </header>
+
+            <div id="question-content">
+                <!-- Dynamic Content -->
             </div>
 
-            <div id="question-container" class="space-y-6">
-                <!-- Questions load here -->
-            </div>
-
-            <!-- Next Button -->
-            <div class="mt-8">
-                <button id="next-btn" onclick="nextQuestion()" disabled class="glass-button w-full md:w-auto px-8 py-3 rounded-xl shadow-xl hover:shadow-2xl font-bold uppercase tracking-wider">
+            <footer class="mt-8">
+                <button id="next-btn" onclick="handleNext()" disabled
+class="glass-button w-full py-4 rounded-2xl font-bold uppercase
+tracking-widest text-sm disabled:opacity-30
+disabled:cursor-not-allowed">
                     Next Question
                 </button>
-            </div>
+            </footer>
         </div>
-        
-        <!-- Main JavaScript Logic -->
-        <script>
-            // --- Quiz Data and State ---
-            let quizData = [];
-            let currentQuestionIndex = 0;
-            let score = 0;
+    </main>
 
-            // --- Utility Functions ---
-            function shuffle(array) {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-                return array;
+    <script>
+        const state = {
+            quizData: [],
+            currentIndex: 0,
+            score: 0,
+            isLocked: false
+        };
+
+        const elements = {
+            content: document.getElementById('question-content'),
+            nextBtn: document.getElementById('next-btn'),
+            subject: document.getElementById('subject-label'),
+            progressText: document.getElementById('progress-text'),
+            progressFill: document.getElementById('progress-fill'),
+            lockScreen: document.getElementById('lockScreen'),
+            lockBtn: document.getElementById('lockButton'),
+            container: document.getElementById('quiz-container')
+        };
+
+        function initQuiz() {
+            const math = Array.from({length: 15}, (_, i) => ({
+                subject: "Mathematics",
+                question: `Evaluate: ${i+5} × ${i+2}`,
+                options: shuffle([`${(i+5)*(i+2)}`, `${(i+5)+(i+2)}`,
+`${(i+5)*2}`, `${(i+2)*5}`]),
+                answer: `${(i+5)*(i+2)}`
+            }));
+
+            const general = [
+                { subject: "Science", question: "Which element has the
+atomic symbol 'Au'?", options: ["Silver", "Gold", "Copper", "Iron"],
+answer: "Gold" },
+                { subject: "Geography", question: "What is the
+smallest country in the world?", options: ["Monaco", "Malta", "Vatican
+City", "San Marino"], answer: "Vatican City" },
+                { subject: "History", question: "Who was the first
+woman to win a Nobel Prize?", options: ["Marie Curie", "Mother
+Teresa", "Jane Addams", "Rosa Parks"], answer: "Marie Curie" },
+                { subject: "Tech", question: "What does CPU stand
+for?", options: ["Central Process Unit", "Computer Personal Unit",
+"Central Processing Unit", "Central Peripheral Unit"], answer:
+"Central Processing Unit" }
+            ];
+
+            state.quizData = shuffle([...math, ...general]).slice(0,
+10); // Limit to 10 for better flow
+            renderQuestion();
+        }
+
+        function shuffle(arr) {
+            return arr.sort(() => Math.random() - 0.5);
+        }
+
+        function renderQuestion() {
+            const q = state.quizData[state.currentIndex];
+            elements.nextBtn.disabled = true;
+            elements.subject.textContent = q.subject;
+            elements.progressText.textContent = `${state.currentIndex
++ 1} / ${state.quizData.length}`;
+            elements.progressFill.style.width =
+`${((state.currentIndex + 1) / state.quizData.length) * 100}%`;
+
+            elements.content.innerHTML = `
+                <h2 class="text-2xl font-bold mb-6
+leading-tight">${q.question}</h2>
+                <div class="grid gap-3">
+                    ${q.options.map(opt => `
+                        <button class="glass-button text-left p-4
+rounded-xl transition-all" onclick="checkAnswer(this, '${opt}')">
+                            ${opt}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function checkAnswer(btn, choice) {
+            const q = state.quizData[state.currentIndex];
+            const btns = elements.content.querySelectorAll('button');
+            btns.forEach(b => b.disabled = true);
+
+            if (choice === q.answer) {
+                btn.classList.add('correct-choice');
+                state.score++;
+            } else {
+                btn.classList.add('incorrect-choice');
+                btns.forEach(b => {
+                    if (b.textContent.trim() === q.answer)
+b.classList.add('correct-choice');
+                });
             }
+            elements.nextBtn.disabled = false;
+        }
 
-            function generateQuestions() {
-                const questions = [];
-                
-                // Math Questions
-                for (let i = 1; i <= 20; i++) {
-                    questions.push({
-                        subject: "Math",
-                        question: `What is ${i} × ${i}?`,
-                        options: shuffle([`${i*11}`, `${i * 2}`, `${i * i}`, `${i + 10}`]),
-                        answer: `${i * i}`
-                    });
-                }
-
-                // Other Subjects
-                const science = [
-                    { question: "What is the chemical symbol for water?", options: ["O₂", "CO₂", "H₂O", "CH₄"], answer: "H₂O" },
-                    { question: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter", "Saturn"], answer: "Mars" },
-                    { question: "What is the powerhouse of the cell?", options: ["Nucleus", "Ribosome", "Mitochondria", "Golgi Apparatus"], answer: "Mitochondria" }
-                ];
-                const humanities = [
-                    { question: "Who wrote 'Romeo and Juliet'?", options: ["Shakespeare", "Dickens", "Austen", "Hemingway"], answer: "Shakespeare" },
-                    { question: "Who built pyramids in Egypt?", options: ["Romans", "Greeks", "Egyptians", "Mayans"], answer: "Egyptians" },
-                    { question: "First US president?", options: ["Lincoln", "George Washington", "Jefferson", "Roosevelt"], answer: "George Washington" }
-                ];
-                const general = [
-                    { question: "Capital of Japan?", options: ["Beijing", "Seoul", "Tokyo", "Bangkok"], answer: "Tokyo" },
-                    { question: "How many continents?", options: ["Five", "Six", "Seven", "Eight"], answer: "Seven" },
-                    { question: "Largest ocean?", options: ["Atlantic", "Pacific", "Indian", "Arctic"], answer: "Pacific" }                    
-                ];
-                
-                questions.push(...science, ...humanities, ...general);
-                return shuffle(questions);
+        function handleNext() {
+            state.currentIndex++;
+            if (state.currentIndex < state.quizData.length) {
+                renderQuestion();
+            } else {
+                showResults();
             }
+        }
 
-            function displayQuestion() {
-                const container = document.getElementById("question-container");
-                const quiz = quizData[currentQuestionIndex];
-                
-                const optionsHtml = quiz.options.map(option => `
-                    <button 
-                        class="glass-button w-full px-4 py-3 rounded-xl text-lg text-left" 
-                        onclick="checkAnswer(this, '${option}')">
-                        ${option}
+        function showResults() {
+            const percent = Math.round((state.score /
+state.quizData.length) * 100);
+            elements.container.innerHTML = `
+                <div class="text-center py-8">
+                    <div class="text-6xl mb-6">🏆</div>
+                    <h2 class="text-4xl font-black mb-2">Quiz Complete!</h2>
+                    <p class="text-white/60 mb-8 font-medium">You
+scored ${state.score} out of ${state.quizData.length}</p>
+                    <div class="text-5xl font-black text-indigo-400
+mb-10">${percent}%</div>
+                    <button onclick="location.reload()"
+class="glass-button px-10 py-4 rounded-2xl font-bold uppercase
+tracking-widest text-sm">
+                        Try Again
                     </button>
-                `).join("");
+                </div>
+            `;
+        }
 
-                container.innerHTML = `
-                    <h3 class="text-lg font-semibold text-indigo-300 drop-shadow">${quiz.subject} Quiz</h3>
-                    <h2 class="text-2xl font-bold mb-6">${quiz.question}</h2>
-                    <div class="space-y-4">
-                        ${optionsHtml}
-                    </div>
-                    <p id="feedback" class="mt-4 text-xl h-6"></p>
-                `;
+        // Lock Logic
+        let lockTimer;
+        elements.lockBtn.onclick = () => {
+elements.lockScreen.style.display = 'flex'; state.isLocked = true; };
 
-                updateProgress();
-                document.getElementById("next-btn").disabled = true;
+        const unlock = () => {
+            clearTimeout(lockTimer);
+            if (state.isLocked) {
+                elements.lockScreen.style.display = 'none';
+                state.isLocked = false;
             }
+        };
 
-            function checkAnswer(button, selected) {
-                const quiz = quizData[currentQuestionIndex];
-                const buttons = document.querySelectorAll("#question-container button");
-                const feedback = document.getElementById("feedback");
+        const startLockTimer = () => {
+            if (!state.isLocked) return;
+            lockTimer = setTimeout(unlock, 2000);
+        };
 
-                // Disable all buttons
-                buttons.forEach(btn => btn.disabled = true);
+        document.addEventListener('mousedown', startLockTimer);
+        document.addEventListener('mouseup', () => clearTimeout(lockTimer));
+        document.addEventListener('touchstart', startLockTimer);
+        document.addEventListener('touchend', () => clearTimeout(lockTimer));
 
-                // Highlight the correct/incorrect answers
-                if (selected === quiz.answer) {
-                    feedback.innerHTML = `<span class="correct">✔ Correct! Keep it up.</span>`;
-                    button.classList.add('bg-green-500/80', 'border-green-300', 'ring-2', 'ring-green-400');
-                    score++;
-                } else {
-                    feedback.innerHTML = `<span class="incorrect">✘ Incorrect. Correct: ${quiz.answer}</span>`;
-                    button.classList.add('bg-red-500/80', 'border-red-300', 'ring-2', 'ring-red-400');
-                }
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>
 
-                // Find and highlight the correct answer if incorrect choice was made
-                buttons.forEach(btn => {
-                    if (btn.innerText.trim() === quiz.answer) {
-                        // Ensure the correct answer is always clearly marked
-                        btn.classList.add('bg-green-500/80', 'border-green-300', 'ring-2', 'ring-green-400');
-                        btn.classList.remove('bg-red-500/80', 'border-red-300'); // Remove potential incorrect styling
-                    }
-                });
-
-                document.getElementById("next-btn").disabled = false;
-            }
-
-            function nextQuestion() {
-                currentQuestionIndex++;
-                if (currentQuestionIndex < quizData.length) {
-                    displayQuestion();
-                } else {
-                    var incorrectanswers = quizData.length - score;
-                    document.getElementById("quiz-container").innerHTML = `
-                        <div class="py-10">
-                            <h2 class="text-4xl font-extrabold mb-4 text-green-300 drop-shadow-xl">🎉 Quiz Completed!</h2>
-                            <p class="text-2xl mb-4">Your final score: <span class="text-yellow-300 font-extrabold">${score}/${quizData.length}</span></p>
-                            <p class="text-xl">Correct answers: ${score}</p>
-                            <p class="text-xl mb-8">Incorrect answers: ${incorrectanswers}</p>
-                            <button onclick="restartQuiz()" class="glass-button px-8 py-3 rounded-xl shadow-xl hover:shadow-2xl font-bold uppercase tracking-wider">
-                                Restart Quiz
-                            </button>
-                        </div>
-                    `;
-                }
-            }
-
-            function updateProgress() {
-                const progress = document.getElementById("progress");
-                const fill = document.getElementById("progress-fill");
-                const total = quizData.length;
-                const current = currentQuestionIndex + 1;
-                const percent = (current / total) * 100;
-                
-                progress.innerText = `Progress: ${current}/${total}`;
-                fill.style.width = percent + "%";
-            }
-
-            function restartQuiz() {
-                currentQuestionIndex = 0;
-                score = 0;
-                quizData = generateQuestions();
-                displayQuestion();
-            }
-
-            // --- Lock Screen Logic ---
-            const lockScreen = document.getElementById("lockScreen");
-            const lockButton = document.getElementById("lockButton");
-            
-            lockButton.addEventListener("click", () => {
-                lockScreen.style.display = "flex"; // Activate lock screen
-            });
-
-            let pressTimer;
-            const unlockDuration = 2000; // 2 seconds
-
-            // Generic function to set up press and hold for both mouse and touch
-            function setupPressHold(downEvent, upEvent) {
-                document.addEventListener(downEvent, (e) => {
-                    // Check if we are interacting with the lock screen
-                    if (lockScreen.style.display !== "flex") return;
-                    
-                    pressTimer = setTimeout(() => {
-                        lockScreen.style.display = "none"; // Unlock
-                    }, unlockDuration);
-                });
-
-                document.addEventListener(upEvent, () => {
-                    clearTimeout(pressTimer);
-                });
-            }
-            
-            // Mouse/Desktop events
-            setupPressHold("mousedown", "mouseup");
-            
-            // Touch/Mobile events
-            setupPressHold("touchstart", "touchend");
-
-
-            // --- Initialization ---
-            window.onload = () => {
-                // Removed dark mode logic as the aesthetic relies on the dark background.
-                quizData = generateQuestions();
-                displayQuestion();
-            };
-        </script>
-    </body>
-    </html>
