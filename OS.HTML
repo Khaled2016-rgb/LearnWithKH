@@ -84,6 +84,53 @@
             overflow: hidden;
         }
 
+        /* Context Menu Styles */
+        #context-menu {
+            position: fixed;
+            z-index: 1000;
+            width: 220px;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(25px) saturate(200%);
+            -webkit-backdrop-filter: blur(25px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            padding: 0.75rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            display: none;
+            transform-origin: top left;
+            animation: menuAppear 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        @keyframes menuAppear {
+            from { opacity: 0; transform: scale(0.9) translateY(-10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .menu-item {
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-radius: 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent);
+            transform: translateX(4px);
+        }
+
+        .menu-separator {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.05);
+            margin: 0.5rem 0;
+        }
+
         #lock-screen {
             position: fixed;
             inset: 0;
@@ -135,170 +182,126 @@
             to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } 
         }
 
-        /* Gallery Windows 11 Style */
-        .gallery-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
-            position: relative;
+        /* Performance Module Specific Styles */
+        .perf-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 2rem;
+            padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .gallery-header {
-            padding: 1.25rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(0,0,0,0.1);
-            border-bottom: 1px solid var(--glass-border);
-        }
-        .gallery-main {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: #000;
-        }
-        .gallery-main img, .gallery-main video {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .gallery-nav-btn {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 20;
-            background: linear-gradient(to right, rgba(0,0,0,0.5), transparent);
-            color: white;
-            opacity: 0;
-        }
-        .gallery-nav-btn.right-side {
-            right: 0;
-            background: linear-gradient(to left, rgba(0,0,0,0.5), transparent);
-        }
-        .gallery-main:hover .gallery-nav-btn {
-            opacity: 1;
-        }
-        .gallery-nav-btn:hover {
-            background: rgba(0,0,0,0.4);
-        }
-        .gallery-nav-btn svg {
-            width: 40px;
-            height: 40px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        .sparkline {
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .gallery-thumbnails {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            height: 70px;
-            display: flex;
-            gap: 8px;
-            padding: 8px;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(20px);
-            border-radius: 18px;
-            border: 1px solid rgba(255,255,255,0.1);
-            overflow-x: auto;
-            align-items: center;
-            z-index: 30;
-            max-width: 90%;
-            scrollbar-width: none;
-        }
-        .gallery-thumbnails::-webkit-scrollbar { display: none; }
-        
-        .thumb-item {
-            height: 48px;
-            width: 80px;
-            flex-shrink: 0;
-            border-radius: 8px;
-            background-size: cover;
-            background-position: center;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.2s;
-            opacity: 0.6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        .thumb-item.video::after {
-            content: '';
-            width: 20px;
-            height: 20px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 50%;
-            position: absolute;
-            border: 1px solid white;
-        }
+        /* Gallery Styles */
+        .gallery-container { display: flex; flex-direction: column; height: 100%; width: 100%; position: relative; }
+        .gallery-main { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%; overflow: hidden; background: #000; }
+        .gallery-main img, .gallery-main video, .gallery-main iframe { width: 100%; height: 100%; object-fit: contain; transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .gallery-nav-btn { position: absolute; top: 0; bottom: 0; width: 80px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; z-index: 20; background: linear-gradient(to right, rgba(0,0,0,0.5), transparent); color: white; opacity: 0; }
+        .gallery-nav-btn.right-side { right: 0; background: linear-gradient(to left, rgba(0,0,0,0.5), transparent); }
+        .gallery-main:hover .gallery-nav-btn { opacity: 1; }
+        .gallery-thumbnails { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); height: 70px; display: flex; gap: 8px; padding: 8px; background: rgba(0,0,0,0.4); backdrop-filter: blur(20px); border-radius: 18px; border: 1px solid rgba(255,255,255,0.1); overflow-x: auto; align-items: center; z-index: 30; max-width: 90%; }
+        .thumb-item { height: 48px; width: 80px; flex-shrink: 0; border-radius: 8px; background-size: cover; background-position: center; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; opacity: 0.6; position: relative; background-color: #111; }
         .thumb-item.active { border-color: var(--accent); opacity: 1; transform: scale(1.05); }
 
-        .wp-item {
-            aspect-ratio: 16/9;
-            border-radius: 1rem;
-            background-size: cover;
-            background-position: center;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .wp-item:hover { transform: scale(1.05); border-color: rgba(255,255,255,0.4); }
+        .thumb-delete { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; background: #ef4444; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; opacity: 0; transition: opacity 0.2s; }
+        .thumb-item:hover .thumb-delete { opacity: 1; }
+
+        .wp-item { aspect-ratio: 16/9; border-radius: 1rem; background-size: cover; background-position: center; cursor: pointer; border: 2px solid transparent; transition: all 0.3s ease; position: relative; overflow: hidden; }
         .wp-item.active { border-color: var(--accent); box-shadow: 0 0 15px var(--accent); }
 
-        .iframe-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            background: #000;
-        }
-        #clock-iframe, #exp-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
+        .iframe-container { width: 100%; height: 100%; position: relative; background: #000; }
+        iframe { width: 100%; height: 100%; border: none; display: block; }
 
-        .browser-controls button {
-            padding: 12px;
-            border-radius: 14px;
-            transition: all 0.3s;
-            color: var(--text-main);
-            background: rgba(255,255,255,0.05);
-            cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .browser-controls button:hover:not(:disabled) {
-            background: var(--accent);
-            color: #000;
-            transform: translateY(-2px);
-        }
+        .browser-controls button { padding: 12px; border-radius: 14px; transition: all 0.3s; color: var(--text-main); background: rgba(255,255,255,0.05); cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
+        .browser-controls button:hover:not(:disabled) { background: var(--accent); color: #000; transform: translateY(-2px); }
         .browser-controls button:disabled { opacity: 0.2; cursor: not-allowed; }
         
-        .browser-fullscreen-active #browser-frame-container {
-            position: fixed; inset: 0; z-index: 50; border-radius: 0; background: #fff;
+        .browser-fullscreen-active #browser-frame-container { position: fixed; inset: 0; z-index: 50; border-radius: 0; background: #fff; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+
+        .header-center-capsule {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 100px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: none;
         }
 
-        .visualizer-bar { width: 4px; background: var(--accent); border-radius: 4px; transition: height 0.1s ease; }
+        /* Generic Modal Style */
+        .os-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .os-modal.active { display: flex; }
     </style>
 </head>
 <body data-theme="dark" style="background-image: url('https://footontheroad.com/wp-content/uploads/2024/10/kuwait-city.webp')">
 
+    <!-- Web URL Modal -->
+    <div id="url-modal" class="os-modal">
+        <div class="glass-panel p-8 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-1">Add from Web</h3>
+            <p class="text-[10px] uppercase font-black opacity-40 mb-6 tracking-widest">Image, Video, or YouTube URL</p>
+            <input type="text" id="gallery-url-input" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 mb-6 outline-none focus:border-[var(--accent)] transition-all text-sm" placeholder="Paste link here...">
+            <div class="flex gap-4">
+                <button onclick="closeGalleryModal()" class="flex-1 py-4 bg-white/5 rounded-2xl font-bold text-xs hover:bg-white/10 transition-all">Cancel</button>
+                <button onclick="submitGalleryUrl()" class="flex-1 py-4 bg-[var(--accent)] text-black rounded-2xl font-black text-xs hover:scale-105 transition-all">Add Media</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Context Menu -->
+    <div id="context-menu">
+        <div class="menu-item" onclick="switchTab('home')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            Home Dashboard
+        </div>
+        <div class="menu-item" onclick="switchTab('perf')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="12" rx="2"/><path d="M7 14v4M12 14v4M17 14v4"/></svg>
+            Performance Monitor
+        </div>
+        <div class="menu-separator"></div>
+        <div class="menu-item" onclick="toggleTheme()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2"/></svg>
+            Toggle System Theme
+        </div>
+        <div class="menu-item" onclick="switchTab('settings')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18"/><circle cx="12" cy="12" r="3"/></svg>
+            Wallpaper Settings
+        </div>
+        <div class="menu-separator"></div>
+        <div class="menu-item" onclick="browserReload()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/></svg>
+            Reload Interface
+        </div>
+        <div class="menu-item" onclick="lock()" style="color: #f87171;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Secure Session
+        </div>
+    </div>
+
+    <!-- Lock Screen -->
     <div id="lock-screen" onclick="unlock()">
         <div class="text-center">
             <h1 id="lock-time" class="text-9xl font-extrabold mb-4 tracking-tighter">12:00</h1>
@@ -313,6 +316,7 @@
     </div>
 
     <div class="os-container">
+        <!-- Sidebar Navigation -->
         <nav class="sidebar glass-panel w-24 flex flex-col items-center justify-between py-6">
             <div class="flex flex-col gap-2 w-full items-center">
                 <button onclick="switchTab('home')" id="btn-home" class="nav-item active p-3 rounded-2xl w-16 h-16">
@@ -335,9 +339,9 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                     <span>Notes</span>
                 </button>
-                <button onclick="switchTab('audio')" id="btn-audio" class="nav-item p-3 rounded-2xl w-16 h-16">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                    <span>Music</span>
+                <button onclick="switchTab('perf')" id="btn-perf" class="nav-item p-3 rounded-2xl w-16 h-16">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><rect x="2" y="2" width="20" height="12" rx="2"/><path d="M7 14v4M12 14v4M17 14v4"/></svg>
+                    <span>Perf</span>
                 </button>
                 <button onclick="switchTab('browser')" id="btn-browser" class="nav-item p-3 rounded-2xl w-16 h-16">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
@@ -357,15 +361,27 @@
         </nav>
 
         <div class="flex flex-col gap-6 overflow-hidden">
-            <header class="h-20 glass-panel flex items-center justify-between px-10 flex-shrink-0 z-[60]">
+            <!-- Header -->
+            <header class="h-20 glass-panel flex items-center justify-between px-10 flex-shrink-0 z-[60] relative">
                 <div class="flex items-center gap-6">
                     <span id="main-clock" class="text-3xl font-extrabold tracking-tighter">12:00</span>
                     <div class="h-8 w-px bg-current opacity-10"></div>
                     <div class="flex flex-col">
                         <span id="header-greeting-title" class="text-[10px] font-bold uppercase tracking-widest opacity-40">System Status</span>
-                        <span id="header-greeting-main" class="text-sm font-semibold text-[var(--accent)]">Welcome Back</span>
+                        <div class="flex items-center gap-2">
+                            <span id="header-greeting-main" class="text-sm font-semibold text-[var(--accent)] whitespace-nowrap">Welcome Back</span>
+                            <span class="text-[10px] opacity-20 font-black">•</span>
+                            <span id="header-date" class="text-xs font-bold opacity-50 whitespace-nowrap">Dec 22</span>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Center Active App Capsule -->
+                <div class="header-center-capsule">
+                    <div class="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse shadow-[0_0_8px_var(--accent)]"></div>
+                    <span id="header-active-app" class="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Dashboard</span>
+                </div>
+
                 <div class="flex items-center gap-4">
                     <button id="exit-fullscreen-btn" onclick="toggleBrowserFullscreen()" class="hidden flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/40 rounded-xl hover:bg-red-500 hover:text-white transition-all scale-95 hover:scale-100">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7"/></svg>
@@ -398,52 +414,99 @@
                 <!-- Gallery View -->
                 <section id="tab-gallery" class="tab-content glass-panel p-0 flex-col overflow-hidden">
                     <div class="gallery-container">
-                        <div class="gallery-header">
-                            <div>
-                                <h2 class="text-2xl font-extrabold tracking-tight">Gallery</h2>
-                                <p class="text-xs font-bold uppercase tracking-widest opacity-40">Your Media Library</p>
+                        <!-- Controls Bar -->
+                        <div class="h-16 px-6 flex items-center justify-between border-bottom border-white/5 bg-white/5">
+                            <h4 class="text-xs font-black uppercase tracking-widest opacity-40">Photo Stream</h4>
+                            <div class="flex gap-2">
+                                <input type="file" id="gallery-local-input" multiple accept="image/*,video/*" class="hidden" onchange="addLocalMedia(event)">
+                                <button onclick="document.getElementById('gallery-local-input').click()" class="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-[10px] font-black uppercase transition-all">Add Local</button>
+                                <button onclick="openGalleryModal()" class="px-4 py-2 bg-[var(--accent)] text-black rounded-xl text-[10px] font-black uppercase hover:scale-105 transition-all">Add Web</button>
                             </div>
-                            <div class="flex gap-3">
-                                <button onclick="triggerUpload('photo')" class="flex items-center gap-2 px-5 py-3 bg-white/10 text-white font-bold rounded-2xl border border-white/5 hover:bg-white/20 active:scale-95 transition-all">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                                    <span class="text-sm">Add Photos</span>
-                                </button>
-                                <button onclick="triggerUpload('video')" class="flex items-center gap-2 px-5 py-3 bg-[var(--accent)] text-black font-extrabold rounded-2xl shadow-lg shadow-[var(--accent)]/20 hover:scale-105 active:scale-95 transition-all">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="23 7 16 12 23 17 23 7"/><rect width="15" height="14" x="1" y="5" rx="2" ry="2"/></svg>
-                                    <span class="text-sm">Add Media</span>
-                                </button>
-                            </div>
-                            <!-- Hidden File Inputs -->
-                            <input type="file" id="photo-upload-input" multiple accept="image/*" class="hidden" onchange="handleMediaUpload(event, 'photo')">
-                            <input type="file" id="video-upload-input" multiple accept="video/*" class="hidden" onchange="handleMediaUpload(event, 'video')">
                         </div>
-                        <div class="gallery-main" id="gallery-viewport">
-                            <div class="gallery-nav-btn left-side" style="left:0;" onclick="galleryPrev()">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+
+                        <div class="gallery-main" id="gallery-stage">
+                            <div class="gallery-nav-btn left-side" style="left: 0;" onclick="galleryPrev()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"></polyline></svg>
                             </div>
-                            <!-- Content goes here -->
-                            <div id="media-display-area" class="w-full h-full flex items-center justify-center"></div>
+                            <!-- Media renders here -->
+                            <div id="gallery-active-content" class="w-full h-full flex items-center justify-center"></div>
                             <div class="gallery-nav-btn right-side" onclick="galleryNext()">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="9 18 15 12 9 6"></polyline></svg>
                             </div>
-                            <div class="gallery-thumbnails" id="gallery-thumbs"></div>
+                            <div class="gallery-thumbnails" id="gallery-thumbs" style="top:0;"></div>
                         </div>
                     </div>
                 </section>
 
-                <!-- Other sections... -->
+                <!-- Performance View -->
+                <section id="tab-perf" class="tab-content glass-panel p-8 flex-col overflow-y-auto">
+                    <div class="flex justify-between items-center mb-10">
+                        <div>
+                            <h2 class="text-3xl font-extrabold tracking-tight">System Performance</h2>
+                            <p class="text-[10px] font-black uppercase tracking-widest opacity-40">Real-time Telemetry Control</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/20">KERNEL STABLE</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="perf-card hover:border-cyan-400">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-[10px] font-black uppercase opacity-40 tracking-widest">CPU Processor</h3>
+                                    <p id="cpu-val" class="text-4xl font-black mt-1">0.0%</p>
+                                </div>
+                                <div class="p-3 bg-cyan-500/10 rounded-xl text-cyan-400">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9zM15 2v2M9 2v2M20 15h2M20 9h2M15 20v2M9 20v2M2 15h2M2 9h2"/></svg>
+                                </div>
+                            </div>
+                            <div class="h-24 w-full">
+                                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                    <path id="cpu-path" class="sparkline stroke-cyan-400" d="M0,100 L100,100"></path>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="perf-card hover:border-fuchsia-400">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-[10px] font-black uppercase opacity-40 tracking-widest">Memory Allocation</h3>
+                                    <p id="mem-val" class="text-4xl font-black mt-1">0.0 GB</p>
+                                </div>
+                                <div class="p-3 bg-fuchsia-500/10 rounded-xl text-fuchsia-400">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 15h20M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7z"/><path d="M6 19v2M10 19v2M14 19v2M18 19v2"/></svg>
+                                </div>
+                            </div>
+                            <div class="h-24 w-full">
+                                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                    <path id="mem-path" class="sparkline stroke-fuchsia-400" d="M0,100 L100,100"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-black/20 rounded-[2.5rem] p-8 border border-white/5">
+                        <h3 class="font-bold text-lg mb-6">Active Processes</h3>
+                        <div id="thread-list" class="space-y-3"></div>
+                    </div>
+                </section>
+
+                <!-- Experience App -->
                 <section id="tab-exp" class="tab-content glass-panel p-0 flex-col overflow-hidden">
                     <div class="iframe-container">
                         <iframe id="exp-iframe" src="https://khaled2016-rgb.github.io/LearnWithKH/"></iframe>
                     </div>
                 </section>
 
+                <!-- Clock App -->
                 <section id="tab-clock" class="tab-content glass-panel p-0 flex-col overflow-hidden">
                     <div class="iframe-container">
                         <iframe id="clock-iframe" src="https://khaled2016-rgb.github.io/LearnWithKH/TIME.HTML"></iframe>
                     </div>
                 </section>
 
+                <!-- Notes View -->
                 <section id="tab-notes" class="tab-content glass-panel p-8 flex-col overflow-hidden">
                     <div class="flex justify-between items-center mb-8 px-4">
                         <h2 class="text-3xl font-extrabold tracking-tight">Journal</h2>
@@ -452,26 +515,19 @@
                     <textarea class="flex-1 bg-black/10 rounded-[2.5rem] p-10 outline-none border border-white/5 focus:border-[var(--accent)]/30 transition-colors resize-none text-2xl font-light" placeholder="Begin your story here..."></textarea>
                 </section>
 
-                <section id="tab-audio" class="tab-content glass-panel p-12 flex-col items-center justify-center text-center">
-                    <div id="visualizer" class="flex items-end gap-1.5 h-48 mb-12"></div>
-                    <h3 id="audio-title" class="text-6xl font-extrabold mb-4 tracking-tighter">Stellar Winds</h3>
-                    <div class="flex flex-wrap justify-center gap-4 mb-16">
-                        <button onclick="changeSound('Solar Rain')" class="px-8 py-3 rounded-2xl bg-white/5 border border-white/10 hover:border-[var(--accent)] font-bold transition-all">Rain</button>
-                        <button onclick="changeSound('Deep Space')" class="px-8 py-3 rounded-2xl bg-white/5 border border-white/10 hover:border-[var(--accent)] font-bold transition-all">Void</button>
-                        <button onclick="changeSound('Lo-Fi Orbit')" class="px-8 py-3 rounded-2xl bg-white/5 border border-white/10 hover:border-[var(--accent)] font-bold transition-all">Lo-Fi</button>
-                    </div>
-                    <button id="audio-play-btn" onclick="toggleAudio()" class="w-24 h-24 rounded-full bg-[var(--accent)] text-black flex items-center justify-center shadow-2xl hover:scale-110 active:scale-90 transition-all">
-                        <svg id="play-icon" width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                        <svg id="pause-icon" class="hidden" width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                    </button>
-                </section>
-
+                <!-- Browser View -->
                 <section id="tab-browser" class="tab-content glass-panel p-3 flex-col overflow-hidden">
                     <div class="h-20 flex items-center px-6 gap-6 mb-3 bg-black/20 rounded-[2rem] border border-white/5">
                         <div class="flex gap-2 browser-controls">
-                            <button id="browser-back-btn" onclick="browserBack()" title="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
-                            <button id="browser-forward-btn" onclick="browserForward()" title="Forward"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg></button>
-                            <button onclick="browserReload()" title="Reload"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg></button>
+                            <button id="browser-back-btn" onclick="browserBack()" title="Back">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+                            </button>
+                            <button id="browser-forward-btn" onclick="browserForward()" title="Forward">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                            </button>
+                            <button onclick="browserReload()" title="Reload">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                            </button>
                         </div>
                         <div class="flex-1 bg-black/40 h-12 px-6 rounded-2xl flex items-center gap-4 border border-white/10 focus-within:border-[var(--accent)]/50 transition-colors">
                             <input type="text" id="browser-address" class="bg-transparent border-none outline-none w-full text-sm font-semibold opacity-70" placeholder="Search or type URL" onkeydown="if(event.key==='Enter') navigateBrowser(this.value)">
@@ -480,11 +536,12 @@
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
                         </button>
                     </div>
-                    <div id="browser-frame-container" class="flex-1 rounded-[1.5rem] overflow-hidden bg-white">
+                    <div id="browser-frame-container" class="flex-1 rounded-[1.5rem] overflow-hidden bg-white shadow-inner border border-white/10">
                         <iframe id="browser-frame" src="about:blank" class="w-full h-full border-none"></iframe>
                     </div>
                 </section>
-
+                
+                <!-- Settings View -->
                 <section id="tab-settings" class="tab-content glass-panel p-12 flex-col overflow-y-auto">
                     <h2 class="text-4xl font-extrabold tracking-tight mb-8">Settings</h2>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -494,10 +551,15 @@
                                 <input type="range" min="2" max="60" value="8" class="w-full h-3 bg-white/10 rounded-full appearance-none cursor-pointer accent-[var(--accent)]" oninput="updateGlass(this.value)">
                             </div>
                             <div>
-                                <h3 class="text-xs font-black uppercase tracking-[0.2em] opacity-40 mb-6">System Health</h3>
+                                <h3 class="text-xs font-black uppercase tracking-[0.2em] opacity-40 mb-6">Display Health</h3>
                                 <div class="bg-white/5 rounded-3xl p-6 border border-white/5">
-                                    <div class="flex justify-between items-center mb-4"><span class="text-sm font-bold opacity-60">CPU Usage</span><span class="text-sm font-bold">18%</span></div>
-                                    <div class="h-1 bg-white/10 rounded-full overflow-hidden"><div class="h-full bg-[var(--accent)] w-[18%]"></div></div>
+                                    <div class="flex justify-between items-center mb-4">
+                                        <span class="text-sm font-bold opacity-60">Display Quality</span>
+                                        <span class="text-sm font-bold">100%</span>
+                                    </div>
+                                    <div class="h-1 bg-white/10 rounded-full overflow-hidden">
+                                        <div class="h-full bg-[var(--accent)] w-full"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -512,22 +574,86 @@
     </div>
 
     <script>
-        // Media state
-        let mediaCollection = [
-            { type: 'photo', url: "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?q=80&w=1000" },
-            { type: 'photo', url: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=1000" },
-            { type: 'photo', url: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000" },
-            { type: 'photo', url: "https://c.ndtvimg.com/2025-12/eej4ppgo_omanmainndtv_625x300_17_December_25.jpg?im=FaceCrop,algorithm=dnn,width=1200,height=738" },
-            { type: 'photo', url: "https://media.cntraveller.com/photos/611bf3f0042ccafe9a9ae8b8/16:9/w_2560%2Cc_limit/doha-skyline-istock.jpg" },
-            { type: 'photo', url: "https://footontheroad.com/wp-content/uploads/2024/10/kuwait-city.webp" },
-            { type: 'photo', url: "https://images.unsplash.com/photo-1476610182048-b716b8518aae?q=80&w=1000" }
+        // Media Store
+        let mediaItems = [
+            { type: 'image', url: "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?q=80&w=1000", thumb: "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?q=80&w=100" },
+            { type: 'image', url: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=1000", thumb: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=100" },
+            { type: 'image', url: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000", thumb: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=100" },
+            { type: 'image', url: "https://c.ndtvimg.com/2025-12/eej4ppgo_omanmainndtv_625x300_17_December_25.jpg?im=FaceCrop,algorithm=dnn,width=1200,height=738", thumb: "https://c.ndtvimg.com/2025-12/eej4ppgo_omanmainndtv_625x300_17_December_25.jpg?im=FaceCrop,algorithm=dnn,width=120,height=73" },
+            { type: 'youtube', url: "https://www.youtube-nocookie.com/embed/ScMzIvxBSi4?rel=0", thumb: "https://img.youtube.com/vi/ScMzIvxBSi4/0.jpg" }
         ];
 
-        let currentMediaIndex = 0;
-        let theme = 'light';
+        let theme = '';
         let isLocked = true;
         let isBrowserFullscreen = false;
-        let isAudioPlaying = false;
+        let currentGalleryIndex = 0;
+        let perfHistory = { cpu: Array(20).fill(10), mem: Array(20).fill(40) };
+        const processNames = ["UI Composite", "Kernel Init", "Network Stack", "Audio Engine", "Security Daemon", "Window Manager", "Input Driver"];
+
+        // Liquid Context Menu Logic
+        const menu = document.getElementById('context-menu');
+        
+        window.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            if (isLocked) return;
+            menu.style.display = 'block';
+            let x = e.clientX;
+            let y = e.clientY;
+            if (x + 220 > window.innerWidth) x -= 220;
+            if (y + 300 > window.innerHeight) y -= 300;
+            menu.style.left = `${x}px`;
+            menu.style.top = `${y}px`;
+        });
+
+        window.addEventListener('click', (e) => {
+            if (!menu.contains(e.target)) menu.style.display = 'none';
+        });
+
+        // Performance Logic
+        function updatePerformance() {
+            const cpu = 8 + Math.random() * 15;
+            const mem = 4.1 + Math.random() * 0.9;
+            const cpuEl = document.getElementById('cpu-val');
+            const memEl = document.getElementById('mem-val');
+            if (cpuEl) cpuEl.textContent = `${cpu.toFixed(1)}%`;
+            if (memEl) memEl.textContent = `${mem.toFixed(1)} GB`;
+
+            perfHistory.cpu.push(cpu); perfHistory.cpu.shift();
+            perfHistory.mem.push(mem * 15); perfHistory.mem.shift();
+
+            renderGraph('cpu-path', perfHistory.cpu);
+            renderGraph('mem-path', perfHistory.mem);
+            updateThreads();
+        }
+
+        function renderGraph(elementId, data) {
+            const path = document.getElementById(elementId);
+            if (!path) return;
+            const step = 100 / (data.length - 1);
+            let d = `M 0,${100 - data[0]} `;
+            for(let i = 1; i < data.length; i++) {
+                const x = i * step;
+                const y = 100 - data[i];
+                d += `L ${x},${y} `;
+            }
+            path.setAttribute('d', d);
+        }
+
+        function updateThreads() {
+            const list = document.getElementById('thread-list');
+            if(!list) return;
+            list.innerHTML = processNames.map(n => `
+                <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)] animate-pulse"></div>
+                        <span class="text-sm font-bold group-hover:text-white transition-colors">${n}</span>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <span class="text-[10px] font-black text-cyan-400">${(Math.random() * 4).toFixed(1)}% CPU</span>
+                    </div>
+                </div>
+            `).join('');
+        }
 
         // Browser Logic
         const browserHistory = {
@@ -560,6 +686,7 @@
             const frame = document.getElementById('browser-frame');
             const current = frame.src; frame.src = 'about:blank';
             setTimeout(() => frame.src = current, 50);
+            menu.style.display = 'none';
         }
 
         function toggleBrowserFullscreen() {
@@ -568,113 +695,152 @@
             document.getElementById('exit-fullscreen-btn').classList.toggle('hidden', !isBrowserFullscreen);
         }
 
-        // Gallery Logic
-        function triggerUpload(type) {
-            document.getElementById(`${type}-upload-input`).click();
-        }
-
-        function handleMediaUpload(event, type) {
-            const files = event.target.files;
-            if (!files || files.length === 0) return;
-
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const newUrl = e.target.result;
-                    // Add to start of collection
-                    mediaCollection.unshift({ type, url: newUrl });
-                    initGallery();
-                    setMediaIndex(0);
-                };
-                reader.readAsDataURL(file);
-            });
-            event.target.value = '';
-        }
-
+        // Gallery System
         function initGallery() {
             const thumbs = document.getElementById('gallery-thumbs');
             const wpGrid = document.getElementById('wallpaper-grid');
-            thumbs.innerHTML = '';
-            wpGrid.innerHTML = '';
+            thumbs.innerHTML = ''; 
             
-            mediaCollection.forEach((item, idx) => {
-                // Thumbnail
+            // Only populate settings grid once with initial items or update if needed
+            if (wpGrid.children.length === 0) {
+                mediaItems.forEach((item) => {
+                    if (item.type === 'image') {
+                        const wp = document.createElement('div');
+                        wp.className = 'wp-item';
+                        wp.style.backgroundImage = `url('${item.thumb}')`;
+                        wp.onclick = () => {
+                            document.querySelectorAll('.wp-item').forEach(i => i.classList.remove('active'));
+                            wp.classList.add('active');
+                            document.body.style.backgroundImage = `url('${item.url}')`;
+                        };
+                        wpGrid.appendChild(wp);
+                    }
+                });
+            }
+
+            mediaItems.forEach((item, idx) => {
                 const t = document.createElement('div');
-                t.className = `thumb-item ${item.type} ${idx === currentMediaIndex ? 'active' : ''}`;
+                t.className = `thumb-item ${idx === currentGalleryIndex ? 'active' : ''}`;
+                t.style.backgroundImage = `url('${item.thumb || item.url}')`;
                 
-                // If video, we use a placeholder or the video itself as background (if possible)
-                if (item.type === 'photo') {
-                    t.style.backgroundImage = `url('${item.url}')`;
-                } else {
-                    t.style.backgroundColor = '#111';
-                    t.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>`;
-                }
-
-                t.onclick = () => setMediaIndex(idx);
+                const del = document.createElement('div');
+                del.className = 'thumb-delete';
+                del.innerHTML = '×';
+                del.onclick = (e) => { e.stopPropagation(); removeGalleryItem(idx); };
+                
+                t.onclick = () => setGalleryIndex(idx);
+                t.appendChild(del);
                 thumbs.appendChild(t);
-
-                // Settings WP Grid (Photos only)
-                if(item.type === 'photo' && idx < 12) {
-                    const wp = document.createElement('div');
-                    wp.className = 'wp-item';
-                    wp.style.backgroundImage = `url('${item.url}')`;
-                    wp.onclick = () => {
-                        document.querySelectorAll('.wp-item').forEach(i => i.classList.remove('active'));
-                        wp.classList.add('active');
-                        document.body.style.backgroundImage = `url('${item.url}')`;
-                    };
-                    wpGrid.appendChild(wp);
-                }
             });
-            setMediaIndex(currentMediaIndex);
+
+            setGalleryIndex(currentGalleryIndex);
         }
 
-        function setMediaIndex(idx) {
-            currentMediaIndex = idx;
-            const displayArea = document.getElementById('media-display-area');
-            const item = mediaCollection[idx];
+        function setGalleryIndex(idx) {
+            if (mediaItems.length === 0) {
+                document.getElementById('gallery-active-content').innerHTML = '<span class="opacity-20 font-black uppercase tracking-widest text-xs">No Media</span>';
+                return;
+            }
+            currentGalleryIndex = idx;
+            const stage = document.getElementById('gallery-active-content');
+            const item = mediaItems[idx];
             
-            displayArea.innerHTML = '';
-            displayArea.style.opacity = '0';
-            
+            stage.style.opacity = '0';
             setTimeout(() => {
-                if (item.type === 'photo') {
+                stage.innerHTML = '';
+                if (item.type === 'image') {
                     const img = document.createElement('img');
                     img.src = item.url;
-                    img.className = 'max-w-full max-h-full object-contain';
-                    displayArea.appendChild(img);
-                } else {
-                    const video = document.createElement('video');
-                    video.src = item.url;
-                    video.controls = true;
-                    video.autoplay = true;
-                    video.className = 'max-w-full max-h-full object-contain';
-                    displayArea.appendChild(video);
+                    stage.appendChild(img);
+                } else if (item.type === 'video') {
+                    const vid = document.createElement('video');
+                    vid.src = item.url;
+                    vid.controls = true;
+                    stage.appendChild(vid);
+                } else if (item.type === 'youtube') {
+                    const ifr = document.createElement('iframe');
+                    ifr.src = item.url;
+                    ifr.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+                    ifr.allowFullscreen = true;
+                    stage.appendChild(ifr);
                 }
-                displayArea.style.opacity = '1';
+                stage.style.opacity = '1';
             }, 100);
 
-            document.querySelectorAll('.thumb-item').forEach((t, i) => {
-                t.classList.toggle('active', i === idx);
-                if (i === idx) t.scrollIntoView({ behavior: 'smooth', inline: 'center' });
-            });
+            document.querySelectorAll('.thumb-item').forEach((t, i) => t.classList.toggle('active', i === idx));
         }
 
-        function galleryNext() { setMediaIndex((currentMediaIndex + 1) % mediaCollection.length); }
-        function galleryPrev() { setMediaIndex((currentMediaIndex - 1 + mediaCollection.length) % mediaCollection.length); }
+        function galleryNext() { if (mediaItems.length) setGalleryIndex((currentGalleryIndex + 1) % mediaItems.length); }
+        function galleryPrev() { if (mediaItems.length) setGalleryIndex((currentGalleryIndex - 1 + mediaItems.length) % mediaItems.length); }
 
-        // OS Utilities
+        function removeGalleryItem(idx) {
+            mediaItems.splice(idx, 1);
+            if (currentGalleryIndex >= idx && currentGalleryIndex > 0) currentGalleryIndex--;
+            initGallery();
+        }
+
+        // Add Media Logic
+        function addLocalMedia(event) {
+            const files = Array.from(event.target.files);
+            files.forEach(file => {
+                const url = URL.createObjectURL(file);
+                const isVideo = file.type.startsWith('video/');
+                mediaItems.unshift({
+                    type: isVideo ? 'video' : 'image',
+                    url: url,
+                    thumb: isVideo ? '' : url
+                });
+            });
+            currentGalleryIndex = 0;
+            initGallery();
+            event.target.value = '';
+        }
+
+        function openGalleryModal() { document.getElementById('url-modal').classList.add('active'); }
+        function closeGalleryModal() { document.getElementById('url-modal').classList.remove('active'); }
+
+        function submitGalleryUrl() {
+            const input = document.getElementById('gallery-url-input');
+            const url = input.value.trim();
+            if (!url) return;
+
+            const ytRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+            const ytMatch = url.match(ytRegex);
+            const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(url);
+
+            if (ytMatch && ytMatch[7].length === 11) {
+                const id = ytMatch[7];
+                mediaItems.unshift({
+                    type: 'youtube',
+                    url: `https://www.youtube-nocookie.com/embed/${id}?rel=0`,
+                    thumb: `https://img.youtube.com/vi/${id}/0.jpg`
+                });
+            } else if (isVideo) {
+                mediaItems.unshift({ type: 'video', url: url, thumb: '' });
+            } else {
+                mediaItems.unshift({ type: 'image', url: url, thumb: url });
+            }
+
+            currentGalleryIndex = 0;
+            initGallery();
+            closeGalleryModal();
+            input.value = '';
+        }
+
+        // OS Core
         function updateTimeAndGreeting() {
             const now = new Date();
             const hours = now.getHours();
             const mins = String(now.getMinutes()).padStart(2, '0');
             const timeStr = `${String(hours).padStart(2, '0')}:${mins}`;
+            const dateStr = now.toLocaleDateString([], { month: 'short', day: 'numeric' });
             
             document.getElementById('lock-time').textContent = timeStr;
             document.getElementById('main-clock').textContent = timeStr;
+            document.getElementById('header-date').textContent = dateStr;
             document.getElementById('lock-date').textContent = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
-
-            let greeting = hours < 12 ? "Good Morning" : hours < 17 ? "Good Afternoon" : hours < 21 ? "Good Evening" : "Good Night";
+            
+            let greeting = hours < 12 ? "Good Morning" : hours < 17 ? "Good Afternoon" : "Good Evening";
             document.getElementById('welcome-text').textContent = greeting;
             document.getElementById('header-greeting-main').textContent = greeting;
         }
@@ -684,47 +850,40 @@
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(`tab-${id}`).classList.add('active');
+            
+            const appLabel = id.charAt(0).toUpperCase() + id.slice(1);
+            const headerApp = document.getElementById('header-active-app');
+            if (headerApp) headerApp.textContent = appLabel === 'Home' ? 'Dashboard' : (appLabel === 'Exp' ? 'Learn' : appLabel);
+
             const btn = document.getElementById(`btn-${id}`);
             if(btn) btn.classList.add('active');
+            menu.style.display = 'none';
         }
 
         function unlock() { document.getElementById('lock-screen').classList.add('unlocked'); isLocked = false; }
-        function lock() { document.getElementById('lock-screen').classList.remove('unlocked'); isLocked = true; }
+        function lock() { 
+            document.getElementById('lock-screen').classList.remove('unlocked'); 
+            isLocked = true; 
+            menu.style.display = 'none';
+        }
+
         function toggleTheme() {
             theme = theme === 'dark' ? 'light' : 'dark';
             document.body.setAttribute('data-theme', theme);
+            menu.style.display = 'none';
         }
+
         function updateGlass(val) {
             document.documentElement.style.setProperty('--glass-opacity', val / 100);
             document.documentElement.style.setProperty('--bg-blur', `${15 + (val/1.5)}px`);
         }
 
-        function toggleAudio() {
-            isAudioPlaying = !isAudioPlaying;
-            document.getElementById('play-icon').classList.toggle('hidden', isAudioPlaying);
-            document.getElementById('pause-icon').classList.toggle('hidden', !isAudioPlaying);
-        }
-
+        // Initialize
         setInterval(updateTimeAndGreeting, 1000);
+        setInterval(updatePerformance, 1000);
         updateTimeAndGreeting();
         initGallery();
-
-        window.onload = () => {
-            navigateBrowser('www.google.com/search?igu=1');
-            const viz = document.getElementById('visualizer');
-            for(let i=0; i<40; i++) {
-                const bar = document.createElement('div');
-                bar.className = 'visualizer-bar';
-                viz.appendChild(bar);
-            }
-            
-            (function anim() { 
-                document.querySelectorAll('.visualizer-bar').forEach(b => {
-                    b.style.height = isAudioPlaying ? (20 + Math.random() * 80) + '%' : '4px';
-                });
-                setTimeout(anim, 100);
-            })();
-        };
+        navigateBrowser('www.google.com/search?igu=1');
     </script>
 </body>
 </html>
