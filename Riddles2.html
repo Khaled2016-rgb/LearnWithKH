@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Labyrinth of Logic (v2.0) - LWKHO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,700;1,400&family=Public+Sans:wght@300;600;800&display=swap');
+
+        :root {
+            --glass: rgba(0, 0, 0, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glow: rgba(99, 102, 241, 0.3);
+        }
+
+        * {
+            cursor: none !important;
+        }
+
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background-image: url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&q=80&w=2000');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #f8fafc;
+            overflow: hidden;
+            height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            background-color: #020617;
+        }
+
+        #mouse-glow {
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--glow) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: screen;
+            transition: width 0.3s, height 0.3s;
+        }
+
+        @media (hover: none) {
+            #mouse-glow { display: none; }
+            * { cursor: auto !important; }
+        }
+
+        .serif-font { font-family: 'Crimson Pro', serif; }
+
+        .chamber-card {
+            background: var(--glass);
+            backdrop-filter: blur(80px) saturate(200%) brightness(70%);
+            -webkit-backdrop-filter: blur(80px) saturate(200%) brightness(70%);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.8);
+            border-radius: 3rem;
+            animation: floating 10s ease-in-out infinite;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .option-btn {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: left;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(10px);
+        }
+
+        .option-btn:active { transform: scale(0.98); }
+
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .fade-transition {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-4px, 0, 0); }
+            30%, 70% { transform: translate3d(4px, 0, 0); }
+            50% { transform: translate3d(-4px, 0, 0); }
+        }
+
+        .progress-dot { transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="mouse-glow"></div>
+
+    <div id="progress-container" class="fixed top-8 flex flex-wrap justify-center max-w-[90vw] gap-2 z-50"></div>
+
+    <div id="game-box" class="w-full max-w-3xl px-6 z-20 fade-transition">
+        <div class="chamber-card p-10 sm:p-16">
+            <header style="display:none;" class="mb-10 flex justify-between items-center">
+                <div>
+                    <span id="level-label" class="text-[10px] font-bold tracking-[0.6em] text-indigo-300 uppercase">Chamber I</span>
+                    <h1 id="chamber-title" class="text-2xl font-black mt-2 text-white/90 tracking-tight">The Opening Mystery</h1>
+                </div>
+                <button onclick="revealHint()" id="hint-btn" class="text-[9px] font-black tracking-widest text-white/40 hover:text-white transition-all uppercase px-4 py-2 border border-white/10 rounded-full hover:bg-white/10">
+                    Focus (Hint)
+                </button>
+            </header>
+
+            <div class="mb-12 min-h-[140px] flex items-center">
+                <p id="riddle-content" class="serif-font text-2xl sm:text-3xl leading-relaxed italic text-white/95">
+                    <!-- Riddle text loads here -->
+                </p>
+            </div>
+
+            <div id="options-grid" class="grid grid-cols-1 gap-4">
+                <!-- Buttons load here -->
+            </div>
+
+            <div id="feedback" class="mt-8 text-center h-4 text-[10px] font-black tracking-[0.4em] uppercase opacity-0 transition-all duration-500">
+                Reflection Denied
+            </div>
+        </div>
+
+        <div class="mt-8 flex justify-between items-center px-6 opacity-40 text-[10px] font-bold tracking-[0.4em] uppercase">
+            <div>Score: <span id="stat-score" class="text-indigo-400">0</span></div>
+            <div>Stability: <span id="stat-sanity" class="text-indigo-400">100</span>%</div>
+        </div>
+    </div>
+
+    <div id="victory-screen" class="hidden text-center z-20 px-6 max-w-2xl fade-transition">
+        <h2 class="text-7xl font-black mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/20 tracking-tighter">Ascended</h2>
+        <p class="text-white/50 mb-12 text-xl serif-font italic">You have pierced the veil of the Labyrinth. Every paradox has its price.</p>
+        <div class="bg-white/5 backdrop-blur-3xl p-12 rounded-[3rem] border border-white/10 inline-block w-full">
+            <p class="text-[10px] uppercase tracking-[0.8em] text-indigo-400 mb-4">Mastery Quotient</p>
+            <p id="final-score-display" class="text-8xl font-black text-white">0</p>
+        </div>
+        <div class="mt-12">
+            <button onclick="location.reload()" class="bg-white/10 px-12 py-5 rounded-full font-black tracking-widest uppercase text-xs transition-all hover:bg-white/20 hover:scale-105 border border-white/5">Restart Cycle</button>
+        </div>
+    </div>
+
+    <script>
+        const RIDDLE_POOL = [
+            { 
+                title: "The Missing Dollar", 
+                text: "A person spends $20, then $15, then $9, and finally $6 ($50 total). The balances are $30, $15, $6, $0. But 30+15+6 = $51. Where does the extra dollar come from?", 
+                answer: "Balance sums are mathematically meaningless", 
+                options: ["It was a tax calculation error", "Balance sums are mathematically meaningless", "One dollar was hidden in the first spend", "The final $0 is actually $1"], 
+                hint: "Does summing your remaining bank balance every time you spend money actually equal your starting total?" 
+            },
+            { 
+                title: "The Fragile Vessel", 
+                text: "What has to be broken before you can use it?", 
+                answer: "An egg", 
+                options: ["A promise", "A glowstick", "An egg", "Silence"], 
+                hint: "Think of breakfast." 
+            },
+            { 
+                title: "The Solar Weakness", 
+                text: "What is stronger than steel but can't handle the sun?", 
+                answer: "Ice", 
+                options: ["Ice", "A Vampire", "Shadow", "Plastic"], 
+                hint: "Hard as a rock, until it warms up." 
+            },
+            { 
+                title: "The Dictionary Flaw", 
+                text: "What word is always spelled wrong in the dictionary?", 
+                answer: "Wrong", 
+                options: ["Misspell", "Doubt", "Wrong", "Incorrect"], 
+                hint: "Read the question very literally." 
+            },
+            { 
+                title: "The Mouthless Talker", 
+                text: "What has a mouth but never talks, and a head but never weeps?", 
+                answer: "A river", 
+                options: ["A statue", "A river", "A cave", "A mountain"], 
+                hint: "It flows constantly." 
+            },
+            { 
+                title: "The Lifeless World", 
+                text: "What has cities, but no houses; forests, but no trees; and water, but no fish?", 
+                answer: "A map", 
+                options: ["A desert", "A painting", "A map", "A memory"], 
+                hint: "You hold it in your hands to find your way." 
+            },
+            { 
+                title: "The Clipped Hands", 
+                text: "What has hands but cannot clap?", 
+                answer: "A clock", 
+                options: ["A doll", "A clock", "A thief", "A statue"], 
+                hint: "It counts the seconds." 
+            },
+            { 
+                title: "The Peacock Trick", 
+                text: "If 5 peacocks lay 10 eggs in 2 days, how many peacocks will lay 100 eggs in 24 days?", 
+                answer: "None (Peacocks don't lay eggs)", 
+                options: ["50 peacocks", "25 peacocks", "None (Peacocks don't lay eggs)", "10 peacocks"], 
+                hint: "Think about the gender of a peacock." 
+            },
+            { 
+                title: "The Time Traveler", 
+                text: "A man travels for 7 days. After 3 days, he arrives back on the same day name he started. How?", 
+                answer: "He got back on a horse named the same day he travelled", 
+                options: ["Time travel machine", "He got back on a horse named the same day he travelled", "He was dreaming", "He travelled in a circle"], 
+                hint: "The name of his transport is key." 
+            },
+            { 
+                title: "Voice", 
+                text: "I speak without a mouth and hear without ears. I have no body, but I come alive with wind.", 
+                answer: "ECHO", 
+                options: ["ECHO", "WIND", "VOICE", "SPIRIT"], 
+                hint: "I am a repetition." 
+            },
+            { 
+                title: "Infinity", 
+                text: "Rotate me and I am all. Cut me and I am nothing.", 
+                answer: "8", 
+                options: ["0", "8", "9", "6"], 
+                hint: "Check the number 8." 
+            },
+            { 
+                title: "Darkness", 
+                text: "The more of me there is, the less you see.", 
+                answer: "DARK", 
+                options: ["FOG", "DARK", "SMOKE", "BLIND"], 
+                hint: "Night brings me." 
+            },
+            { 
+                title: "The Key", 
+                text: "What has keys but can't open a single lock?", 
+                answer: "PIANO", 
+                options: ["PIANO", "CHEST", "MAP", "CODE"], 
+                hint: "Music is my lock." 
+            },
+            { 
+                title: "Silence", 
+                text: "What is so fragile that saying its name breaks it?", 
+                answer: "SILENCE", 
+                options: ["GLASS", "SILENCE", "TRUST", "EGG"], 
+                hint: "Quiet please." 
+            },
+            { 
+                title: "Bubble", 
+                text: "Lighter than a feather, yet even the strongest cannot hold me for long.", 
+                answer: "BREATH", 
+                options: ["BREATH", "BUBBLE", "SIGH", "AIR"], 
+                hint: "Inhale, exhale." 
+            },
+            { 
+                title: "The Bank", 
+                text: "I have branches, but no fruit, trunk, or leaves.", 
+                answer: "BANK", 
+                options: ["BANK", "RIVER", "ROAD", "TREE"], 
+                hint: "Think of money." 
+            }
+        ];
+
+        function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+
+        const RIDDLES = shuffle([...RIDDLE_POOL]);
+        let currentLevel = 0;
+        let score = 0;
+        let sanity = 100;
+
+        const glow = document.getElementById('mouse-glow');
+        window.addEventListener('mousemove', (e) => {
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+
+        function initProgress() {
+            const container = document.getElementById('progress-container');
+            container.innerHTML = '';
+            RIDDLES.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.id = `dot-${i}`;
+                dot.className = `progress-dot h-1.5 rounded-full ${i === 0 ? 'bg-indigo-400 w-8' : 'bg-white/10 w-2'}`;
+                container.appendChild(dot);
+            });
+        }
+
+        function updateUI() {
+            const data = RIDDLES[currentLevel];
+            const gameBox = document.getElementById('game-box');
+            
+            gameBox.style.opacity = '0';
+            gameBox.style.transform = 'scale(0.98)';
+            
+            setTimeout(() => {
+                document.getElementById('level-label').innerText = `Chamber ${currentLevel + 1}`;
+                document.getElementById('chamber-title').innerText = data.title;
+                document.getElementById('riddle-content').innerText = data.text;
+                document.getElementById('feedback').classList.add('opacity-0');
+                document.getElementById('hint-btn').disabled = false;
+                document.getElementById('hint-btn').style.opacity = '1';
+                document.getElementById('riddle-content').classList.remove('text-indigo-300');
+                
+                const grid = document.getElementById('options-grid');
+                grid.innerHTML = '';
+                shuffle([...data.options]).forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = "option-btn px-6 py-5 rounded-2xl text-sm font-semibold text-white/80 transition-all";
+                    btn.innerText = opt;
+                    btn.onclick = () => selectOption(opt);
+                    grid.appendChild(btn);
+                });
+
+                RIDDLES.forEach((_, i) => {
+                    const dot = document.getElementById(`dot-${i}`);
+                    if (i === currentLevel) {
+                        dot.className = "progress-dot w-8 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_15px_rgba(129,140,248,0.5)]";
+                    } else if (i < currentLevel) {
+                        dot.className = "progress-dot w-2 h-1.5 rounded-full bg-indigo-900";
+                    } else {
+                        dot.className = "progress-dot w-2 h-1.5 rounded-full bg-white/10";
+                    }
+                });
+
+                gameBox.style.opacity = '1';
+                gameBox.style.transform = 'scale(1)';
+            }, 500);
+        }
+
+        function selectOption(selected) {
+            const correct = RIDDLES[currentLevel].answer;
+            const feedback = document.getElementById('feedback');
+            const card = document.querySelector('.chamber-card');
+
+            if (selected === correct) {
+                score += (sanity * 10);
+                document.getElementById('stat-score').innerText = score.toLocaleString();
+                if (currentLevel < RIDDLES.length - 1) {
+                    currentLevel++;
+                    updateUI();
+                } else {
+                    document.getElementById('game-box').classList.add('hidden');
+                    document.getElementById('victory-screen').classList.remove('hidden');
+                    document.getElementById('progress-container').classList.add('hidden');
+                    document.getElementById('final-score-display').innerText = score.toLocaleString();
+                }
+            } else {
+                feedback.innerText = "Dissonance Detected";
+                feedback.className = "mt-8 text-center h-4 text-[10px] font-black tracking-[0.4em] uppercase text-red-400 opacity-100 transition-all";
+                card.classList.add('shake');
+                sanity = Math.max(0, sanity - 20);
+                document.getElementById('stat-sanity').innerText = sanity;
+                
+                if(sanity <= 0) {
+                   feedback.innerText = "Stability Lost. Resetting...";
+                   setTimeout(() => location.reload(), 1500);
+                }
+
+                setTimeout(() => {
+                    card.classList.remove('shake');
+                    feedback.classList.add('opacity-0');
+                }, 1000);
+            }
+        }
+
+        function revealHint() {
+            if (sanity <= 20) return;
+            const content = document.getElementById('riddle-content');
+            content.style.opacity = '0';
+            setTimeout(() => {
+                content.innerText = RIDDLES[currentLevel].hint;
+                content.style.opacity = '1';
+                content.classList.add('text-indigo-300');
+            }, 300);
+            sanity -= 20;
+            document.getElementById('stat-sanity').innerText = sanity;
+            document.getElementById('hint-btn').disabled = true;
+            document.getElementById('hint-btn').style.opacity = '0.1';
+        }
+
+        initProgress();
+        updateUI();
+    </script>
+</body>
+</html>
