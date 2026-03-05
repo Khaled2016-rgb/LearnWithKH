@@ -1,0 +1,2182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Illuminated Manor - Coins, Wheel & Power-ups</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #e7e5e4;
+            --ui-bg: rgba(255, 255, 255, 0.95);
+            --text-color: #1c1917;
+            --accent-color: #b45309;
+            --revealed-color: #86a788;
+        }
+
+        body.dark-mode {
+            --bg-color: #0c0a09;
+            --ui-bg: rgba(28, 25, 23, 0.95);
+            --text-color: #f5f5f4;
+            --accent-color: #d97706;
+            --revealed-color: #2d5a27;
+        }
+
+        body { margin: 0; overflow: hidden; background: var(--bg-color); touch-action: none; font-family: 'serif'; }
+        canvas { display: block; touch-action: none; }
+
+        #reticle {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        #reticle::before,
+        #reticle::after {
+            content: '';
+            position: absolute;
+            background: var(--accent-color);
+        }
+
+        #reticle::before {
+            width: 20px;
+            height: 2px;
+            top: 9px;
+            left: 0;
+        }
+
+        #reticle::after {
+            width: 2px;
+            height: 20px;
+            left: 9px;
+            top: 0;
+        }
+
+        #reticle.interactable::before,
+        #reticle.interactable::after {
+            background: #ffaa00;
+            box-shadow: 0 0 10px #ffaa00;
+        }
+
+        /* Joystick */
+        #joystick-container {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            display: none;
+            touch-action: none;
+            border: 2px solid var(--accent-color);
+            z-index: 50;
+            backdrop-filter: blur(4px);
+        }
+        @media (max-width: 600px) {
+            #joystick-container {
+                width: 100px;
+                height: 100px;
+                bottom: 20px;
+                left: 20px;
+            }
+        }
+        #joystick-knob {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            top: 35px;
+            left: 35px;
+            touch-action: none;
+        }
+        @media (max-width: 600px) {
+            #joystick-knob {
+                width: 40px;
+                height: 40px;
+                top: 30px;
+                left: 30px;
+            }
+        }
+
+        /* On-screen touch buttons */
+        #mobile-controls {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 60;
+            pointer-events: none;
+        }
+        .dpad {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .dpad-middle {
+            display: flex;
+            gap: 20px;
+        }
+        .ctrl-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            border: 2px solid var(--accent-color);
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            touch-action: manipulation;
+            user-select: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            -webkit-tap-highlight-color: transparent;
+        }
+        .jump {
+            width: 100px;
+            height: 70px;
+            border-radius: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            border-color: #ffaa00;
+            font-size: 24px;
+            letter-spacing: 2px;
+        }
+        .ctrl-btn:active {
+            background: rgba(255, 170, 0, 0.5);
+            transform: scale(0.95);
+        }
+        @media (max-width: 600px) {
+            .ctrl-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+            .jump {
+                width: 80px;
+                height: 60px;
+                font-size: 18px;
+            }
+            #mobile-controls {
+                bottom: 20px;
+                right: 20px;
+                gap: 10px;
+            }
+        }
+
+        .ui-overlay { pointer-events: none; z-index: 40; color: var(--text-color); }
+        .ui-overlay button, .ui-overlay .interactive { pointer-events: auto; }
+        
+        #mini-map-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 200px;
+            height: 200px;
+            background: var(--ui-bg);
+            border: 2px solid #78350f;
+            border-radius: 12px;
+            z-index: 100;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+        }
+        @media (max-width: 600px) {
+            #mini-map-container {
+                width: 140px;
+                height: 140px;
+                top: 10px;
+                left: 10px;
+            }
+        }
+        #map-canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #e7e5e4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            color: #1c1917;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .theme-toggle {
+            background: var(--ui-bg);
+            color: var(--text-color);
+            border: 1px solid var(--accent-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            text-transform: uppercase;
+            pointer-events: auto;
+        }
+
+        #interaction-prompt {
+            position: fixed;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+            z-index: 1001;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        @media (max-width: 600px) {
+            #interaction-prompt {
+                font-size: 12px;
+                padding: 6px 12px;
+                bottom: 15%;
+            }
+        }
+
+        #paper-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            pointer-events: auto;
+        }
+        .paper-content {
+            background: #fdf6e3;
+            color: #586e75;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+            border: 1px solid #eee8d5;
+            transform: rotate(-1deg);
+            font-family: 'Times New Roman', serif;
+            position: relative;
+        }
+        @media (max-width: 600px) {
+            .paper-content {
+                padding: 1.5rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Wheel overlay */
+        #wheel-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 2100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            pointer-events: auto;
+        }
+        .wheel-container {
+            background: #2d2d2d;
+            padding: 2rem;
+            border-radius: 2rem;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            border: 3px solid #ffaa00;
+        }
+        #wheel-canvas {
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            display: block;
+            border-radius: 50%;
+            background: #444;
+            box-shadow: 0 0 30px rgba(255,170,0,0.5);
+        }
+        .spin-btn {
+            background: #ffaa00;
+            color: black;
+            font-weight: bold;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            border: none;
+            cursor: pointer;
+            margin: 20px 0;
+            box-shadow: 0 5px 0 #b45309;
+            transition: 0.1s;
+        }
+        .spin-btn:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+        .spin-btn:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        #wheel-result {
+            font-size: 1.2rem;
+            min-height: 2rem;
+            color: #ffaa00;
+        }
+
+        /* Shop overlay */
+        #shop-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 2200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            pointer-events: auto;
+        }
+        .shop-container {
+            background: #2d2d2d;
+            padding: 2rem;
+            border-radius: 2rem;
+            max-width: 500px;
+            width: 100%;
+            color: white;
+            border: 3px solid gold;
+        }
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: #444;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .shop-item:hover {
+            background: #555;
+        }
+        .shop-item.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .shop-item-cost {
+            background: gold;
+            color: black;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        #key-inventory {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            background: var(--ui-bg);
+            padding: 12px;
+            border-radius: 40px;
+            border: 2px solid var(--accent-color);
+            z-index: 101;
+            flex-wrap: wrap;
+            max-width: 280px;
+            justify-content: center;
+            pointer-events: none;
+        }
+        @media (max-width: 600px) {
+            #key-inventory {
+                top: 10px;
+                right: 10px;
+                padding: 8px;
+                gap: 5px;
+            }
+        }
+
+        .key-slot {
+            width: 35px;
+            height: 35px;
+            border: 2px solid var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--accent-color);
+            opacity: 0.3;
+        }
+        @media (max-width: 600px) {
+            .key-slot {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+        }
+
+        .key-slot.found {
+            opacity: 1;
+            box-shadow: 0 0 15px var(--accent-color);
+        }
+
+        #coin-counter {
+            position: fixed;
+            top: 20px;
+            left: 240px;
+            background: var(--ui-bg);
+            padding: 8px 20px;
+            border-radius: 40px;
+            border: 2px solid gold;
+            color: gold;
+            font-weight: bold;
+            font-size: 1.2rem;
+            z-index: 101;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        #coin-counter:hover {
+            transform: scale(1.05);
+        }
+        @media (max-width: 600px) {
+            #coin-counter {
+                left: 160px;
+                top: 10px;
+                padding: 4px 12px;
+                font-size: 1rem;
+            }
+        }
+
+        #powerup-status {
+            position: fixed;
+            top: 80px;
+            left: 240px;
+            background: var(--ui-bg);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #00aaff;
+            color: #00aaff;
+            font-size: 0.9rem;
+            z-index: 101;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        @media (max-width: 600px) {
+            #powerup-status {
+                left: 160px;
+                top: 60px;
+                font-size: 0.8rem;
+            }
+        }
+
+        .map-legend {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            font-size: 8px;
+            color: var(--text-color);
+            background: var(--ui-bg);
+            padding: 3px;
+            border-radius: 4px;
+            z-index: 102;
+            pointer-events: none;
+        }
+
+        #level-indicator {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--ui-bg);
+            padding: 6px 20px;
+            border-radius: 40px;
+            border: 2px solid var(--accent-color);
+            z-index: 101;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        @media (max-width: 600px) {
+            #level-indicator {
+                top: 10px;
+                padding: 4px 12px;
+                font-size: 0.7rem;
+            }
+        }
+
+        #timer {
+            font-size: 2.5rem;
+        }
+        @media (max-width: 600px) {
+            #timer {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body class="light-mode">
+
+    <div id="reticle"></div>
+    <div id="interaction-prompt">Tap / Press E to Inspect</div>
+
+    <div id="loader">
+        <div class="w-12 h-12 border-2 border-amber-900/40 border-t-amber-500 rounded-full animate-spin"></div>
+        <p class="font-serif italic tracking-[0.3em] text-xs uppercase">Preparing the Manor...</p>
+    </div>
+
+    <div id="mini-map-container">
+        <canvas id="map-canvas"></canvas>
+        <div class="map-legend">🗝️ Keys | 📜 Riddles | ⭐ Exit | 💰 Coin | 🎡 Wheel | ✨ Power-up</div>
+    </div>
+
+    <div id="level-indicator">Level <span id="current-level">1</span> / <span id="max-level">100</span></div>
+
+    <div id="coin-counter" onclick="openShop()">💰 <span id="coin-count">0</span> 🛒</div>
+
+    <div id="powerup-status"></div>
+
+    <div align="center" id="key-inventory"></div>
+
+    <div id="paper-overlay" class="interactive">
+        <div class="paper-content">
+            <p id="paper-text" class="text-xl italic leading-relaxed mb-8"></p>
+            <p id="paper-hint" class="text-sm mb-4 text-amber-700"></p>
+            <button onclick="closePaper()" class="text-sm font-bold uppercase tracking-widest border-b-2 border-stone-400">Put Down</button>
+        </div>
+    </div>
+
+    <!-- Wheel overlay -->
+    <div id="wheel-overlay" class="interactive">
+        <div class="wheel-container">
+            <h2 class="text-3xl font-bold mb-4">🎡 Wheel of Fortune</h2>
+            <canvas id="wheel-canvas" width="300" height="300"></canvas>
+            <button class="spin-btn" id="spin-wheel-btn">SPIN</button>
+            <div id="wheel-result"></div>
+            <button onclick="closeWheel()" class="text-sm mt-4 text-gray-400 underline">Close</button>
+        </div>
+    </div>
+
+    <!-- Shop overlay -->
+    <div id="shop-overlay" class="interactive">
+        <div class="shop-container">
+            <h2 class="text-3xl font-bold mb-4 text-center">🛒 Shop</h2>
+            <div class="space-y-3">
+                <div class="shop-item" id="shop-reveal-key" onclick="buyItem('revealKey')">
+                    <span>🗝️ Reveal a Key</span>
+                    <span class="shop-item-cost">10💰</span>
+                </div>
+                <div class="shop-item" id="shop-time" onclick="buyItem('time')">
+                    <span>⏱️ +30 Seconds</span>
+                    <span class="shop-item-cost">5💰</span>
+                </div>
+                <div class="shop-item" id="shop-speed" onclick="buyItem('speed')">
+                    <span>⚡ Speed Boost (10s)</span>
+                    <span class="shop-item-cost">8💰</span>
+                </div>
+                <div class="shop-item" id="shop-magnet" onclick="buyItem('magnet')">
+                    <span>🧲 Coin Magnet</span>
+                    <span class="shop-item-cost">15💰</span>
+                </div>
+            </div>
+            <button onclick="closeShop()" class="mt-6 text-sm text-gray-400 underline w-full">Close</button>
+        </div>
+    </div>
+
+    <div class="fixed inset-0 ui-overlay flex flex-col justify-between p-4 md:p-8">
+        <div class="flex justify-end items-start gap-2 md:gap-4">
+            <button id="themeBtn" class="theme-toggle interactive">🌓 Mode</button>
+            <div class="bg-[var(--ui-bg)] backdrop-blur-xl p-4 md:p-6 rounded-xl border border-stone-400 shadow-2xl">
+                <h1 class="text-amber-800 font-serif font-bold text-xl md:text-2xl tracking-tight leading-none">The Manor</h1>
+                <p class="opacity-60 text-[8px] md:text-[10px] font-bold mt-2 uppercase tracking-[0.4em]">Keys: <span id="keyDisplay">0/3</span></p>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-end">
+            <div class="space-y-2 md:space-y-4">
+                <div id="timer" class="text-4xl md:text-5xl font-serif italic tabular-nums text-amber-800 drop-shadow-md">00:00</div>
+                <div id="gameStatus" class="text-[10px] md:text-xs uppercase font-bold tracking-[0.2em] text-amber-700">Find riddles to reveal key locations</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Joystick (visible on touch devices) -->
+    <div id="joystick-container">
+        <div id="joystick-knob"></div>
+    </div>
+
+    <!-- Touch buttons (visible on all devices) -->
+    <div id="mobile-controls">
+        <div class="dpad">
+            <button class="ctrl-btn up" id="btn-up" aria-label="Forward">▲</button>
+            <div class="dpad-middle">
+                <button class="ctrl-btn left" id="btn-left" aria-label="Left">◀</button>
+                <button class="ctrl-btn right" id="btn-right" aria-label="Right">▶</button>
+            </div>
+            <button class="ctrl-btn down" id="btn-down" aria-label="Backward">▼</button>
+        </div>
+        <button class="ctrl-btn jump" id="btn-jump" aria-label="Jump">JUMP</button>
+    </div>
+
+    <div id="winModal" class="fixed inset-0 bg-stone-950/95 backdrop-blur-lg z-[300] flex items-center justify-center hidden p-4">
+        <div class="text-center p-8 md:p-16 rounded-3xl bg-white shadow-2xl border border-amber-700/30 max-w-sm">
+            <h2 id="winTitle" class="text-4xl md:text-5xl font-serif italic text-amber-900 mb-4">Escaped</h2>
+            <p id="winMessage" class="text-stone-500 mb-8 md:mb-12 font-bold tracking-widest uppercase text-xs">Floor Cleared</p>
+            <button id="nextLevelBtn" class="bg-amber-800 hover:bg-amber-700 text-white font-bold py-4 px-12 md:py-5 md:px-16 rounded-xl uppercase tracking-[0.3em] transition-all transform active:scale-95 interactive shadow-2xl text-sm md:text-base">
+                Next Level
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            baseMazeSize: 11,
+            level: 1,
+            maxLevel: 100,
+            wallHeight: 5,
+            unitSize: 4,
+            playerSpeed: 0.15,
+            rotSpeed: 0.0025,
+            playerHeight: 1.8,        // kept for reference but no longer used in physics
+            playerRadius: 0.6,
+            isDarkMode: false,
+            keysRequired: 2,
+            gravity: 0.2,              // kept for reference but not used
+            jumpStrength: 4.5,          // kept for reference but not used
+            coinCount: 0,
+            speedMultiplier: 1.0,
+            speedBoostEndTime: 0,
+            doubleCoinsMultiplier: 1,
+            doubleCoinsEndTime: 0,
+            timeFreeze: false,
+            timeFreezeEndTime: 0
+        };
+
+        // ----- NEW JUMP PHYSICS VARIABLES -----
+        let velocityY = 0;
+        let isJumping = false;
+        const GRAVITY = 0.015;
+        const JUMP_FORCE = 0.35;
+        const EYE_HEIGHT = 1.6; // player's eye level above ground (replaces CONFIG.playerHeight for camera)
+
+        // Ground and ceiling limits (world coordinates)
+        const GROUND_Y = -CONFIG.wallHeight / 2;
+        const FLOOR_Y = GROUND_Y + EYE_HEIGHT;          // camera Y when standing on ground
+        const CEILING_Y = CONFIG.wallHeight / 2 - 0.2;   // maximum camera Y (headroom 0.2)
+        // -------------------------------------
+
+        // 25 classic riddles
+        const RIDDLE_POOL = [
+            { text: "I have keys but no locks. I have a space but no room. You can enter, but never leave.", hint: "The first key lies where music sleeps... near the grand piano." },
+            { text: "I only exist when there is light, but direct light kills me. I dance on walls and floors.", hint: "Look where shadows gather in the eastern corridor." },
+            { text: "The more of me there is, the less you see. I fill rooms but take no space.", hint: "Deep in the western wing, where light barely reaches..." },
+            { text: "I have cities, but no houses. I have mountains, but no trees. I have water, but no fish.", hint: "Check the library walls, where adventures await." },
+            { text: "What has one eye but cannot see? It guides thread through fabric.", hint: "The needle's eye watches from the southern hallway." },
+            { text: "I speak all languages, but have no mouth. I echo what you say.", hint: "Seek the empty hall where voices repeat." },
+            { text: "I have a face but no eyes, hands but no arms. I tell time but have no life.", hint: "The old clock tower holds a secret." },
+            { text: "I am taken from a mine and locked in a wooden case, never released, yet I am used by almost everyone.", hint: "Look inside the writing desk." },
+            { text: "I have a spine but no bones, pages but no wings. I hold stories but never speak.", hint: "Among the dusty shelves." },
+            { text: "I can be cracked, made, told, and played. What am I?", hint: "A joke waits in the game room." },
+            { text: "I have a head and a tail but no body. What am I?", hint: "Flip the coin in the fountain." },
+            { text: "I have no doors but I have keys. I have no rooms but I have halls. What am I?", hint: "Look at the piano." },
+            { text: "I am always hungry, I must always be fed. The finger I touch, will soon turn red. What am I?", hint: "Fireplace in the north wing." },
+            { text: "I have no life, but I can grow. I don't have lungs, but I need air. What am I?", hint: "Check the garden greenhouse." },
+            { text: "I have a neck but no head, two arms but no hands. What am I?", hint: "A shirt in the wardrobe." },
+            { text: "I have a bed but never sleep. I have a mouth but never eat. What am I?", hint: "The river outside the window." },
+            { text: "I have a face that doesn't smile. I have a hands that don't wave. What am I?", hint: "The grandfather clock." },
+            { text: "I have a ring but no finger. I have a band but no music. What am I?", hint: "A telephone in the study." },
+            { text: "I have a blade but no sword. I have a handle but no door. What am I?", hint: "A knife in the kitchen." },
+            { text: "I have a cap but no head. I have a spout but no tea. What am I?", hint: "A teapot." },
+            { text: "I have a sole but no body. I have a lace but no shoe. What am I?", hint: "A foot." },
+            { text: "I have a stem but no flower. I have a face but no watch. What am I?", hint: "A mushroom." },
+            { text: "I have a bark but no bite. I have leaves but no book. What am I?", hint: "A tree." },
+            { text: "I have a crest but no bird. I have a wave but no ocean. What am I?", hint: "A flag." },
+            { text: "I have a bridge but no river. I have a fret but no guitar. What am I?", hint: "A violin." }
+        ];
+
+        // Reward types for wheel
+        const REWARDS = [
+            { name: "Reveal Key", emoji: "🗝️", effect: "revealKey" },
+            { name: "Speed Boost", emoji: "⚡", effect: "speedBoost" },
+            { name: "Time Bonus", emoji: "⏱️", effect: "timeBonus" },
+            { name: "Area Reveal", emoji: "🔍", effect: "areaReveal" },
+            { name: "Coin Magnet", emoji: "💰", effect: "coinMagnet" },
+            { name: "Mystery", emoji: "❓", effect: "mystery" }
+        ];
+
+        // Power-up types for orbs
+        const POWERUPS = [
+            { name: "Speed Boost", emoji: "⚡", effect: "speedBoost", duration: 10000 },
+            { name: "Double Coins", emoji: "🪙", effect: "doubleCoins", duration: 15000 },
+            { name: "Time Freeze", emoji: "⏱️", effect: "timeFreeze", duration: 10000 },
+            { name: "Key Reveal", emoji: "🗺️", effect: "keyReveal", duration: 0 }
+        ];
+
+        let scene, camera, renderer, mazeData, walls = [], interactables = [], decoration = [], goal;
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+        let yaw = 0, pitch = 0;
+        let gameActive = false, keysCollected = 0, totalCoins = 0, coinsCollected = 0;
+        let startTime, timerInterval;
+        let ambientLight, sunLight;
+        let raycaster = new THREE.Raycaster();
+
+        // Map system
+        const mapCanvas = document.getElementById('map-canvas');
+        const mapCtx = mapCanvas.getContext('2d');
+        
+        // Revealed areas tracking
+        let revealedRiddles = [];
+        let keyPositions = [];
+        let coinPositions = []; // {x, y, collected, obj}
+        let wheelPosition = null; // {x, y, used, obj}
+        let powerupPositions = []; // {x, y, collected, obj, type}
+        let currentRiddles = [];
+
+        let joystickActive = false;
+        let joystickData = { x: 0, y: 0 };
+
+        // Touch look
+        let lookTouchId = null;
+        let lastTouchX = 0, lastTouchY = 0;
+
+        // UI elements
+        const keyInventoryDiv = document.getElementById('key-inventory');
+        const levelSpan = document.getElementById('current-level');
+        const maxLevelSpan = document.getElementById('max-level');
+        const winTitle = document.getElementById('winTitle');
+        const winMessage = document.getElementById('winMessage');
+        const nextLevelBtn = document.getElementById('nextLevelBtn');
+        const coinCountSpan = document.getElementById('coin-count');
+        const powerupStatusDiv = document.getElementById('powerup-status');
+
+        // Button elements
+        const btnUp = document.getElementById('btn-up');
+        const btnDown = document.getElementById('btn-down');
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+        const btnJump = document.getElementById('btn-jump');
+
+        // Wheel elements
+        const wheelOverlay = document.getElementById('wheel-overlay');
+        const wheelCanvas = document.getElementById('wheel-canvas');
+        const spinBtn = document.getElementById('spin-wheel-btn');
+        const wheelResult = document.getElementById('wheel-result');
+        let wheelCtx = wheelCanvas.getContext('2d');
+        let wheelSpinning = false;
+        let wheelSegments = REWARDS.length;
+        let wheelAngle = 0;
+        let wheelAnimationFrame = null;
+
+        // Shop elements
+        const shopOverlay = document.getElementById('shop-overlay');
+
+        function createBrickTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#f5f5f4'; 
+            ctx.fillRect(0, 0, 512, 512);
+            ctx.strokeStyle = '#d6d3d1';
+            ctx.lineWidth = 4;
+            const brickW = 128, brickH = 64;
+            for (let y = 0; y < 512; y += brickH) {
+                const offset = (y / brickH) % 2 === 0 ? 0 : brickW / 2;
+                for (let x = -brickW; x < 512 + brickW; x += brickW) {
+                    const bx = x + offset;
+                    ctx.strokeRect(bx, y, brickW, brickH);
+                }
+            }
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            return tex;
+        }
+
+        function createWoodTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#442b15';
+            ctx.fillRect(0, 0, 512, 512);
+            for (let x = 0; x < 512; x += 64) {
+                ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.2})`;
+                ctx.fillRect(x, 0, 32, 512);
+            }
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(10, 10);
+            return tex;
+        }
+
+        function generateComplexMaze(size) {
+            let grid = Array(size).fill().map(() => Array(size).fill(1));
+            let stack = [];
+            let current = { x: 1, y: 1 };
+            grid[current.y][current.x] = 0;
+
+            const getNeighbors = (p) => {
+                let n = [];
+                const dirs = [{ x: 0, y: -2, dx: 0, dy: -1 }, { x: 0, y: 2, dx: 0, dy: 1 }, { x: -2, y: 0, dx: -1, dy: 0 }, { x: 2, y: 0, dx: 1, dy: 0 }];
+                for (const d of dirs) {
+                    const nx = p.x + d.x, ny = p.y + d.y;
+                    if (nx > 0 && nx < size - 1 && ny > 0 && ny < size - 1 && grid[ny][nx] === 1) {
+                        n.push({ x: nx, y: ny, dx: d.dx, dy: d.dy });
+                    }
+                }
+                return n;
+            };
+
+            while (true) {
+                let neighbors = getNeighbors(current);
+                if (neighbors.length > 0) {
+                    let next = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    grid[current.y + next.dy][current.x + next.dx] = 0;
+                    grid[next.y][next.x] = 0;
+                    stack.push(current);
+                    current = next;
+                } else if (stack.length > 0) {
+                    current = stack.pop();
+                } else { break; }
+            }
+            return grid;
+        }
+
+        function getRandomEmptyCell(maze, usedPositions = []) {
+            const size = maze.length;
+            let attempts = 0;
+            while (attempts < 1000) {
+                const x = Math.floor(Math.random() * (size - 2)) + 1;
+                const y = Math.floor(Math.random() * (size - 2)) + 1;
+                if (maze[y][x] === 0 && !usedPositions.some(p => p.x === x && p.y === y)) {
+                    return { x, y };
+                }
+                attempts++;
+            }
+            return null;
+        }
+
+        function generateLevel(level) {
+            CONFIG.level = level;
+            CONFIG.mazeSize = Math.floor(11 + (level - 1) * 0.2);
+            if (CONFIG.mazeSize < 11) CONFIG.mazeSize = 11;
+            CONFIG.keysRequired = Math.floor(2 + (level - 1) * 0.09);
+            if (CONFIG.keysRequired < 2) CONFIG.keysRequired = 2;
+            if (CONFIG.keysRequired > 12) CONFIG.keysRequired = 12;
+            
+            levelSpan.textContent = level;
+            maxLevelSpan.textContent = CONFIG.maxLevel;
+            updateKeyInventoryUI();
+
+            const size = CONFIG.mazeSize % 2 === 0 ? CONFIG.mazeSize + 1 : CONFIG.mazeSize;
+            const mazeData = generateComplexMaze(size);
+
+            const shuffled = [...RIDDLE_POOL].sort(() => 0.5 - Math.random());
+            let selectedRiddles = [];
+            for (let i = 0; i < CONFIG.keysRequired; i++) {
+                selectedRiddles.push({ ...shuffled[i % shuffled.length] });
+            }
+
+            const usedPositions = [];
+            const riddleLocations = [];
+            const keyLocations = [];
+
+            for (let i = 0; i < CONFIG.keysRequired; i++) {
+                const rPos = getRandomEmptyCell(mazeData, usedPositions);
+                if (!rPos) break;
+                usedPositions.push(rPos);
+                riddleLocations.push(rPos);
+
+                let kPos;
+                do {
+                    kPos = getRandomEmptyCell(mazeData, usedPositions);
+                } while (!kPos);
+                usedPositions.push(kPos);
+                keyLocations.push(kPos);
+            }
+
+            const riddles = selectedRiddles.map((riddle, index) => ({
+                ...riddle,
+                location: riddleLocations[index],
+                keyLocation: keyLocations[index]
+            }));
+
+            // Generate coins (5 to 10 based on level)
+            const coinCount = Math.min(15, 5 + Math.floor(level / 10));
+            const coinPos = [];
+            for (let i = 0; i < coinCount; i++) {
+                let pos;
+                do {
+                    pos = getRandomEmptyCell(mazeData, usedPositions);
+                } while (!pos);
+                usedPositions.push(pos);
+                coinPos.push(pos);
+            }
+
+            // Generate wheel (one per level)
+            let wheelPos = null;
+            do {
+                wheelPos = getRandomEmptyCell(mazeData, usedPositions);
+            } while (!wheelPos);
+            usedPositions.push(wheelPos);
+
+            // Generate power-ups (1-2 per level)
+            const powerupCount = 1 + Math.floor(Math.random() * 2);
+            const powerupPos = [];
+            for (let i = 0; i < powerupCount; i++) {
+                let pos;
+                do {
+                    pos = getRandomEmptyCell(mazeData, usedPositions);
+                } while (!pos);
+                usedPositions.push(pos);
+                powerupPos.push(pos);
+            }
+
+            const lightLevel = Math.max(0.1, 0.5 - (level - 1) * 0.004);
+            return { mazeData, riddles, coinPos, wheelPos, powerupPos, lightLevel };
+        }
+
+        function spawnCoin(x, y) {
+            const coinGroup = new THREE.Group();
+            const coinGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.05, 16);
+            const coinMat = new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0x442200 });
+            const coin = new THREE.Mesh(coinGeo, coinMat);
+            coin.rotation.x = Math.PI / 2;
+            coinGroup.add(coin);
+            
+            const coinLight = new THREE.PointLight(0xffaa00, 0.5, 3);
+            coinLight.position.y = 0.1;
+            coinGroup.add(coinLight);
+            
+            coinGroup.position.set(x * CONFIG.unitSize, -0.3, y * CONFIG.unitSize);
+            coinGroup.userData = { type: 'coin', light: coinLight };
+            
+            scene.add(coinGroup);
+            interactables.push(coinGroup);
+            coinPositions.push({ x, y, collected: false, obj: coinGroup });
+        }
+
+        function spawnWheel(x, y) {
+            const wheelGroup = new THREE.Group();
+            // Simple representation: a ring
+            const ringGeo = new THREE.TorusGeometry(0.25, 0.05, 8, 20);
+            const ringMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0x442200 });
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.rotation.x = Math.PI / 2;
+            wheelGroup.add(ring);
+            
+            const wheelLight = new THREE.PointLight(0xff5500, 1, 4);
+            wheelLight.position.y = 0.3;
+            wheelGroup.add(wheelLight);
+            
+            wheelGroup.position.set(x * CONFIG.unitSize, 0, y * CONFIG.unitSize);
+            wheelGroup.userData = { type: 'wheel', used: false };
+            
+            scene.add(wheelGroup);
+            interactables.push(wheelGroup);
+            wheelPosition = { x, y, used: false, obj: wheelGroup };
+        }
+
+        function spawnPowerup(x, y) {
+            const powerGroup = new THREE.Group();
+            // Choose random powerup type
+            const type = Math.floor(Math.random() * POWERUPS.length);
+            const colors = [0x00aaff, 0xffaa00, 0x00ffaa, 0xaa00ff];
+            const color = colors[type % colors.length];
+            
+            const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8), 
+                new THREE.MeshStandardMaterial({ color: color, emissive: 0x222222 }));
+            sphere.position.y = 0.2;
+            powerGroup.add(sphere);
+            
+            const glow = new THREE.PointLight(color, 0.8, 4);
+            glow.position.y = 0.2;
+            powerGroup.add(glow);
+            
+            powerGroup.position.set(x * CONFIG.unitSize, 0, y * CONFIG.unitSize);
+            powerGroup.userData = { type: 'powerup', powerType: type, glow: glow };
+            
+            scene.add(powerGroup);
+            interactables.push(powerGroup);
+            powerupPositions.push({ x, y, collected: false, obj: powerGroup, type: type });
+        }
+
+        function spawnKey(x, y, keyIndex) {
+            const keyGroup = new THREE.Group();
+            const colors = [0xffd700, 0xc0c0c0, 0xcd7f32, 0x4a90e2, 0x9b59b6, 0xe67e22, 0x2ecc71, 0xe74c3c, 0x1abc9c, 0xf1c40f, 0x34495e, 0xd35400];
+            const color = colors[keyIndex % colors.length];
+            
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.05, 8, 16), 
+                new THREE.MeshStandardMaterial({color: color, metalness: 1, emissive: new THREE.Color(color).multiplyScalar(0.3)}));
+            const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.4), 
+                new THREE.MeshStandardMaterial({color: color, metalness: 1}));
+            stem.position.y = -0.25;
+            keyGroup.add(ring, stem);
+            
+            const keyLight = new THREE.PointLight(color, 0.8, 3);
+            keyLight.position.y = 0.2;
+            keyGroup.add(keyLight);
+            
+            keyGroup.position.set(x * CONFIG.unitSize, -0.5, y * CONFIG.unitSize);
+            keyGroup.userData = { type: 'key', keyIndex: keyIndex, light: keyLight };
+            
+            scene.add(keyGroup);
+            interactables.push(keyGroup);
+            keyPositions.push({ x, y, collected: false, keyIndex, obj: keyGroup });
+        }
+
+        function spawnPaper(x, y, riddleData, index) {
+            const paperGroup = new THREE.Group();
+            
+            const paper = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.4), 
+                new THREE.MeshStandardMaterial({color: 0xfdf6e3}));
+            paper.position.y = 0.2;
+            paperGroup.add(paper);
+            
+            const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.15, 0.4), 
+                new THREE.MeshStandardMaterial({color: 0x8b5a2b}));
+            stand.position.y = -0.2;
+            paperGroup.add(stand);
+            
+            const glow = new THREE.PointLight(0xffaa00, 0.5, 3);
+            glow.position.y = 0.3;
+            paperGroup.add(glow);
+            
+            paperGroup.position.set(x * CONFIG.unitSize, 0, y * CONFIG.unitSize);
+            paperGroup.userData = { 
+                type: 'paper', 
+                riddle: riddleData.text,
+                hint: riddleData.hint,
+                location: { x, y },
+                keyLocation: riddleData.keyLocation,
+                riddleIndex: index
+            };
+            
+            scene.add(paperGroup);
+            interactables.push(paperGroup);
+        }
+
+        function setupMaze() {
+            walls.forEach(w => scene.remove(w));
+            decoration.forEach(d => scene.remove(d));
+            interactables.forEach(i => scene.remove(i));
+            walls = []; decoration = []; interactables = [];
+            keysCollected = 0;
+            revealedRiddles = [];
+            keyPositions = [];
+            coinPositions = [];
+            wheelPosition = null;
+            powerupPositions = [];
+            coinsCollected = 0;
+            updateCoinUI();
+            updateUI();
+            updatePowerupStatus();
+
+            // Reset player physics and power-ups
+            velocityY = 0;
+            isJumping = false;
+            CONFIG.speedMultiplier = 1.0;
+            CONFIG.doubleCoinsMultiplier = 1;
+            CONFIG.timeFreeze = false;
+            CONFIG.speedBoostEndTime = 0;
+            CONFIG.doubleCoinsEndTime = 0;
+            CONFIG.timeFreezeEndTime = 0;
+
+            const { mazeData: maze, riddles, coinPos, wheelPos, powerupPos, lightLevel } = generateLevel(CONFIG.level);
+            mazeData = maze;
+            currentRiddles = riddles;
+            
+            const brickTex = createBrickTexture();
+            const woodTex = createWoodTexture();
+            
+            const floor = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshStandardMaterial({ map: woodTex }));
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = GROUND_Y;
+            floor.receiveShadow = true;
+            scene.add(floor);
+            decoration.push(floor);
+
+            const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshStandardMaterial({ color: 0xeeeeee }));
+            ceiling.rotation.x = Math.PI / 2;
+            ceiling.position.y = CONFIG.wallHeight/2;
+            scene.add(ceiling);
+            decoration.push(ceiling);
+
+            const wallGeo = new THREE.BoxGeometry(CONFIG.unitSize, CONFIG.wallHeight, CONFIG.unitSize);
+            const wallMat = new THREE.MeshStandardMaterial({ map: brickTex });
+
+            const lightSpacing = Math.max(2, 8 - Math.floor(CONFIG.level / 10));
+            for (let y = 0; y < mazeData.length; y++) {
+                for (let x = 0; x < mazeData[y].length; x++) {
+                    const px = x * CONFIG.unitSize;
+                    const pz = y * CONFIG.unitSize;
+                    if (mazeData[y][x] === 1) {
+                        const wall = new THREE.Mesh(wallGeo, wallMat);
+                        wall.position.set(px, 0, pz);
+                        wall.receiveShadow = true;
+                        scene.add(wall);
+                        walls.push(wall);
+                    } else {
+                        if ((x+y) % lightSpacing === 0) {
+                            const pLight = new THREE.PointLight(0xffcc66, 1.0, 10);
+                            pLight.position.set(px, CONFIG.wallHeight/2 - 0.5, pz);
+                            pLight.baseIntensity = 1.0;
+                            scene.add(pLight);
+                            decoration.push(pLight);
+                        }
+                    }
+                }
+            }
+
+            // Spawn riddles
+            currentRiddles.forEach((riddle, index) => {
+                if (mazeData[riddle.location.y] && mazeData[riddle.location.y][riddle.location.x] === 0) {
+                    spawnPaper(riddle.location.x, riddle.location.y, riddle, index);
+                } else {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            const nx = riddle.location.x + dx;
+                            const ny = riddle.location.y + dy;
+                            if (nx > 0 && nx < mazeData.length-1 && ny > 0 && ny < mazeData.length-1 && mazeData[ny][nx] === 0) {
+                                spawnPaper(nx, ny, riddle, index);
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Spawn keys
+            currentRiddles.forEach((riddle, index) => {
+                if (mazeData[riddle.keyLocation.y] && mazeData[riddle.keyLocation.y][riddle.keyLocation.x] === 0) {
+                    spawnKey(riddle.keyLocation.x, riddle.keyLocation.y, index);
+                } else {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            const nx = riddle.keyLocation.x + dx;
+                            const ny = riddle.keyLocation.y + dy;
+                            if (nx > 0 && nx < mazeData.length-1 && ny > 0 && ny < mazeData.length-1 && mazeData[ny][nx] === 0) {
+                                spawnKey(nx, ny, index);
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Spawn coins
+            coinPos.forEach(pos => {
+                spawnCoin(pos.x, pos.y);
+            });
+
+            // Spawn wheel
+            spawnWheel(wheelPos.x, wheelPos.y);
+
+            // Spawn power-ups
+            powerupPos.forEach(pos => {
+                spawnPowerup(pos.x, pos.y);
+            });
+
+            const exitX = mazeData.length - 2;
+            const exitY = mazeData.length - 2;
+            const gx = exitX * CONFIG.unitSize;
+            const gz = exitY * CONFIG.unitSize;
+            goal = new THREE.Mesh(new THREE.IcosahedronGeometry(0.8), new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 1 }));
+            goal.position.set(gx, 0, gz);
+            scene.add(goal);
+            
+            const goalLight = new THREE.PointLight(0xcc0000, 2, 8);
+            goalLight.position.set(gx, 0, gz);
+            scene.add(goalLight);
+            decoration.push(goalLight);
+            
+            goal.isGoal = true;
+            walls.push(goal);
+
+            camera.position.set(1 * CONFIG.unitSize, FLOOR_Y, 1 * CONFIG.unitSize);
+            yaw = Math.PI / 4; pitch = 0;
+
+            ambientLight.intensity = Math.max(0.1, 0.5 - (CONFIG.level - 1) * 0.004);
+        }
+
+        function updateKeyInventoryUI() {
+            keyInventoryDiv.innerHTML = '';
+            for (let i = 0; i < CONFIG.keysRequired; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'key-slot';
+                slot.id = `key-slot-${i+1}`;
+                slot.textContent = '🔑';
+                keyInventoryDiv.appendChild(slot);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('keyDisplay').textContent = `${keysCollected}/${CONFIG.keysRequired}`;
+            
+            for (let i = 0; i < CONFIG.keysRequired; i++) {
+                const slot = document.getElementById(`key-slot-${i+1}`);
+                if (slot) {
+                    if (i < keysCollected) {
+                        slot.classList.add('found');
+                    } else {
+                        slot.classList.remove('found');
+                    }
+                }
+            }
+            
+            const status = document.getElementById('gameStatus');
+            if (keysCollected < CONFIG.keysRequired) {
+                status.textContent = `Found ${keysCollected}/${CONFIG.keysRequired} keys. Solve riddles!`;
+                status.className = "text-xs uppercase font-bold tracking-[0.2em] text-amber-700";
+                if (goal) goal.material.color.set(0x999999);
+            } else {
+                status.textContent = "All keys found! Exit unlocked!";
+                status.className = "text-xs uppercase font-bold tracking-[0.2em] text-green-600 animate-pulse";
+                if (goal) {
+                    goal.material.color.set(0x00ffcc);
+                    goal.material.emissive = new THREE.Color(0x004433);
+                }
+            }
+        }
+
+        function updateCoinUI() {
+            coinCountSpan.textContent = coinsCollected;
+        }
+
+        function updatePowerupStatus() {
+            const now = Date.now();
+            let text = '';
+            if (CONFIG.speedBoostEndTime > now) {
+                const sec = Math.ceil((CONFIG.speedBoostEndTime - now)/1000);
+                text += `⚡ Speed ${sec}s `;
+            }
+            if (CONFIG.doubleCoinsEndTime > now) {
+                const sec = Math.ceil((CONFIG.doubleCoinsEndTime - now)/1000);
+                text += `🪙 Double ${sec}s `;
+            }
+            if (CONFIG.timeFreezeEndTime > now) {
+                const sec = Math.ceil((CONFIG.timeFreezeEndTime - now)/1000);
+                text += `⏱️ Freeze ${sec}s `;
+            }
+            powerupStatusDiv.innerHTML = text || '✨ No active power-ups';
+        }
+
+        function handleInteraction() {
+            raycaster.setFromCamera({x: 0, y: 0}, camera);
+            const hits = raycaster.intersectObjects(interactables, true);
+            if (hits.length > 0 && hits[0].distance < 3) {
+                let obj = hits[0].object;
+                while (obj.parent && !obj.userData.type) obj = obj.parent;
+
+                if (obj.userData.type === 'key') {
+                    collectKey(obj);
+                } else if (obj.userData.type === 'paper') {
+                    openPaper(obj.userData);
+                } else if (obj.userData.type === 'coin') {
+                    collectCoin(obj);
+                } else if (obj.userData.type === 'wheel') {
+                    if (!obj.userData.used) {
+                        openWheel(obj);
+                    }
+                } else if (obj.userData.type === 'powerup') {
+                    collectPowerup(obj);
+                }
+            }
+        }
+
+        function collectKey(keyObj) {
+            scene.remove(keyObj);
+            interactables = interactables.filter(i => i !== keyObj);
+            
+            const keyIndex = keyObj.userData.keyIndex;
+            if (keyPositions[keyIndex]) {
+                keyPositions[keyIndex].collected = true;
+            }
+            
+            keysCollected++;
+            updateUI();
+            
+            document.getElementById('reticle').style.transform = 'translate(-50%, -50%) scale(1.5)';
+            setTimeout(() => {
+                document.getElementById('reticle').style.transform = 'translate(-50%, -50%) scale(1)';
+            }, 200);
+        }
+
+        function collectCoin(coinObj) {
+            scene.remove(coinObj);
+            interactables = interactables.filter(i => i !== coinObj);
+            const multiplier = (CONFIG.doubleCoinsEndTime > Date.now()) ? 2 : 1;
+            coinsCollected += multiplier;
+            updateCoinUI();
+            
+            // Find and mark coin as collected
+            const coinEntry = coinPositions.find(c => c.obj === coinObj);
+            if (coinEntry) coinEntry.collected = true;
+            
+            document.getElementById('reticle').style.transform = 'translate(-50%, -50%) scale(1.5)';
+            setTimeout(() => {
+                document.getElementById('reticle').style.transform = 'translate(-50%, -50%) scale(1)';
+            }, 200);
+        }
+
+        function collectPowerup(powerObj) {
+            scene.remove(powerObj);
+            interactables = interactables.filter(i => i !== powerObj);
+            
+            const type = powerObj.userData.powerType;
+            const power = POWERUPS[type];
+            
+            // Apply effect
+            switch(power.effect) {
+                case 'speedBoost':
+                    CONFIG.speedMultiplier = 2.0;
+                    CONFIG.speedBoostEndTime = Date.now() + power.duration;
+                    break;
+                case 'doubleCoins':
+                    CONFIG.doubleCoinsMultiplier = 2;
+                    CONFIG.doubleCoinsEndTime = Date.now() + power.duration;
+                    break;
+                case 'timeFreeze':
+                    CONFIG.timeFreeze = true;
+                    CONFIG.timeFreezeEndTime = Date.now() + power.duration;
+                    break;
+                case 'keyReveal':
+                    // Reveal one random unrevealed key
+                    const unrevealed = keyPositions.filter(k => !k.collected && !revealedRiddles.includes(k.keyIndex));
+                    if (unrevealed.length > 0) {
+                        const randomKey = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+                        revealedRiddles.push(randomKey.keyIndex);
+                    }
+                    break;
+            }
+            
+            document.getElementById('reticle').style.transform = 'translate(-50%, -50%) scale(1.5)';
+            setTimeout(() => {
+                document.getElementById('reticle').style.transform = 'translate(-50%, -50%) scale(1)';
+            }, 200);
+        }
+
+        function openPaper(paperData) {
+            gameActive = false;
+            document.getElementById('paper-text').textContent = paperData.riddle;
+            document.getElementById('paper-hint').textContent = "💡 " + paperData.hint;
+            document.getElementById('paper-overlay').style.display = 'flex';
+            
+            if (!revealedRiddles.includes(paperData.riddleIndex)) {
+                revealedRiddles.push(paperData.riddleIndex);
+            }
+        }
+
+        function closePaper() {
+            document.getElementById('paper-overlay').style.display = 'none';
+            gameActive = true;
+        }
+
+        // Wheel functions
+        function openWheel(wheelObj) {
+            gameActive = false;
+            wheelOverlay.style.display = 'flex';
+            drawWheel(0);
+            spinBtn.disabled = false;
+            wheelResult.textContent = '';
+            wheelObj.userData.used = true; // mark as used so it can't be opened again
+            window.currentWheelObj = wheelObj;
+        }
+
+        function closeWheel() {
+            wheelOverlay.style.display = 'none';
+            gameActive = true;
+            if (wheelAnimationFrame) {
+                cancelAnimationFrame(wheelAnimationFrame);
+                wheelAnimationFrame = null;
+            }
+        }
+
+        function drawWheel(angle) {
+            const ctx = wheelCtx;
+            const width = 300, height = 300;
+            ctx.clearRect(0, 0, width, height);
+            
+            const centerX = width/2, centerY = height/2;
+            const radius = 140;
+            
+            const segmentAngle = (Math.PI * 2) / wheelSegments;
+            
+            for (let i = 0; i < wheelSegments; i++) {
+                const startAngle = i * segmentAngle + angle;
+                const endAngle = startAngle + segmentAngle;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                
+                // Alternate colors
+                ctx.fillStyle = i % 2 === 0 ? '#ffaa00' : '#ff8800';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + segmentAngle/2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 16px serif';
+                ctx.fillText(REWARDS[i].emoji, radius - 20, 10);
+                ctx.restore();
+            }
+            
+            // Draw pointer
+            ctx.beginPath();
+            ctx.moveTo(centerX + radius + 10, centerY - 10);
+            ctx.lineTo(centerX + radius + 10, centerY + 10);
+            ctx.lineTo(centerX + radius + 30, centerY);
+            ctx.closePath();
+            ctx.fillStyle = 'red';
+            ctx.fill();
+        }
+
+        function spinWheel() {
+            if (wheelSpinning) return;
+            wheelSpinning = true;
+            spinBtn.disabled = true;
+            
+            const spinDuration = 2000; // ms
+            const startTime = Date.now();
+            const startAngle = wheelAngle;
+            const spinRevolutions = 5 + Math.random() * 5; // 5-10 revolutions
+            const targetAngle = startAngle + spinRevolutions * Math.PI * 2;
+            
+            function animateSpin() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / spinDuration, 1);
+                // Ease out
+                const eased = 1 - Math.pow(1 - progress, 3);
+                wheelAngle = startAngle + (targetAngle - startAngle) * eased;
+                drawWheel(wheelAngle);
+                
+                if (progress < 1) {
+                    wheelAnimationFrame = requestAnimationFrame(animateSpin);
+                } else {
+                    // Determine reward
+                    const finalAngle = wheelAngle % (Math.PI * 2);
+                    let segment = Math.floor((finalAngle + Math.PI * 2) % (Math.PI * 2) / (Math.PI * 2 / wheelSegments));
+                    if (segment >= wheelSegments) segment = 0;
+                    
+                    const reward = REWARDS[segment];
+                    wheelResult.textContent = `You won: ${reward.emoji} ${reward.name}!`;
+                    applyReward(reward.effect);
+                    
+                    wheelSpinning = false;
+                    wheelAnimationFrame = null;
+                }
+            }
+            
+            wheelAnimationFrame = requestAnimationFrame(animateSpin);
+        }
+
+        function applyReward(effect) {
+            switch(effect) {
+                case 'revealKey':
+                    const unrevealed = keyPositions.filter(k => !k.collected && !revealedRiddles.includes(k.keyIndex));
+                    if (unrevealed.length > 0) {
+                        const randomKey = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+                        revealedRiddles.push(randomKey.keyIndex);
+                    }
+                    break;
+                case 'speedBoost':
+                    CONFIG.speedMultiplier = 2.0;
+                    CONFIG.speedBoostEndTime = Date.now() + 10000; // 10 seconds
+                    break;
+                case 'timeBonus':
+                    startTime -= 30000; // subtract 30 seconds
+                    break;
+                case 'areaReveal':
+                    const px = Math.round(camera.position.x / CONFIG.unitSize);
+                    const pz = Math.round(camera.position.z / CONFIG.unitSize);
+                    for (let dy = -5; dy <= 5; dy++) {
+                        for (let dx = -5; dx <= 5; dx++) {
+                            const nx = px + dx;
+                            const nz = pz + dy;
+                            keyPositions.forEach(k => {
+                                if (!k.collected && !revealedRiddles.includes(k.keyIndex)) {
+                                    const dist = Math.sqrt((nx - k.x)**2 + (nz - k.y)**2);
+                                    if (dist < 5) {
+                                        revealedRiddles.push(k.keyIndex);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    break;
+                case 'coinMagnet':
+                    coinPositions.forEach(coin => {
+                        if (!coin.collected && coin.obj) {
+                            collectCoin(coin.obj);
+                        }
+                    });
+                    break;
+                case 'mystery':
+                    const r = Math.random();
+                    if (r < 0.3) {
+                        coinsCollected = Math.max(0, coinsCollected - 5);
+                        updateCoinUI();
+                        wheelResult.textContent += ' (Lost 5 coins!)';
+                    } else if (r < 0.6) {
+                        coinsCollected += 10;
+                        updateCoinUI();
+                        wheelResult.textContent += ' (Gained 10 coins!)';
+                    } else {
+                        wheelResult.textContent += ' (Nothing happens)';
+                    }
+                    break;
+            }
+        }
+
+        // Shop functions
+        function openShop() {
+            if (!gameActive) return;
+            gameActive = false;
+            shopOverlay.style.display = 'flex';
+        }
+
+        function closeShop() {
+            shopOverlay.style.display = 'none';
+            gameActive = true;
+        }
+
+        function buyItem(item) {
+            let cost = 0;
+            switch(item) {
+                case 'revealKey': cost = 10; break;
+                case 'time': cost = 5; break;
+                case 'speed': cost = 8; break;
+                case 'magnet': cost = 15; break;
+            }
+            if (coinsCollected < cost) {
+                alert('Not enough coins!');
+                return;
+            }
+            coinsCollected -= cost;
+            updateCoinUI();
+
+            switch(item) {
+                case 'revealKey':
+                    const unrevealed = keyPositions.filter(k => !k.collected && !revealedRiddles.includes(k.keyIndex));
+                    if (unrevealed.length > 0) {
+                        const randomKey = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+                        revealedRiddles.push(randomKey.keyIndex);
+                    }
+                    break;
+                case 'time':
+                    startTime -= 30000;
+                    break;
+                case 'speed':
+                    CONFIG.speedMultiplier = 2.0;
+                    CONFIG.speedBoostEndTime = Date.now() + 10000;
+                    break;
+                case 'magnet':
+                    coinPositions.forEach(coin => {
+                        if (!coin.collected && coin.obj) {
+                            collectCoin(coin.obj);
+                        }
+                    });
+                    break;
+            }
+            closeShop();
+        }
+
+        function drawMap() {
+            if (!mazeData) return;
+            
+            const size = mazeData.length;
+            const mapSize = 250;
+            const cellSize = mapSize / size;
+            
+            mapCanvas.width = mapSize;
+            mapCanvas.height = mapSize;
+            
+            mapCtx.fillStyle = CONFIG.isDarkMode ? '#1c1917' : '#f5f5f4';
+            mapCtx.fillRect(0, 0, mapSize, mapSize);
+            
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const cellX = x * cellSize;
+                    const cellY = y * cellSize;
+                    
+                    if (mazeData[y][x] === 1) {
+                        mapCtx.fillStyle = '#57534e';
+                        mapCtx.fillRect(cellX, cellY, cellSize - 0.5, cellSize - 0.5);
+                    } else {
+                        let isRevealed = false;
+                        
+                        for (let riddleIndex of revealedRiddles) {
+                            const riddle = currentRiddles[riddleIndex];
+                            if (riddle) {
+                                const dist = Math.sqrt(Math.pow(x - riddle.keyLocation.x, 2) + Math.pow(y - riddle.keyLocation.y, 2));
+                                if (dist < 3) {
+                                    isRevealed = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        const playerX = Math.round(camera.position.x / CONFIG.unitSize);
+                        const playerY = Math.round(camera.position.z / CONFIG.unitSize);
+                        const playerDist = Math.sqrt(Math.pow(x - playerX, 2) + Math.pow(y - playerY, 2));
+                        if (playerDist < 4) {
+                            isRevealed = true;
+                        }
+                        
+                        if (isRevealed) {
+                            mapCtx.fillStyle = CONFIG.isDarkMode ? '#2d5a27' : '#86a788';
+                            mapCtx.fillRect(cellX, cellY, cellSize - 0.5, cellSize - 0.5);
+                        } else {
+                            mapCtx.fillStyle = CONFIG.isDarkMode ? '#2c241e' : '#a8a29e';
+                            mapCtx.fillRect(cellX, cellY, cellSize - 0.5, cellSize - 0.5);
+                        }
+                    }
+                }
+            }
+            
+            // Draw keys
+            for (let i = 0; i < keyPositions.length; i++) {
+                const key = keyPositions[i];
+                if (!key.collected) {
+                    let isRevealed = revealedRiddles.includes(key.keyIndex);
+                    if (isRevealed) {
+                        const kx = key.x * cellSize + cellSize/2;
+                        const ky = key.y * cellSize + cellSize/2;
+                        mapCtx.fillStyle = '#ffd700';
+                        mapCtx.beginPath();
+                        mapCtx.arc(kx, ky, cellSize/3, 0, Math.PI * 2);
+                        mapCtx.fill();
+                        mapCtx.fillStyle = '#000';
+                        mapCtx.font = `${cellSize/2}px serif`;
+                        mapCtx.fillText('🔑', kx - cellSize/4, ky + cellSize/4);
+                    }
+                }
+            }
+            
+            // Draw coins
+            for (let coin of coinPositions) {
+                if (!coin.collected) {
+                    const cx = coin.x * cellSize + cellSize/2;
+                    const cy = coin.y * cellSize + cellSize/2;
+                    mapCtx.fillStyle = '#ffaa00';
+                    mapCtx.beginPath();
+                    mapCtx.arc(cx, cy, cellSize/4, 0, Math.PI * 2);
+                    mapCtx.fill();
+                    mapCtx.fillStyle = '#000';
+                    mapCtx.font = `${cellSize/2}px serif`;
+                    mapCtx.fillText('💰', cx - cellSize/4, cy + cellSize/4);
+                }
+            }
+            
+            // Draw power-ups
+            for (let pu of powerupPositions) {
+                if (!pu.collected) {
+                    const px = pu.x * cellSize + cellSize/2;
+                    const py = pu.y * cellSize + cellSize/2;
+                    mapCtx.fillStyle = '#00aaff';
+                    mapCtx.beginPath();
+                    mapCtx.arc(px, py, cellSize/4, 0, Math.PI * 2);
+                    mapCtx.fill();
+                    mapCtx.fillStyle = '#fff';
+                    mapCtx.font = `${cellSize/2}px serif`;
+                    mapCtx.fillText('✨', px - cellSize/4, py + cellSize/4);
+                }
+            }
+            
+            // Draw wheel if not used
+            if (wheelPosition && !wheelPosition.used) {
+                const wx = wheelPosition.x * cellSize + cellSize/2;
+                const wy = wheelPosition.y * cellSize + cellSize/2;
+                mapCtx.fillStyle = '#ff5500';
+                mapCtx.beginPath();
+                mapCtx.arc(wx, wy, cellSize/3, 0, Math.PI * 2);
+                mapCtx.fill();
+                mapCtx.fillStyle = '#fff';
+                mapCtx.font = `${cellSize/2}px serif`;
+                mapCtx.fillText('🎡', wx - cellSize/4, wy + cellSize/4);
+            }
+            
+            // Draw riddles
+            for (let riddleIndex of revealedRiddles) {
+                const riddle = currentRiddles[riddleIndex];
+                if (riddle) {
+                    const rx = riddle.location.x * cellSize + cellSize/2;
+                    const ry = riddle.location.y * cellSize + cellSize/2;
+                    mapCtx.fillStyle = '#b45309';
+                    mapCtx.beginPath();
+                    mapCtx.arc(rx, ry, cellSize/3, 0, Math.PI * 2);
+                    mapCtx.fill();
+                    mapCtx.fillStyle = '#fff';
+                    mapCtx.font = `${cellSize/2}px serif`;
+                    mapCtx.fillText('📜', rx - cellSize/4, ry + cellSize/4);
+                }
+            }
+            
+            // Draw exit
+            const exitX = (size - 2) * cellSize + cellSize/2;
+            const exitY = (size - 2) * cellSize + cellSize/2;
+            mapCtx.fillStyle = keysCollected >= CONFIG.keysRequired ? '#00ff00' : '#999999';
+            mapCtx.beginPath();
+            mapCtx.arc(exitX, exitY, cellSize/2, 0, Math.PI * 2);
+            mapCtx.fill();
+            mapCtx.fillStyle = '#fff';
+            mapCtx.font = `${cellSize/2}px serif`;
+            mapCtx.fillText('⭐', exitX - cellSize/4, exitY + cellSize/4);
+            
+            // Draw player
+            const playerX = (camera.position.x / CONFIG.unitSize) * cellSize;
+            const playerY = (camera.position.z / CONFIG.unitSize) * cellSize;
+            mapCtx.save();
+            mapCtx.translate(playerX, playerY);
+            mapCtx.rotate(-yaw);
+            mapCtx.fillStyle = '#b45309';
+            mapCtx.beginPath();
+            mapCtx.moveTo(0, -cellSize);
+            mapCtx.lineTo(cellSize/2, cellSize/2);
+            mapCtx.lineTo(-cellSize/2, cellSize/2);
+            mapCtx.fill();
+            mapCtx.restore();
+        }
+
+        // Jump function using new physics
+        function jump() {
+            // Allow jump only if on ground (with small epsilon)
+            if (camera.position.y <= FLOOR_Y + 0.01) {
+                velocityY = JUMP_FORCE;
+                isJumping = true;
+            }
+        }
+
+        // Button event handlers
+        function setupButtonEvents() {
+            if (btnUp) {
+                btnUp.addEventListener('pointerdown', (e) => { e.preventDefault(); moveForward = true; });
+                btnUp.addEventListener('pointerup', (e) => { e.preventDefault(); moveForward = false; });
+                btnUp.addEventListener('pointerleave', (e) => { moveForward = false; });
+                btnUp.addEventListener('pointercancel', (e) => { moveForward = false; });
+            }
+            if (btnDown) {
+                btnDown.addEventListener('pointerdown', (e) => { e.preventDefault(); moveBackward = true; });
+                btnDown.addEventListener('pointerup', (e) => { e.preventDefault(); moveBackward = false; });
+                btnDown.addEventListener('pointerleave', (e) => { moveBackward = false; });
+                btnDown.addEventListener('pointercancel', (e) => { moveBackward = false; });
+            }
+            if (btnLeft) {
+                btnLeft.addEventListener('pointerdown', (e) => { e.preventDefault(); moveLeft = true; });
+                btnLeft.addEventListener('pointerup', (e) => { e.preventDefault(); moveLeft = false; });
+                btnLeft.addEventListener('pointerleave', (e) => { moveLeft = false; });
+                btnLeft.addEventListener('pointercancel', (e) => { moveLeft = false; });
+            }
+            if (btnRight) {
+                btnRight.addEventListener('pointerdown', (e) => { e.preventDefault(); moveRight = true; });
+                btnRight.addEventListener('pointerup', (e) => { e.preventDefault(); moveRight = false; });
+                btnRight.addEventListener('pointerleave', (e) => { moveRight = false; });
+                btnRight.addEventListener('pointercancel', (e) => { moveRight = false; });
+            }
+            if (btnJump) {
+                btnJump.addEventListener('pointerdown', (e) => { e.preventDefault(); jump(); });
+            }
+        }
+
+        function setupControls() {
+            // Keyboard
+            window.addEventListener('keydown', e => {
+                if (!gameActive) return;
+                if (e.code === 'KeyE') handleInteraction();
+                if (e.code === 'ArrowUp' || e.code === 'KeyW') moveForward = true;
+                if (e.code === 'ArrowDown' || e.code === 'KeyS') moveBackward = true;
+                if (e.code === 'ArrowLeft' || e.code === 'KeyA') moveLeft = true;
+                if (e.code === 'ArrowRight' || e.code === 'KeyD') moveRight = true;
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    jump();
+                }
+            });
+            window.addEventListener('keyup', e => {
+                if (e.code === 'ArrowUp' || e.code === 'KeyW') moveForward = false;
+                if (e.code === 'ArrowDown' || e.code === 'KeyS') moveBackward = false;
+                if (e.code === 'ArrowLeft' || e.code === 'KeyA') moveLeft = false;
+                if (e.code === 'ArrowRight' || e.code === 'KeyD') moveRight = false;
+            });
+
+            // Mouse look
+            document.addEventListener('mousemove', e => {
+                if (!gameActive) return;
+                if (document.pointerLockElement === document.body) {
+                    yaw -= e.movementX * CONFIG.rotSpeed;
+                    pitch -= e.movementY * CONFIG.rotSpeed;
+                    pitch = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, pitch));
+                }
+            });
+            document.body.addEventListener('mousedown', (e) => {
+                if (!gameActive) return;
+                if (!('ontouchstart' in window) && !e.target.closest('.interactive') && !e.target.closest('.ctrl-btn')) {
+                    document.body.requestPointerLock();
+                }
+            });
+
+            // Touch look
+            document.addEventListener('touchstart', (e) => {
+                if (!gameActive) return;
+                const target = e.target;
+                if (target.closest('#joystick-container') || target.closest('#mobile-controls') || target.closest('.interactive') || target.closest('#key-inventory') || target.closest('#mini-map-container') || target.closest('#level-indicator') || target.closest('.theme-toggle')) {
+                    return;
+                }
+                if (lookTouchId !== null) return;
+                
+                const touch = e.touches[0];
+                lookTouchId = touch.identifier;
+                lastTouchX = touch.clientX;
+                lastTouchY = touch.clientY;
+                e.preventDefault();
+            }, { passive: false });
+
+            document.addEventListener('touchmove', (e) => {
+                if (!gameActive || lookTouchId === null) return;
+                
+                for (let i = 0; i < e.touches.length; i++) {
+                    const touch = e.touches[i];
+                    if (touch.identifier === lookTouchId) {
+                        const dx = touch.clientX - lastTouchX;
+                        const dy = touch.clientY - lastTouchY;
+                        
+                        yaw -= dx * CONFIG.rotSpeed * 2;
+                        pitch -= dy * CONFIG.rotSpeed * 2;
+                        pitch = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, pitch));
+                        
+                        lastTouchX = touch.clientX;
+                        lastTouchY = touch.clientY;
+                        break;
+                    }
+                }
+                e.preventDefault();
+            }, { passive: false });
+
+            document.addEventListener('touchend', (e) => {
+                if (lookTouchId === null) return;
+                for (let i = 0; i < e.touches.length; i++) {
+                    if (e.touches[i].identifier === lookTouchId) return;
+                }
+                lookTouchId = null;
+                e.preventDefault();
+            });
+
+            // Tap interaction
+            renderer.domElement.addEventListener('click', (e) => {
+                if (gameActive) {
+                    handleInteraction();
+                }
+            });
+
+            // Theme toggle
+            document.getElementById('themeBtn').onclick = () => { CONFIG.isDarkMode = !CONFIG.isDarkMode; updateTheme(); };
+            
+            // Next level button
+            nextLevelBtn.onclick = () => {
+                document.getElementById('winModal').classList.add('hidden');
+                if (CONFIG.level < CONFIG.maxLevel) {
+                    CONFIG.level++;
+                    setupMaze();
+                    startTimer();
+                    gameActive = true;
+                } else {
+                    winTitle.textContent = "Victory";
+                    winMessage.textContent = "You escaped the manor!";
+                    nextLevelBtn.textContent = "Play Again";
+                    nextLevelBtn.onclick = () => {
+                        CONFIG.level = 1;
+                        document.getElementById('winModal').classList.add('hidden');
+                        setupMaze();
+                        startTimer();
+                        gameActive = true;
+                        nextLevelBtn.textContent = "Next Level";
+                    };
+                }
+            };
+
+            // Joystick
+            const joyContainer = document.getElementById('joystick-container');
+            const joyKnob = document.getElementById('joystick-knob');
+            const handleJoystick = (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = joyContainer.getBoundingClientRect();
+                const dx = touch.clientX - (rect.left + rect.width / 2);
+                const dy = touch.clientY - (rect.top + rect.height / 2);
+                const dist = Math.min(Math.sqrt(dx*dx + dy*dy), rect.width / 2);
+                const angle = Math.atan2(dy, dx);
+                const lx = Math.cos(angle) * dist, ly = Math.sin(angle) * dist;
+                joyKnob.style.transform = `translate(${lx}px, ${ly}px)`;
+                joystickData.x = lx / (rect.width/2);
+                joystickData.y = ly / (rect.width/2);
+                joystickActive = true;
+            };
+            joyContainer.addEventListener('touchstart', handleJoystick);
+            joyContainer.addEventListener('touchmove', handleJoystick);
+            joyContainer.addEventListener('touchend', () => { 
+                joyKnob.style.transform = `translate(0px, 0px)`; 
+                joystickActive = false; 
+                joystickData.x = 0; 
+                joystickData.y = 0;
+            });
+
+            // Set up button events
+            setupButtonEvents();
+
+            // Spin wheel button
+            spinBtn.addEventListener('click', spinWheel);
+
+            // Expose shop functions globally
+            window.openShop = openShop;
+            window.closeShop = closeShop;
+            window.buyItem = buyItem;
+        }
+
+        function checkCollision(pos) {
+            for (let wall of walls) {
+                const dx = Math.abs(pos.x - wall.position.x);
+                const dz = Math.abs(pos.z - wall.position.z);
+                const halfSize = CONFIG.unitSize / 2;
+                if (dx < halfSize + CONFIG.playerRadius && dz < halfSize + CONFIG.playerRadius) {
+                    if (wall.isGoal) {
+                        if (keysCollected >= CONFIG.keysRequired) win();
+                        return true; 
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (!gameActive) return;
+
+            const now = Date.now();
+            
+            // Speed boost timer
+            if (CONFIG.speedBoostEndTime && now > CONFIG.speedBoostEndTime) {
+                CONFIG.speedMultiplier = 1.0;
+                CONFIG.speedBoostEndTime = 0;
+            }
+            if (CONFIG.doubleCoinsEndTime && now > CONFIG.doubleCoinsEndTime) {
+                CONFIG.doubleCoinsMultiplier = 1;
+                CONFIG.doubleCoinsEndTime = 0;
+            }
+            if (CONFIG.timeFreezeEndTime && now > CONFIG.timeFreezeEndTime) {
+                CONFIG.timeFreeze = false;
+                CONFIG.timeFreezeEndTime = 0;
+            }
+            updatePowerupStatus();
+
+            const time = Date.now() * 0.001;
+
+            // ----- NEW JUMP & GRAVITY SECTION -----
+            velocityY -= GRAVITY;                // constant downward pull
+            camera.position.y += velocityY;       // apply velocity to camera height
+
+            // Ground collision
+            if (camera.position.y <= FLOOR_Y) {
+                camera.position.y = FLOOR_Y;
+                velocityY = 0;
+                isJumping = false;
+            }
+            // Ceiling collision
+            if (camera.position.y >= CEILING_Y) {
+                camera.position.y = CEILING_Y;
+                if (velocityY > 0) velocityY = 0;  // stop upward motion
+            }
+            // -------------------------------------
+
+            // Animate interactables
+            interactables.forEach(i => {
+                if(i.userData.type === 'key') { 
+                    i.rotation.y += 0.02; 
+                    i.position.y = -0.5 + Math.sin(time*2)*0.1;
+                    if (i.userData.light) {
+                        i.userData.light.intensity = 0.5 + Math.sin(time*5)*0.2;
+                    }
+                } else if (i.userData.type === 'coin') {
+                    i.rotation.y += 0.03;
+                    i.position.y = -0.3 + Math.sin(time*3)*0.1;
+                } else if (i.userData.type === 'wheel') {
+                    i.rotation.y += 0.01;
+                } else if (i.userData.type === 'powerup') {
+                    i.rotation.y += 0.02;
+                    i.position.y = 0.2 + Math.sin(time*2)*0.1;
+                    if (i.userData.glow) {
+                        i.userData.glow.intensity = 0.5 + Math.sin(time*5)*0.3;
+                    }
+                }
+            });
+            
+            raycaster.setFromCamera({x:0,y:0}, camera);
+            const hits = raycaster.intersectObjects(interactables, true);
+            const reticle = document.getElementById('reticle');
+            const prompt = document.getElementById('interaction-prompt');
+            
+            if (hits.length > 0 && hits[0].distance < 3) {
+                reticle.classList.add('interactable');
+                prompt.style.display = 'block';
+            } else {
+                reticle.classList.remove('interactable');
+                prompt.style.display = 'none';
+            }
+
+            if (goal && keysCollected >= CONFIG.keysRequired) {
+                goal.rotation.y += 0.04;
+                goal.position.y = Math.sin(time * 3) * 0.5;
+            }
+
+            camera.rotation.order = 'YXZ';
+            camera.rotation.y = yaw;
+            camera.rotation.x = pitch;
+
+            const moveVec = new THREE.Vector3(0, 0, 0);
+            if (moveForward) moveVec.z -= 1;
+            if (moveBackward) moveVec.z += 1;
+            if (moveLeft) moveVec.x -= 1;
+            if (moveRight) moveVec.x += 1;
+            if (joystickActive) { 
+                moveVec.x += joystickData.x; 
+                moveVec.z += joystickData.y; 
+            }
+
+            if (moveVec.length() > 0) {
+                moveVec.normalize().multiplyScalar(CONFIG.playerSpeed * CONFIG.speedMultiplier);
+                moveVec.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw));
+                const nextX = camera.position.clone(); nextX.x += moveVec.x;
+                nextX.y = camera.position.y;
+                if (!checkCollision(nextX)) camera.position.x = nextX.x;
+                const nextZ = camera.position.clone(); nextZ.z += moveVec.z;
+                nextZ.y = camera.position.y;
+                if (!checkCollision(nextZ)) camera.position.z = nextZ.z;
+            }
+            
+            drawMap();
+
+            renderer.render(scene, camera);
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                if (!gameActive) return;
+                if (CONFIG.timeFreeze) return; // timer frozen
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById('timer').textContent = `${Math.floor(elapsed / 60).toString().padStart(2, '0')}:${(elapsed % 60).toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function win() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            
+            if (CONFIG.level < CONFIG.maxLevel) {
+                winTitle.textContent = "Level Complete";
+                winMessage.textContent = `Floor ${CONFIG.level} Cleared`;
+                nextLevelBtn.textContent = "Next Level";
+            } else {
+                winTitle.textContent = "Victory";
+                winMessage.textContent = "You escaped the manor!";
+                nextLevelBtn.textContent = "Play Again";
+            }
+            document.getElementById('winModal').classList.remove('hidden');
+        }
+
+        function updateTheme() {
+            const isDark = CONFIG.isDarkMode;
+            document.body.className = isDark ? 'dark-mode' : 'light-mode';
+            const bgColor = isDark ? 0x0c0a09 : 0xe7e5e4;
+            scene.background = new THREE.Color(bgColor);
+            scene.fog = new THREE.Fog(bgColor, 1, 35);
+            ambientLight.intensity = isDark ? 0.2 : 0.6;
+            sunLight.intensity = isDark ? 0.1 : 0.4;
+
+            decoration.forEach(d => {
+                if (d instanceof THREE.PointLight) {
+                    d.intensity = isDark ? (d.baseIntensity || 1.5) : (d.baseIntensity || 1.5) * 0.4;
+                }
+            });
+        }
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            document.body.appendChild(renderer.domElement);
+
+            ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            sunLight = new THREE.DirectionalLight(0xfff5e6, 0.4);
+            sunLight.position.set(20, 50, 20);
+            scene.add(sunLight);
+
+            setupMaze();
+            setupControls();
+            updateTheme();
+            
+            if ('ontouchstart' in window) {
+                document.getElementById('joystick-container').style.display = 'block';
+            }
+
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                gameActive = true;
+                startTimer();
+            }, 1000);
+
+            animate();
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        window.onload = init;
+        window.closePaper = closePaper;
+        window.closeWheel = closeWheel;
+    </script>
+</body>
+</html>
