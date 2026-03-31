@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Master Burger Chef: Urban Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(to bottom, #0f172a 0%, #1e3a8a 100%);
+            overflow: hidden;
+            color: white;
+            touch-action: none;
+        }
+
+        #game-canvas {
+            width: 100%;
+            height: 100vh;
+            display: block;
+            cursor: none;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.75rem 1.25rem;
+            border-radius: 16px;
+            pointer-events: auto;
+        }
+
+        .order-tray {
+            position: absolute;
+            top: 6.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        .ing-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .ing-icon.active { border-color: #fbbf24; transform: scale(1.15); box-shadow: 0 0 15px #fbbf24; }
+        .ing-icon.done { opacity: 0.25; transform: scale(0.9); }
+
+        .floating-label {
+            position: absolute;
+            pointer-events: none;
+            font-weight: 900;
+            font-size: 24px;
+            animation: riseFade 1s ease-out forwards;
+            z-index: 20;
+        }
+
+        @keyframes riseFade {
+            0% { transform: translate(-50%, 0); opacity: 1; }
+            100% { transform: translate(-50%, -120px); opacity: 0; }
+        }
+
+        .modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            color: #1a1a1a;
+            padding: 2rem;
+            border-radius: 24px;
+            text-align: center;
+            display: none;
+            pointer-events: auto;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            z-index: 50;
+        }
+
+        .record-badge {
+            background: #fef3c7;
+            border: 2px dashed #d97706;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="ui-overlay">
+        <div class="p-4 flex justify-between items-start">
+            <div class="flex flex-col gap-2">
+                <div class="glass-panel">
+                    <div class="text-[10px] uppercase tracking-tighter opacity-70">Wallet</div>
+                    <div id="wallet-ui" class="text-xl font-bold text-green-400">$0.00</div>
+                </div>
+                <div class="glass-panel">
+                    <div class="text-[10px] uppercase tracking-tighter opacity-70">Total Layers</div>
+                    <div id="count-ui" class="text-xl font-bold text-blue-300">0</div>
+                </div>
+            </div>
+            
+            <div class="flex flex-col items-center gap-2">
+                <div class="glass-panel text-center px-6">
+                    <div id="height-ui" class="text-2xl font-black">0.0m</div>
+                    <div class="text-[10px] uppercase opacity-70">Burger Height</div>
+                </div>
+                <div id="stars-ui" class="text-yellow-400 text-lg">★★★★★</div>
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="toggleSettings()" class="glass-panel p-2 hover:bg-white/10">⚙️</button>
+                <button onclick="toggleHelp()" class="glass-panel p-2 hover:bg-white/10">❓</button>
+            </div>
+        </div>
+
+        <div class="order-tray" id="order-tray"></div>
+    </div>
+
+    <!-- Modals -->
+    <div id="help-modal" class="modal" style="display:block;">
+        <h2 class="text-2xl font-black mb-4">How to Play 👨‍🍳</h2>
+        <ul class="text-left space-y-2 mb-6 text-gray-600">
+            <li>⬅️➡️ <b>Arrows/AD</b> or Mouse to move.</li>
+            <li>🍔 Catch ingredients listed in the <b>Order Tray</b>.</li>
+            <li>🌶️ <b>Hot Pepper:</b> Extreme Speed Boost!</li>
+            <li>🐝 <b>Bees:</b> Hygiene Rating Penalty!</li>
+            <li>🍞 Top with the <b>Bun</b> to finish the burger.</li>
+        </ul>
+        <button onclick="closeModals()" class="bg-blue-600 text-white w-full py-3 rounded-xl font-bold">START COOKING</button>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <h2 class="text-2xl font-black mb-4">Kitchen Settings</h2>
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Conveyor Speed</label>
+            <input type="range" id="speed-slider" min="1" max="10" value="5" class="w-full">
+        </div>
+        <button onclick="closeModals()" class="bg-gray-800 text-white w-full py-3 rounded-xl font-bold">SAVE</button>
+    </div>
+
+    <div id="record-modal" class="modal">
+        <div class="text-4xl mb-2">🏆</div>
+        <h2 class="text-2xl font-black text-amber-600 uppercase">New World Record!</h2>
+        <div class="record-badge">
+            <p class="text-sm italic">The Guinness World Record Department certifies</p>
+            <p class="text-xl font-serif font-bold my-2" id="record-player">CHEF STEVE</p>
+            <p class="text-sm">For constructing the largest burger ever recorded at</p>
+            <p class="text-2xl font-black" id="record-height">0.0m</p>
+        </div>
+        <button onclick="resetGame()" class="bg-amber-500 text-white w-full py-3 rounded-xl font-bold">CONTINUE LEGACY</button>
+    </div>
+
+    <div id="serve-modal" class="modal">
+        <h2 class="text-2xl font-black mb-1">Burger Served!</h2>
+        <div id="final-stars" class="text-yellow-400 text-3xl my-2"></div>
+        <p class="text-gray-500 mb-4">Earnings: <span id="earned-amt" class="text-green-600 font-bold"></span></p>
+        <button onclick="resetGame()" class="bg-blue-600 text-white w-full py-3 rounded-xl font-bold">NEXT CUSTOMER</button>
+    </div>
+
+    <canvas id="game-canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const walletUI = document.getElementById('wallet-ui');
+        const heightUI = document.getElementById('height-ui');
+        const countUI = document.getElementById('count-ui');
+        const starsUI = document.getElementById('stars-ui');
+        
+        const INGREDIENTS = [
+            { id: 'patty', label: 'PATTY', emoji: '🥩', color: '#5b3a29', h: 22, price: 3.0, type: 'patty' },
+            { id: 'cheese', label: 'CHEESE', emoji: '🧀', color: '#fbbf24', h: 8, price: 1.0, type: 'rect' },
+            { id: 'lettuce', label: 'LETTUCE', emoji: '🥬', color: '#4ade80', h: 12, price: 0.5, type: 'lettuce' },
+            { id: 'tomato', label: 'TOMATO', emoji: '🍅', color: '#ef4444', h: 14, price: 0.8, type: 'tomato' },
+            { id: 'onion', label: 'ONION', emoji: '🧅', color: '#f3e8ff', h: 10, price: 0.4, type: 'onion' },
+            { id: 'pepper', label: 'HOT PEPPER!', emoji: '🌶️', color: '#dc2626', h: 15, price: 2.0, type: 'pepper', special: 'speed' },
+            { id: 'bee', label: 'DANGER: BEE!', emoji: '🐝', color: '#fbbf24', h: 20, price: 0, type: 'bee', special: 'damage' }
+        ];
+
+        let state = {
+            active: false,
+            wallet: 0,
+            playerX: window.innerWidth / 2,
+            targetX: window.innerWidth / 2,
+            falling: [],
+            order: [],
+            progress: 0,
+            stack: [],
+            lastSpawn: 0,
+            scroll: 0,
+            rating: 5,
+            height: 0,
+            difficulty: 5,
+            worldRecord: 8.0,
+            keys: {},
+            buildings: []
+        };
+
+        function init() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // Generate Buildings
+            for(let i=0; i<15; i++) {
+                state.buildings.push({
+                    x: Math.random() * canvas.width,
+                    w: 60 + Math.random() * 120,
+                    h: 200 + Math.random() * 500,
+                    color: `hsl(220, 30%, ${15 + Math.random() * 10}%)`,
+                    parallax: 0.1 + Math.random() * 0.3,
+                    windows: Array.from({length: 20}, () => Math.random() > 0.7)
+                });
+            }
+
+            window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+            window.addEventListener('mousemove', e => state.targetX = e.clientX);
+            window.addEventListener('touchmove', e => { e.preventDefault(); state.targetX = e.touches[0].clientX; }, { passive: false });
+            window.addEventListener('keydown', e => state.keys[e.key] = true);
+            window.addEventListener('keyup', e => state.keys[e.key] = false);
+
+            newOrder();
+            requestAnimationFrame(loop);
+        }
+
+        function newOrder() {
+            const size = 3 + Math.floor(Math.random() * 5);
+            state.order = [];
+            for(let i=0; i<size; i++) {
+                state.order.push(INGREDIENTS[Math.floor(Math.random() * 5)]);
+            }
+            state.progress = 0;
+            state.stack = [];
+            state.scroll = 0;
+            state.rating = 5;
+            state.height = 0;
+            updateUI();
+        }
+
+        function updateUI() {
+            const tray = document.getElementById('order-tray');
+            tray.innerHTML = '';
+            state.order.forEach((ing, i) => {
+                const div = document.createElement('div');
+                div.className = `ing-icon ${i < state.progress ? 'done' : (i === state.progress ? 'active' : '')}`;
+                div.innerText = ing.emoji;
+                tray.appendChild(div);
+            });
+            const bunDiv = document.createElement('div');
+            bunDiv.className = `ing-icon ${state.progress >= state.order.length ? 'active' : ''}`;
+            bunDiv.innerText = '🍞';
+            tray.appendChild(bunDiv);
+
+            walletUI.innerText = `$${state.wallet.toFixed(2)}`;
+            heightUI.innerText = `${(state.height / 10).toFixed(1)}m`;
+            countUI.innerText = state.stack.length;
+            let s = ''; for(let i=1; i<=5; i++) s += i <= state.rating ? '★' : '☆';
+            starsUI.innerText = s;
+        }
+
+        function spawn() {
+            const isReady = state.progress >= state.order.length;
+            let type;
+            const rand = Math.random();
+
+            if (isReady && rand > 0.4) {
+                type = { id: 'bun-top', label: 'TOP BUN', emoji: '🍞', color: '#c27803', h: 45, isBun: true };
+            } else if (rand < 0.1) {
+                type = INGREDIENTS[5];
+            } else if (rand < 0.12) {
+                type = INGREDIENTS[6];
+            } else {
+                type = INGREDIENTS[Math.floor(Math.random() * 5)];
+            }
+
+            state.falling.push({
+                x: 50 + Math.random() * (canvas.width - 100),
+                y: -100,
+                type: type,
+                speed: (3 + Math.random() * 3) * (state.difficulty / 5),
+                rot: (Math.random() - 0.5) * 0.4
+            });
+        }
+
+        function loop(t) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Buildings (Background)
+            state.buildings.forEach(b => {
+                const drawY = canvas.height - b.h + (state.scroll * b.parallax);
+                ctx.fillStyle = b.color;
+                ctx.fillRect(b.x, drawY, b.w, b.h);
+                // Windows
+                ctx.fillStyle = '#fde68a';
+                b.windows.forEach((win, i) => {
+                    if(win) {
+                        const wx = b.x + 10 + (i % 3) * (b.w/4);
+                        const wy = drawY + 20 + Math.floor(i / 3) * 40;
+                        ctx.globalAlpha = 0.3;
+                        ctx.fillRect(wx, wy, 10, 15);
+                        ctx.globalAlpha = 1.0;
+                    }
+                });
+            });
+
+            if (state.active) {
+                if (state.keys['ArrowLeft'] || state.keys['a']) state.targetX -= 12;
+                if (state.keys['ArrowRight'] || state.keys['d']) state.targetX += 12;
+                state.playerX += (state.targetX - state.playerX) * 0.15;
+
+                if (t - state.lastSpawn > (1200 - state.difficulty * 80)) {
+                    spawn();
+                    state.lastSpawn = t;
+                }
+
+                let baseY = canvas.height - 120 + state.scroll;
+                drawRealistic(state.playerX, baseY, { h: 30, color: '#c27803', type: 'bun-bot' });
+
+                let currY = baseY;
+                state.stack.forEach((ing, i) => {
+                    currY -= ing.h;
+                    drawRealistic(state.playerX + Math.sin(t*0.005+i)*2, currY, ing);
+                });
+
+                state.height = baseY - currY;
+                if (state.height > canvas.height * 0.4) state.scroll = state.height - canvas.height * 0.4;
+
+                for (let i = state.falling.length - 1; i >= 0; i--) {
+                    const item = state.falling[i];
+                    item.y += item.speed;
+                    
+                    ctx.save();
+                    ctx.translate(item.x, item.y);
+                    ctx.rotate(item.rot);
+                    drawRealistic(0, 0, item.type, true);
+                    
+                    // Element Label
+                    ctx.rotate(-item.rot);
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                    ctx.fillRect(-50, -45, 100, 20);
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 10px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(item.type.label, 0, -31);
+                    ctx.restore();
+
+                    if (Math.abs(item.x - state.playerX) < 60 && Math.abs(item.y - currY) < 30) {
+                        catchItem(item.type);
+                        state.falling.splice(i, 1);
+                    } else if (item.y > canvas.height + 200) {
+                        state.falling.splice(i, 1);
+                    }
+                }
+                updateUI();
+            }
+            requestAnimationFrame(loop);
+        }
+
+        function drawRealistic(x, y, ing, isFalling = false) {
+            const w = 110;
+            const h = ing.h;
+            const dx = x - w/2;
+            const dy = isFalling ? y - h/2 : y;
+
+            ctx.fillStyle = ing.color;
+            if (ing.type === 'patty') {
+                ctx.beginPath(); ctx.roundRect(dx, dy, w, h, 10); ctx.fill();
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                for(let i=0; i<4; i++) ctx.fillRect(dx + 20 + i*20, dy + 2, 4, h-4);
+            } else if (ing.type === 'lettuce') {
+                ctx.beginPath(); ctx.moveTo(dx, dy + h);
+                for(let i=0; i<=8; i++) ctx.lineTo(dx + i*(w/8), dy + (i%2?0:h));
+                ctx.fill();
+            } else if (ing.type === 'onion') {
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.roundRect(dx+10, dy, w-20, h, 10); ctx.stroke(); ctx.fill();
+            } else if (ing.isBun || ing.type === 'bun-bot') {
+                ctx.beginPath();
+                if (ing.isBun) ctx.roundRect(dx-5, dy, w+10, h, [40, 40, 5, 5]);
+                else ctx.roundRect(dx-5, dy, w+10, h, [5, 5, 20, 20]);
+                ctx.fill();
+                if (ing.isBun) { ctx.fillStyle='#fde68a'; for(let i=0; i<8; i++) ctx.fillRect(dx+20+i*10, dy+10+(i%2*5), 3, 2); }
+            } else if (ing.type === 'bee') {
+                ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.ellipse(x, y, 15, 10, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#000'; ctx.fillRect(x-5, y-10, 3, 20); ctx.fillRect(x+5, y-10, 3, 20);
+            } else if (ing.type === 'pepper') {
+                ctx.fillStyle = '#dc2626'; ctx.beginPath(); ctx.ellipse(x, y, 15, 8, Math.PI/4, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#166534'; ctx.fillRect(x+5, y-12, 4, 8);
+            } else {
+                ctx.beginPath(); ctx.roundRect(dx, dy, w, h, 5); ctx.fill();
+            }
+        }
+
+        function catchItem(type) {
+            if (type.isBun) {
+                finishBurger();
+                return;
+            }
+
+            if (type.special === 'speed') {
+                state.difficulty = Math.min(10, state.difficulty + 2);
+                showLabel("🌶️ SPEED UP!", "#ef4444");
+            } else if (type.special === 'damage') {
+                state.rating = Math.max(1, state.rating - 2);
+                showLabel("🐝 HYGIENE LOSS!", "#fbbf24");
+            } else {
+                const target = state.order[state.progress];
+                if (target && type.id === target.id) {
+                    state.progress++;
+                    showLabel("PERFECT!", "#4ade80");
+                } else {
+                    state.rating = Math.max(1, state.rating - 1);
+                    showLabel("WRONG ITEM!", "#f87171");
+                }
+            }
+            state.stack.push(type);
+        }
+
+        function showLabel(txt, color) {
+            const el = document.createElement('div');
+            el.className = 'floating-label';
+            el.style.left = state.playerX + 'px';
+            el.style.top = (canvas.height - 200) + 'px';
+            el.style.color = color;
+            el.innerText = txt;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        function finishBurger() {
+            state.active = false;
+            const finalH = (state.height / 10);
+            
+            if (finalH > state.worldRecord) {
+                state.worldRecord = finalH;
+                document.getElementById('record-height').innerText = `${finalH.toFixed(1)}m`;
+                document.getElementById('record-modal').style.display = 'block';
+            } else {
+                const pay = 15 + (state.stack.length * 2) * (state.rating / 5);
+                state.wallet += pay;
+                document.getElementById('earned-amt').innerText = `$${pay.toFixed(2)}`;
+                let s = ''; for(let i=1; i<=5; i++) s += i <= state.rating ? '★' : '☆';
+                document.getElementById('final-stars').innerText = s;
+                document.getElementById('serve-modal').style.display = 'block';
+            }
+        }
+
+        function toggleHelp() { document.getElementById('help-modal').style.display = 'block'; state.active = false; }
+        function toggleSettings() { document.getElementById('settings-modal').style.display = 'block'; state.active = false; }
+        function closeModals() {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            state.difficulty = parseInt(document.getElementById('speed-slider').value);
+            state.active = true;
+        }
+
+        function resetGame() {
+            closeModals();
+            newOrder();
+        }
+
+        init();
+    </script>
+</body>
+</html>
