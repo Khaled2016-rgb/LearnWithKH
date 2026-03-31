@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Premium Liquid Glass Gaming Experience">
-  <title>Arcade - LWKHO </title>
+  <title>Arcade - LWKHO</title>
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/5930/5930147.png">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
@@ -360,11 +360,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .game-card:nth-child(1) { animation-delay: 0.1s; }
-    .game-card:nth-child(2) { animation-delay: 0.2s; }
-    .game-card:nth-child(3) { animation-delay: 0.3s; }
-    .game-card:nth-child(4) { animation-delay: 0.4s; }
-
     .app-ready {
       opacity: 0;
       transition: opacity 1s ease;
@@ -383,8 +378,8 @@
     <h2 style="font-family:'Orbitron'; color:var(--accent); margin-bottom:20px;">MAZE CHALLENGE</h2>
     <canvas id="maze-canvas"></canvas>
     <div style="margin-top:20px; display:flex; gap:10px;">
-       <button class="game-btn" onclick="closeMaze()">Back to Hub</button>
-       <button class="game-btn" onclick="initMazeGame()">New Labyrinth</button>
+        <button class="game-btn" onclick="closeMaze()">Back to Hub</button>
+        <button class="game-btn" onclick="initMazeGame()">New Labyrinth</button>
     </div>
     <p style="margin-top:15px; font-size:0.8rem; color:rgba(255,255,255,0.5)">Navigate to the Red tile using Arrow Keys.</p>
   </div>
@@ -454,13 +449,14 @@
         <a href="2048 Puzzle Game.html" class="game-btn">Initialize</a>
       </div>
       
-    <div class="game-card">
-      <div>
-        <h3>Velocity</h3>
-        <p>Experience the Graphical vision as a Taxi Driver</p>
+      <div class="game-card">
+        <div>
+          <h3>Velocity</h3>
+          <p>Experience the Graphical vision as a Taxi Driver</p>
+        </div>
+        <a href="TAXI.HTML" class="game-btn">Initialize</a>
       </div>
-      <a href="TAXI.HTML" class="game-btn">Initialize</a>
-    </div>
+
       <div class="game-card">
         <div>
           <h3>Chess</h3>
@@ -468,58 +464,63 @@
         </div>
           <a href="Chess.HTML" class="game-btn">Initialize</a>
       </div>
-     <div class="game-card">
-      <div>
-       <h3>UNO ULTRA & AIR</h3>
-       <p>Uno Ultra and Air are real UNO simulations, test your memory and your actions. </p>
+
+      <div class="game-card">
+        <div>
+          <h3>UNO ULTRA & AIR</h3>
+          <p>Uno Ultra and Air are real UNO simulations, test your memory and your actions. </p>
+        </div>
+        <div>
+          <a href="UNOULTRA.html" class="game-btn" style="width:100%; margin-bottom:10px;">UNO ULTRA (PC)</a>
+          <a href="INDEX-GITHUB.HTML" class="game-btn" style="width:100%;">UNO AIR (Mobile)</a>
+        </div>
       </div>
-      <a href="UNOULTRA.html" class="game-btn">Initialize UNO ULTRA (PC)</a><br style="fot-size:xxx-small;">
-      <a href="INDEX-GITHUB.HTML" class="game-btn">Initialize UNO AIR (Mobile)</a>
-     </div>
-           <div class="game-card">
-      <div>
-       <h3>IQ TESTERS</h3>
-       <p>2 Riddle games, one is easier and dthe other is harder.</p>
+
+      <div class="game-card">
+        <div>
+          <h3>IQ TESTERS</h3>
+          <p>2 Riddle games, one is easier and the other is harder.</p>
+        </div>
+        <div>
+          <a href="Riddles1.html" class="game-btn" style="width:100%; margin-bottom:10px;">Riddles 1 (Easy)</a>
+          <a href="Riddles2.html" class="game-btn" style="width:100%; margin-bottom:10px;">Riddles 2 (Insane)</a>
+          <a href="quiz.html" class="game-btn" style="width:100%;">A small Quiz</a>
+        </div>
       </div>
-      <a href="Riddles1.html" class="game-btn">Initialize Riddles 1 (Easy)</a><br style="fot-size:xxx-small;">
-      <a href="Riddles2.html" class="game-btn">Initialize Riddles 2 (Insane)</a>
-      <a href="quiz.html" class="game-btn">A small Quiz</a>
-     </div>
-                <div class="game-card">
-      <div>
-       <h3>Maze</h3>
-       <p>JUST A MAZE... BUT HARD , IT IS SUTIBALE FOR LAPTOPS AND IPADS , IF YOU LIKE IT SUBSCRIBE TO MY CHANNEL </p>
+
+      <div class="game-card">
+        <div>
+          <h3>Maze</h3>
+          <p>JUST A MAZE... BUT HARD, SUITABLE FOR LAPTOPS AND IPADS.</p>
+        </div>
+        <a href="maze.html" class="game-btn">Initialize</a>
       </div>
-      <!-- Fixed: No longer triggers a reload or missing page. Triggers function. -->
-      <a href="maze.html" class="game-btn">Initialize</a>
-     </div>
+
+      <div class="game-card">
+        <div>
+          <h3>Hangman</h3>
+          <p>It is simply Hangman. Classical word guessing.</p>
+        </div>
+        <a href="HANGMAN-PC.html" class="game-btn">Initialize</a>
+      </div>
+
+      <div class="game-card">
+        <div>
+          <h3>Outcast - برا السالفة</h3>
+          <p>All players know something but one player doesn't. Find the liar.</p>
+        </div>
+        <a href="outcast.html" class="game-btn">Initialize Game</a>
+      </div>
+
+      <div class="game-card">
+        <div>
+          <h3>Puzzle</h3>
+          <p>The Customizable Puzzle. Build and solve your own levels.</p>
+        </div>
+        <a href="puzzle.htm" class="game-btn">Initialize The Puzzle</a>
+      </div>
     </div>
-    <div class="game-card">
-      <div>
-           <h3>Hangman</h3>
-       <p>It is simply Hangman</p>
-      </div>
-      <!-- Fixed: No longer triggers a reload or missing page. Triggers function. -->
-      <a href="HANGMAN-PC.html" class="game-btn">Initialize</a>
-     </div>
-    </div><div class="game-card">
-      <div>
-         <h3>Outcast - برا السالفة</h3>
-       <p>All players know something but one player doesn't.</p>
-      </div>
-      <!-- Fixed: No longer triggers a reload or missing page. Triggers function. -->
-      <a href="outcast.html" class="game-btn">Initialize Game</a>
-     </div><div class="game-card">
-      <div>
-         <h3>Puzzle</h3>
-       <p>The Customizable Puzzle.</p>
-      </div>
-      <!-- Fixed: No longer triggers a reload or missing page. Triggers function. -->
-      <a href="puzzle.htm" class="game-btn">Initialize The Puzzle</a>
-     </div>
-    </div>
-    </div>
-    <br>
+
     <footer>
       <p>© 2025 LIQUID GLASS ARCHIVE • ALL RIGHTS RESERVED</p>
     </footer>
@@ -540,7 +541,6 @@
     // Boot Sequence Controller
     window.addEventListener('load', () => {
       updateShortcutsForOS();
-      // FIXED: Loading time reduced from 3000ms to 500ms for responsiveness
       setTimeout(() => {
         const boot = document.getElementById('boot-sequence');
         const main = document.getElementById('main-content');
@@ -581,26 +581,12 @@
       contextMenu.style.display = 'none';
     });
 
-    // Make Context Menu Options Effective
-    document.getElementById('menu-reload').addEventListener('click', () => {
-      window.location.reload();
-    });
-
-    document.getElementById('menu-print').addEventListener('click', () => {
-      window.print();
-    });
-
-    document.getElementById('menu-back').addEventListener('click', () => {
-      window.history.back();
-    });
-
-    document.getElementById('menu-forward').addEventListener('click', () => {
-      window.history.forward();
-    });
-
-    document.getElementById('menu-search').addEventListener('click', () => {
-      window.open('https://www.google.com/search?q=Liquid+Glass+Arcade', '_blank');
-    });
+    // Menu Actions
+    document.getElementById('menu-reload').onclick = () => window.location.reload();
+    document.getElementById('menu-print').onclick = () => window.print();
+    document.getElementById('menu-back').onclick = () => window.history.back();
+    document.getElementById('menu-forward').onclick = () => window.history.forward();
+    document.getElementById('menu-search').onclick = () => window.open('https://www.google.com/search?q=Liquid+Glass+Arcade', '_blank');
 
     // Intelligent Glass Parallax
     document.querySelectorAll('.game-card').forEach(card => {
@@ -623,7 +609,6 @@
     // MAZE GAME LOGIC
     const mCanvas = document.getElementById('maze-canvas');
     const mCtx = mCanvas.getContext('2d');
-    let mSize = 20; 
     let mPlayer = {x:0, y:0};
     let mGoal = {x:19, y:19};
     let mMazeGrid = [];
@@ -677,21 +662,16 @@
                 }
             }
         }
-        // Goal
         mCtx.fillStyle = '#ff4444';
         mCtx.fillRect(mGoal.x*20 + 4, mGoal.y*20 + 4, 12, 12);
-        // Player
-        mCtx.fillStyle = varColor('--accent');
+        
+        mCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
         mCtx.shadowBlur = 10;
-        mCtx.shadowColor = varColor('--accent');
+        mCtx.shadowColor = mCtx.fillStyle;
         mCtx.beginPath();
         mCtx.arc(mPlayer.x*20 + 10, mPlayer.y*20 + 10, 6, 0, Math.PI*2);
         mCtx.fill();
         mCtx.shadowBlur = 0;
-    }
-
-    function varColor(name) {
-        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     }
 
     window.addEventListener('keydown', (e) => {
@@ -706,8 +686,10 @@
             mPlayer.x = nx; mPlayer.y = ny;
             drawMaze();
             if(mPlayer.x === mGoal.x && mPlayer.y === mGoal.y) {
-                alert("Labyrinth Conquered!");
-                initMazeGame();
+                setTimeout(() => {
+                  alert("Labyrinth Conquered!");
+                  initMazeGame();
+                }, 100);
             }
         }
     });
