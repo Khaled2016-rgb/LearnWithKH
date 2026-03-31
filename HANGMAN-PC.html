@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Liquid Glass Hangman Ultra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Cairo:wght@400;700;900&display=swap');
+
+        :root {
+            --glass: rgba(10, 10, 15, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --accent: #3b82f6;
+            --danger: #ff3b30;
+            --ios-blur: blur(25px) saturate(200%);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            outline: none;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #000;
+            color: #fff;
+            height: 100dvh;
+            margin: 0;
+    
+            touch-action: manipulation;
+        }
+
+        /* --- Dynamic Animated Background --- */
+        #bg-container {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #bg-image {
+            position: absolute;
+            inset: -20px;
+            width: calc(100% + 40px);
+            height: calc(100% + 40px);
+            object-fit: cover;
+            filter: brightness(0.4) blur(40px);
+            transition: opacity 1s ease, filter 1s ease;
+            opacity: 0.4;
+        }
+
+        .liquid-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.2;
+            animation: drift 25s infinite alternate ease-in-out;
+            z-index: -1;
+        }
+
+        @keyframes drift {
+            from { transform: translate(-10%, -10%) rotate(0deg); }
+            to { transform: translate(15%, 15%) rotate(180deg); }
+        }
+
+        /* --- Animations --- */
+        .page-enter {
+            animation: slideIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        .shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* --- iOS UI Elements --- */
+        .ios-panel {
+            background: var(--glass);
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+        }
+
+        .mini-hangman-canvas {
+            width: 50px;
+            height: 50px;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));
+        }
+
+        .chance-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #333;
+            transition: all 0.3s ease;
+        }
+        .chance-dot.active {
+            background: var(--danger);
+            box-shadow: 0 0 10px var(--danger);
+        }
+
+        .char-slot {
+            width: clamp(20px, 5vw, 40px);
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1.2rem, 3.5vw, 2.2rem);
+            font-weight: 800;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .char-slot.revealed {
+            border-bottom-color: var(--accent);
+            transform: translateY(-8px);
+            text-shadow: 0 0 15px var(--accent);
+        }
+
+        .key-btn {
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .key-btn:active { transform: scale(0.85); background: rgba(255,255,255,0.2); }
+        .key-btn.used { opacity: 0.1; transform: scale(0.8); pointer-events: none; }
+
+        #modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(15px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .ios-alert {
+            width: 100%;
+            max-width: 340px;
+            background: rgba(25, 25, 30, 0.9);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 28px;
+            
+            animation: alertBounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes alertBounce {
+            from { transform: scale(0.7); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .rtl { direction: rtl; font-family: 'Cairo', sans-serif; }
+    </style>
+</head>
+<body>
+
+    <div id="bg-container">
+        <img id="bg-image" src="" alt="">
+        <div class="liquid-blob bg-blue-600 w-[70vw] h-[70vw]" style="top:-15%; left:-10%;"></div>
+        <div class="liquid-blob bg-purple-700 w-[60vw] h-[60vw]" style="bottom:-10%; right:-10%; animation-delay:-8s;"></div>
+    </div>
+
+    <!-- IOS POPUP -->
+    <div id="modal-overlay">
+        <div class="ios-alert">
+            <div class="p-8 text-center">
+                <div class="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Round Mode</h3>
+                <p class="text-sm opacity-60">How would you like to play this category?</p>
+            </div>
+            <div class="flex flex-col border-t border-white/10">
+                <button onclick="confirmChoice('word')" class="p-5 font-bold text-blue-500 hover:bg-white/5 border-b border-white/10 active:bg-white/10 transition-colors">Single Word</button>
+                <button onclick="confirmChoice('sentence')" class="p-5 font-bold text-blue-500 hover:bg-white/5 active:bg-white/10 transition-colors">Full Sentence</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app" class="w-full h-full max-w-6xl mx-auto flex flex-col gap-6 p-4 sm:p-6 overflow-hidden">
+        
+        <!-- Enhanced iOS Top Bar -->
+        <header id="header" class="hidden flex justify-between items-center ios-panel px-6 py-4 shrink-0 transition-all">
+            <div class="flex items-center gap-4">
+                <div id="team-icon" class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-2xl shadow-inner">💎</div>
+                <div>
+                    <h3 id="team-name" class="font-black text-[9px] uppercase tracking-widest opacity-40">TEAM ALPHA</h3>
+                    <div id="chance-container" class="flex gap-1 mt-1">
+                        <!-- Dots injected by JS -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-col items-center">
+                <canvas id="mini-hangman" class="mini-hangman-canvas"></canvas>
+                <span id="timer" class="text-sm font-black font-mono tracking-widest">00:45</span>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <span class="text-[9px] font-black opacity-30 uppercase block">Score</span>
+                    <span id="score-display" class="text-lg font-bold text-blue-400">0</span>
+                </div>
+                <button onclick="exitGame()" class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <main id="viewport" class="flex-1 relative flex items-center justify-center">
+            
+            <!-- Welcome -->
+            <div id="screen-start" class="page-enter w-full max-w-md flex flex-col gap-12 text-center">
+                <div class="space-y-4">
+                    <div class="inline-block px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-black tracking-widest text-blue-400 uppercase">Version 2.0.26</div>
+                    <h1 class="text-7xl sm:text-8xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-white/20">HANGMAN</h1>
+                </div>
+                <div class="grid gap-4">
+                    <button onclick="pickLang('en')" class="ios-panel p-6 text-xl font-bold flex justify-between items-center group active:scale-95 transition-transform">
+                        English <span>🇺🇸</span>
+                    </button>
+                    <button onclick="pickLang('ar')" class="ios-panel p-6 text-xl font-bold flex justify-between items-center rtl active:scale-95 transition-transform">
+                        العربية <span>🇰🇼</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Subject Selection -->
+            <div id="screen-subjects" class="hidden page-enter w-full h-full flex flex-col gap-8">
+                <div class="text-center px-4">
+                    <h2 class="text-4xl font-black tracking-tight">Pick a Category</h2>
+                    <p class="text-sm opacity-40 uppercase tracking-[0.3em] mt-1">Global Database</p>
+                </div>
+                <div id="subjects-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5 overflow-y-auto custom-scroll p-4 pb-24"></div>
+            </div>
+
+            <!-- Admin Entry -->
+            <div id="screen-admin" class="hidden page-enter w-full max-w-xl ios-panel p-8 flex flex-col gap-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 class="text-3xl font-black uppercase tracking-tight">Admin mode</h2>
+                        <p class="text-xs opacity-50">Create a custom challenge for the team.</p>
+                    </div>
+                    <button onclick="showScreen('screen-subjects')" class="text-xs font-bold text-blue-500">BACK</button>
+                </div>
+                <div class="space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-blue-400 uppercase">Hidden Phrase</label>
+                        <input id="admin-word" type="text" placeholder="TYPE HERE..." class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none focus:border-blue-500 transition-all text-lg font-bold uppercase">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-blue-400 uppercase">Public Clue</label>
+                        <input id="admin-hint" type="text" placeholder="Enter a hint..." class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none focus:border-blue-500 transition-all">
+                    </div>
+                </div>
+                <button onclick="launchAdminGame()" class="w-full py-5 bg-white text-black font-black rounded-2xl text-xl shadow-xl active:scale-95 transition-all">START CHALLENGE</button>
+            </div>
+
+            <!-- Gameplay -->
+            <div id="screen-game" class="hidden page-enter w-full h-full flex flex-col gap-8">
+                <div class="flex-1 flex flex-col items-center justify-center gap-12">
+                    <div id="word-display" class="flex flex-wrap justify-center gap-3 px-4 max-w-4xl"></div>
+                    
+                    <div id="hint-display" class="ios-panel px-6 py-3 text-center opacity-0 transition-all translate-y-4">
+                        <span class="text-[9px] font-black text-blue-500 uppercase block mb-1">Decrypted Hint</span>
+                        <p id="hint-text" class="text-sm font-semibold italic"></p>
+                    </div>
+                </div>
+
+                <div class="w-full max-w-3xl mx-auto flex flex-col gap-4 pb-8">
+                    <div id="keyboard" class="grid grid-cols-7 sm:grid-cols-9 md:grid-cols-10 gap-2 p-3 ios-panel"></div>
+                    <div class="flex gap-4 px-2">
+                        <button onclick="toggleHint()" class="flex-1 py-4 ios-panel font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">💡 Hint</button>
+                        <button onclick="exitGame()" class="flex-1 py-4 ios-panel font-black text-[10px] uppercase tracking-widest text-red-400 active:scale-95 transition-all">🏳️ Forfeit</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const DATA = {
+            en: [
+                { id: 'admin', name: 'Admin mode', img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1000', custom: true },
+                { id: 'movies', name: 'Movies', img: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1000', 
+                  word: {'INCEPTION': 'Dream layers', 'GLADIATOR': 'Rome fighter', 'AVATAR': 'Blue aliens'},
+                  sentence: {'THE DARK KNIGHT': 'Gotham Savior', 'PULP FICTION': 'Quentin Tarantino classic', 'STAR WARS': 'A galaxy far far away'}
+                },
+                { id: 'models', name: 'Models', img: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1000', 
+                  word: {'GANDY': 'Male icon', 'HADID': 'Sister duo', 'MOSS': '90s legend'},
+                  sentence: {'NAOMI CAMPBELL': 'The Panther', 'TYRA BANKS': 'Smize creator'}
+                },
+                { id: 'everyday', name: 'Everyday', img: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1000',
+                  word: {'COFFEE': 'Morning fuel', 'TABLE': 'Supports items', 'KEYBOARD': 'Typing tool'},
+                  sentence: {'WASHING THE DISHES': 'Kitchen chore', 'DRINKING WATER': 'Stay hydrated'}
+                },
+                { id: 'hist', name: 'History', img: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=1000',
+                  word: {'VIKINGS': 'Sea raiders', 'PHARAOH': 'River ruler', 'SAMURAI': 'Bushido code'},
+                  sentence: {'THE COLD WAR': 'Space race era', 'INDUSTRIAL REVOLUTION': 'Steam engine rise'}
+                },
+                { id: 'land', name: 'Landmarks', img: 'https://images.unsplash.com/photo-1543731068-7e0f5beff43a?w=1000',
+                  word: {'PETRA': 'Rose city', 'COLOSSEUM': 'Gladiator home', 'PYRAMID': 'Ancient tomb'},
+                  sentence: {'STATUE OF LIBERTY': 'Gift from France', 'GREAT WALL OF CHINA': 'Dragon wall'}
+                },
+                { id: 'soc', name: 'Social Media', img: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=1000',
+                  word: {'TIKTOK': 'Vertical video', 'INSTAGRAM': 'Filter world', 'REDDIT': 'Front page of internet'},
+                  sentence: {'CREATING A REEL': 'Content creation', 'GOING VIRAL': 'Online fame'}
+                },
+                { id: 'play', name: 'Players', img: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1000',
+                  word: {'MESSI': 'Left foot magic', 'RONALDO': 'Siuuu', 'LEBRON': 'The chosen one'},
+                  sentence: {'MICHAEL JORDAN': 'Air Jordan legend', 'SERENA WILLIAMS': 'Tennis Queen'}
+                }
+            ],
+            ar: [
+                { id: 'admin', name: 'الوضع الإداري', img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1000', custom: true },
+                { id: 'movies', name: 'أفلام', img: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1000',
+                  word: {'الرسالة': 'فيلم تاريخي', 'تيتانيك': 'فيلم رومانسي'},
+                  sentence: {'في بيتنا رجل': 'فيلم كلاسيكي مصري'}
+                }
+            ]
+        };
+
+        let state = {
+            lang: 'en',
+            teams: [{ name: 'SQUAD ALPHA', icon: '💎', score: 0 }],
+            currentTeam: 0,
+            activeSubject: null,
+            word: '',
+            hint: '',
+            guesses: [],
+            mistakes: 0,
+            timer: 45,
+            interval: null,
+            maxMistakes: 6
+        };
+
+        function pickLang(l) {
+            state.lang = l;
+            document.body.classList.toggle('rtl', l === 'ar');
+            showScreen('screen-subjects');
+            renderSubjects();
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('#viewport > div').forEach(d => {
+                d.classList.add('hidden');
+                d.classList.remove('page-enter');
+            });
+            const target = document.getElementById(id);
+            target.classList.remove('hidden');
+            void target.offsetWidth; // Trigger reflow
+            target.classList.add('page-enter');
+            
+            document.getElementById('header').classList.toggle('hidden', id !== 'screen-game');
+            
+            // Background blur logic
+            const bgImg = document.getElementById('bg-image');
+            if (id === 'screen-game' && state.activeSubject) {
+                bgImg.src = state.activeSubject.img;
+                bgImg.style.opacity = '0.6';
+                bgImg.style.filter = 'brightness(0.3) blur(8px)';
+            } else {
+                bgImg.style.opacity = '0.4';
+                bgImg.style.filter = 'brightness(0.4) blur(40px)';
+            }
+        }
+
+        function renderSubjects() {
+            const grid = document.getElementById('subjects-grid');
+            grid.innerHTML = '';
+            DATA[state.lang].forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'ios-panel aspect-[4/5] relative overflow-hidden group cursor-pointer active:scale-95 transition-all';
+                card.innerHTML = `
+                    <img src="${s.img}" class="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-60 group-hover:scale-110 transition-all duration-1000">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent flex flex-col justify-end p-5">
+                        <span class="text-[9px] font-black uppercase tracking-widest text-blue-500 mb-1">Catalog</span>
+                        <span class="text-lg font-bold leading-tight">${s.name}</span>
+                    </div>
+                `;
+                card.onclick = () => {
+                    state.activeSubject = s;
+                    if (s.custom) showScreen('screen-admin');
+                    else showModal();
+                };
+                grid.appendChild(card);
+            });
+        }
+
+        function showModal() {
+            document.getElementById('modal-overlay').style.display = 'flex';
+        }
+
+        function confirmChoice(mode) {
+            document.getElementById('modal-overlay').style.display = 'none';
+            const pool = state.activeSubject[mode];
+            const keys = Object.keys(pool);
+            state.word = keys[Math.floor(Math.random() * keys.length)];
+            state.hint = pool[state.word];
+            launchGame();
+        }
+
+        function launchAdminGame() {
+            const word = document.getElementById('admin-word').value.trim().toUpperCase();
+            const hint = document.getElementById('admin-hint').value.trim();
+            if (!word) return;
+            state.word = word;
+            state.hint = hint || 'Top Secret';
+            launchGame();
+        }
+
+        function launchGame() {
+            state.guesses = [];
+            state.mistakes = 0;
+            state.timer = 45;
+            
+            showScreen('screen-game');
+            renderWord();
+            renderKeyboard();
+            updateHeader();
+            startTimer();
+            drawMiniHangman();
+            
+            // Hide hint at start
+            const hd = document.getElementById('hint-display');
+            hd.style.opacity = '0';
+            hd.style.transform = 'translateY(10px)';
+        }
+
+        function renderWord() {
+            const container = document.getElementById('word-display');
+            container.innerHTML = '';
+            state.word.split('').forEach(char => {
+                const slot = document.createElement('div');
+                slot.className = 'char-slot';
+                const isAlpha = /[A-Z\u0600-\u06FF]/.test(char);
+                if (!isAlpha) {
+                    slot.innerText = char;
+                    slot.style.borderBottom = 'none';
+                    if (char === ' ') slot.style.width = '24px';
+                } else if (state.guesses.includes(char)) {
+                    slot.innerText = char;
+                    slot.classList.add('revealed');
+                }
+                container.appendChild(slot);
+            });
+        }
+
+        function renderKeyboard() {
+            const kb = document.getElementById('keyboard');
+            kb.innerHTML = '';
+            const letters = state.lang === 'en' ? "QWERTYUIOPASDFGHJKLZXCVBNM".split('') : "أبتثجحخدذرزسشصضطظعغفقكلمنهوي".split('');
+            letters.forEach(l => {
+                const b = document.createElement('button');
+                b.className = 'key-btn';
+                b.innerText = l;
+                b.onclick = () => handleInput(l, b);
+                kb.appendChild(b);
+            });
+        }
+
+        function handleInput(l, b) {
+            if (state.guesses.includes(l)) return;
+            state.guesses.push(l);
+            b.classList.add('used');
+            
+            if (state.word.includes(l)) {
+                renderWord();
+                checkWin();
+            } else {
+                state.mistakes++;
+                document.getElementById('word-display').classList.add('shake');
+                setTimeout(() => document.getElementById('word-display').classList.remove('shake'), 400);
+                drawMiniHangman();
+                updateChances();
+                if (state.mistakes >= state.maxMistakes) endGame(false);
+            }
+        }
+
+        function updateChances() {
+            const container = document.getElementById('chance-container');
+            const dots = container.querySelectorAll('.chance-dot');
+            dots.forEach((dot, i) => {
+                if (i < state.mistakes) dot.classList.add('active');
+            });
+        }
+
+        function checkWin() {
+            const alpha = state.word.split('').filter(c => /[A-Z\u0600-\u06FF]/.test(c));
+            if (alpha.every(l => state.guesses.includes(l))) endGame(true);
+        }
+
+        function endGame(won) {
+            clearInterval(state.interval);
+            if (!won) {
+                state.guesses = state.word.split('');
+                renderWord();
+            } else {
+                state.teams[state.currentTeam].score += (100 + state.timer * 5);
+                updateHeader();
+            }
+            setTimeout(() => {
+                if (state.activeSubject.custom) showScreen('screen-admin');
+                else showModal();
+            }, 3000);
+        }
+
+        function startTimer() {
+            clearInterval(state.interval);
+            const el = document.getElementById('timer');
+            state.interval = setInterval(() => {
+                state.timer--;
+                el.innerText = `00:${state.timer.toString().padStart(2, '0')}`;
+                if (state.timer <= 0) endGame(false);
+            }, 1000);
+        }
+
+        function updateHeader() {
+            const t = state.teams[state.currentTeam];
+            document.getElementById('team-icon').innerText = t.icon;
+            document.getElementById('team-name').innerText = t.name;
+            document.getElementById('score-display').innerText = t.score;
+            document.getElementById('hint-text').innerText = state.hint;
+
+            // Render Chance Dots
+            const cc = document.getElementById('chance-container');
+            cc.innerHTML = '';
+            for(let i=0; i<state.maxMistakes; i++) {
+                const dot = document.createElement('div');
+                dot.className = `chance-dot ${i < state.mistakes ? 'active' : ''}`;
+                cc.appendChild(dot);
+            }
+        }
+
+        function toggleHint() {
+            const b = document.getElementById('hint-display');
+            const visible = b.style.opacity === '1';
+            b.style.opacity = visible ? '0' : '1';
+            b.style.transform = visible ? 'translateY(10px)' : 'translateY(0)';
+        }
+
+        function exitGame() {
+            clearInterval(state.interval);
+            showScreen('screen-start');
+        }
+
+        function drawMiniHangman() {
+            const c = document.getElementById('mini-hangman');
+            const ctx = c.getContext('2d');
+            const m = state.mistakes;
+            ctx.clearRect(0,0,50,50);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            
+            // Gallows
+            ctx.beginPath();
+            ctx.moveTo(5, 45); ctx.lineTo(45, 45);
+            ctx.moveTo(15, 45); ctx.lineTo(15, 5);
+            ctx.lineTo(35, 5); ctx.lineTo(35, 12);
+            ctx.stroke();
+
+            // Tiny Man
+            ctx.strokeStyle = '#ff3b30';
+            if(m>0) { ctx.beginPath(); ctx.arc(35, 17, 5, 0, Math.PI*2); ctx.stroke(); }
+            if(m>1) { ctx.beginPath(); ctx.moveTo(35, 22); ctx.lineTo(35, 35); ctx.stroke(); }
+            if(m>2) { ctx.beginPath(); ctx.moveTo(35, 25); ctx.lineTo(28, 30); ctx.stroke(); }
+            if(m>3) { ctx.beginPath(); ctx.moveTo(35, 25); ctx.lineTo(42, 30); ctx.stroke(); }
+            if(m>4) { ctx.beginPath(); ctx.moveTo(35, 35); ctx.lineTo(28, 42); ctx.stroke(); }
+            if(m>5) { ctx.beginPath(); ctx.moveTo(35, 35); ctx.lineTo(42, 42); ctx.stroke(); }
+        }
+    </script>
+</body>
+</html>

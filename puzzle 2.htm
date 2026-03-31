@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برا السالفة - النسخة الكاملة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .liquid-blob {
+            position: fixed;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.4;
+            animation: move 20s infinite alternate;
+        }
+        @keyframes move {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(100px, 100px) scale(1.2); }
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.5); border-radius: 10px; }
+        .card-glow { box-shadow: 0 0 30px rgba(59, 130, 246, 0.15); }
+    </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-4">
+
+    <!-- خلفية متحركة -->
+    <div class="liquid-blob w-96 h-96 bg-blue-600 top-0 left-0"></div>
+    <div class="liquid-blob w-80 h-80 bg-purple-600 bottom-0 right-0" style="animation-delay: -5s;"></div>
+
+    <div id="app" class="w-full max-w-md bg-white/5 border border-white/10 backdrop-blur-2xl rounded-[2.5rem] p-6 relative z-10 transition-all duration-500 overflow-hidden">
+        <!-- المحتوى يتم توليده بواسطة JavaScript -->
+    </div>
+
+    <script>
+        // تكوين اللعبة
+        const CATEGORIES = {
+            "أكل": ["شاورما", "منسف", "بيتزا", "برجر", "ورق عنب", "كاري", "سوشي", "كبسة", "فلافل", "مسخن"],
+            "دول": ["الكويت", "السعودية", "قطر", "مصر", "تركيا", "اليابان", "فرنسا", "إيطاليا", "البرازيل", "عمان"],
+            "معالم": ["برج إيفل", "الأهرامات", "برج خليفة", "سور الصين", "تاج محل", "بيغ بن", "تمثال الحرية"],
+            "حيوانات": ["أسد", "فيل", "زرافة", "بطريق", "نمر", "كنغر", "ثعلب", "دلفين", "صقر", "تمساح"],
+            "تقنية": ["آيفون", "تطبيقات", "ذكاء اصطناعي", "بلاستيشن", "انترنت", "شاشة", "سماعات", "برمجة"]
+        };
+
+        // حالة اللعبة
+        let state = {
+            screen: 'start', // start, players, category, deal, discussion, choice, vote_pass, voting, outcast_guess, winner
+            playerCount: 3,
+            playerNames: ["لاعب 1", "لاعب 2", "لاعب 3"],
+            playerPoints: [0, 0, 0],
+            category: "أكل",
+            secretWord: "",
+            outcastIndex: -1,
+            currentPlayerIndex: 0,
+            showSecret: false,
+            currentRound: 1,
+            maxRounds: 10,
+            voterIndex: 0,
+            votes: {},
+            options: []
+        };
+
+        const app = document.getElementById('app');
+
+        // مغير الشاشات
+        function render() {
+            app.innerHTML = '';
+            switch (state.screen) {
+                case 'start': renderStart(); break;
+                case 'players': renderPlayers(); break;
+                case 'category': renderCategory(); break;
+                case 'deal': renderDeal(); break;
+                case 'discussion': renderDiscussion(); break;
+                case 'choice': renderChoice(); break;
+                case 'vote_pass': renderVotePass(); break;
+                case 'voting': renderVoting(); break;
+                case 'outcast_guess': renderOutcastGuess(); break;
+                case 'winner': renderWinner(); break;
+            }
+            lucide.createIcons();
+        }
+
+        // --- الشاشات ---
+
+        function renderStart() {
+            app.innerHTML = `
+                <div class="text-center space-y-8 py-10">
+                    <div class="space-y-2">
+                        <h1 class="text-6xl font-black bg-gradient-to-br from-blue-400 to-purple-500 bg-clip-text text-transparent">برا السالفة</h1>
+                        <p class="text-blue-300/60 font-bold">كُن ذكياً.. لا تنكشف!</p>
+                    </div>
+                    <div class="flex justify-center py-4">
+                        <div class="p-6 bg-blue-500/10 rounded-full border border-blue-500/20 animate-pulse">
+                            <i data-lucide="play" class="w-12 h-12 text-blue-500 fill-current"></i>
+                        </div>
+                    </div>
+                    <button onclick="setScreen('players')" class="w-full py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-3xl font-black text-xl transition-all shadow-xl shadow-blue-600/20">ابدأ اللعب</button>
+                </div>
+            `;
+        }
+
+        function renderPlayers() {
+            let inputs = state.playerNames.map((name, i) => `
+                <div class="flex items-center gap-3 p-3 bg-white/5 border border-white/5 rounded-2xl">
+                    <span class="w-8 h-8 flex items-center justify-center bg-blue-500 text-xs font-bold rounded-full">${i+1}</span>
+                    <input type="text" onchange="updatePlayerName(${i}, this.value)" value="${name}" class="bg-transparent outline-none flex-1 text-sm font-bold">
+                </div>
+            `).join('');
+
+            app.innerHTML = `
+                <div class="space-y-6">
+                    <h2 class="text-3xl font-black">اللاعبين</h2>
+                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-3xl border border-white/10">
+                        <button onclick="changePlayerCount(-1)" class="w-12 h-12 bg-white/10 rounded-full font-bold text-2xl">-</button>
+                        <span class="text-4xl font-black">${state.playerCount}</span>
+                        <button onclick="changePlayerCount(1)" class="w-12 h-12 bg-white/10 rounded-full font-bold text-2xl">+</button>
+                    </div>
+                    <div class="space-y-3 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">${inputs}</div>
+                    <button onclick="setScreen('category')" class="w-full py-4 bg-blue-600 text-white rounded-3xl font-black">التالي</button>
+                </div>
+            `;
+        }
+
+        function renderCategory() {
+            let cats = Object.keys(CATEGORIES).map(cat => `
+                <button onclick="selectCategory('${cat}')" class="p-5 rounded-3xl border-2 transition-all ${state.category === cat ? 'border-blue-500 bg-blue-500/10' : 'border-white/5 bg-white/5'}">
+                    <span class="font-black">${cat}</span>
+                </button>
+            `).join('');
+
+            app.innerHTML = `
+                <div class="space-y-6">
+                    <h2 class="text-3xl font-black">اختر السالفة</h2>
+                    <div class="grid grid-cols-2 gap-4">${cats}</div>
+                    <button onclick="startGame()" class="w-full py-4 bg-emerald-600 text-white rounded-3xl font-black text-xl shadow-lg">ابدأ الجولة</button>
+                </div>
+            `;
+        }
+
+        function renderDeal() {
+            app.innerHTML = `
+                <div class="text-center space-y-10">
+                    <div class="space-y-2">
+                        <div class="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto text-blue-500 border border-blue-500/20">
+                            <i data-lucide="user" class="w-10 h-10"></i>
+                        </div>
+                        <h3 class="text-3xl font-black">دور: <span class="text-blue-500">${state.playerNames[state.currentPlayerIndex]}</span></h3>
+                    </div>
+                    <div onclick="toggleSecret()" class="h-56 rounded-[3rem] border-2 border-dashed border-white/20 flex items-center justify-center cursor-pointer transition-all ${state.showSecret ? 'bg-blue-500/10 border-blue-500/40' : 'hover:bg-white/5'}">
+                        ${state.showSecret ? `
+                            <div class="text-center">
+                                <span class="text-xs font-bold text-blue-400 uppercase tracking-widest">الموضوع هو</span>
+                                <div class="text-4xl font-black mt-2">${state.currentPlayerIndex === state.outcastIndex ? 'أنت برا السالفة! 😎' : state.secretWord}</div>
+                            </div>
+                        ` : '<i data-lucide="eye-off" class="w-16 h-16 opacity-20"></i>'}
+                    </div>
+                    ${state.showSecret ? `
+                        <button onclick="nextPlayerDeal()" class="w-full py-5 bg-blue-600 text-white rounded-3xl font-black text-xl">${state.currentPlayerIndex < state.playerCount - 1 ? 'التالي' : 'بدء المناقشة'}</button>
+                    ` : '<p class="opacity-50 animate-bounce">اضغط للمشاهدة</p>'}
+                </div>
+            `;
+        }
+
+        function renderDiscussion() {
+            // منطق اختيار لاعبين عشوائيين للسؤال
+            let askerIdx = Math.floor(Math.random() * state.playerCount);
+            let targetIdx;
+            do { targetIdx = Math.floor(Math.random() * state.playerCount); } while (targetIdx === askerIdx);
+
+            app.innerHTML = `
+                <div class="text-center space-y-8">
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/10 rounded-full text-blue-400 text-xs font-bold border border-blue-500/20">
+                         السؤال ${state.currentRound} من ${state.maxRounds}
+                    </div>
+                    <h2 class="text-4xl font-black">وقت الأسئلة!</h2>
+                    <div class="p-8 bg-white/5 border border-white/10 rounded-[3rem] space-y-6">
+                        <div class="flex justify-around items-center">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold">${state.playerNames[askerIdx][0]}</div>
+                                <p class="text-xs mt-2 opacity-60">${state.playerNames[askerIdx]}</p>
+                            </div>
+                            <i data-lucide="message-circle" class="w-10 h-10 text-blue-500 animate-pulse"></i>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-purple-500 rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold">${state.playerNames[targetIdx][0]}</div>
+                                <p class="text-xs mt-2 opacity-60">${state.playerNames[targetIdx]}</p>
+                            </div>
+                        </div>
+                        <p class="text-xl font-bold"><span class="text-blue-400">${state.playerNames[askerIdx]}</span> اسأل <span class="text-purple-400">${state.playerNames[targetIdx]}</span></p>
+                    </div>
+                    <button onclick="setScreen('choice')" class="w-full py-5 bg-blue-600 text-white rounded-3xl font-black text-xl shadow-xl">التالي</button>
+                </div>
+            `;
+        }
+
+        function renderChoice() {
+            app.innerHTML = `
+                <div class="text-center space-y-8">
+                    <h2 class="text-3xl font-black">ماذا تريد أن تفعل؟</h2>
+                    <div class="grid gap-4">
+                        <button onclick="keepAsking()" class="p-6 bg-blue-600 text-white rounded-[2rem] font-black text-xl flex items-center justify-between">
+                            <span>سؤال آخر</span>
+                            <i data-lucide="arrow-left"></i>
+                        </button>
+                        <button onclick="setScreen('vote_pass')" class="p-6 bg-purple-600 text-white rounded-[2rem] font-black text-xl flex items-center justify-between">
+                            <span>بدء التصويت</span>
+                            <i data-lucide="vote"></i>
+                        </button>
+                    </div>
+                    <p class="opacity-40 text-sm italic">ملاحظة: يمكنك السؤال حتى 10 مرات قبل التصويت الإجباري</p>
+                </div>
+            `;
+        }
+
+        function renderVotePass() {
+            app.innerHTML = `
+                <div class="text-center space-y-10 py-10">
+                    <div class="w-24 h-24 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto text-purple-500 border border-purple-500/20">
+                        <i data-lucide="target" class="w-12 h-12"></i>
+                    </div>
+                    <h2 class="text-4xl font-black">دور التصويت لـ: <br><span class="text-purple-500">${state.playerNames[state.voterIndex]}</span></h2>
+                    <button onclick="setScreen('voting')" class="w-full py-5 bg-purple-600 text-white rounded-3xl font-black text-xl">ابدأ التصويت</button>
+                </div>
+            `;
+        }
+
+        function renderVoting() {
+            let btns = state.playerNames.map((name, i) => {
+                if (i === state.voterIndex) return '';
+                return `
+                    <button onclick="castVote(${i})" class="p-4 bg-white/5 border border-white/10 rounded-2xl font-bold hover:bg-purple-500/20 transition-all">
+                        ${name}
+                    </button>
+                `;
+            }).join('');
+
+            app.innerHTML = `
+                <div class="space-y-6">
+                    <h2 class="text-3xl font-black text-center">من هو الدخيل؟</h2>
+                    <div class="grid gap-3">${btns}</div>
+                </div>
+            `;
+        }
+
+        function renderOutcastGuess() {
+            let opts = state.options.map(opt => `
+                <button onclick="checkOutcastGuess('${opt}')" class="p-4 bg-white/5 border border-white/10 rounded-2xl font-bold hover:bg-emerald-500/20 transition-all">
+                    ${opt}
+                </button>
+            `).join('');
+
+            app.innerHTML = `
+                <div class="space-y-6 text-center">
+                    <div class="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto text-emerald-500 border border-emerald-500/20">
+                        <i data-lucide="search" class="w-10 h-10"></i>
+                    </div>
+                    <h2 class="text-3xl font-black">تحدي الدخيل!</h2>
+                    <p class="opacity-60 font-bold">تم كشفك! لكن يمكنك الفوز إذا عرفت ما هو الموضوع؟</p>
+                    <div class="grid gap-3 text-right" dir="rtl">${opts}</div>
+                </div>
+            `;
+        }
+
+        function renderWinner() {
+            // ترتيب اللاعبين حسب النقاط
+            let leaderboard = state.playerNames
+                .map((name, i) => ({name, points: state.playerPoints[i]}))
+                .sort((a, b) => b.points - a.points);
+
+            let rows = leaderboard.map((p, i) => `
+                <div class="flex items-center justify-between p-4 ${i === 0 ? 'bg-yellow-500/20 border-yellow-500/50' : 'bg-white/5 border-white/10'} border rounded-2xl">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">${i === 0 ? '👑' : i + 1}</span>
+                        <span class="font-black">${p.name}</span>
+                    </div>
+                    <span class="font-bold text-blue-400">${p.points} نقطة</span>
+                </div>
+            `).join('');
+
+            app.innerHTML = `
+                <div class="space-y-6 text-center">
+                    <i data-lucide="trophy" class="w-20 h-20 text-yellow-500 mx-auto drop-shadow-lg"></i>
+                    <h2 class="text-4xl font-black">النتائج النهائية</h2>
+                    <div class="space-y-3">${rows}</div>
+                    <div class="pt-4 space-y-3">
+                        <button onclick="resetGame()" class="w-full py-4 bg-blue-600 text-white rounded-3xl font-black text-xl">لعبة جديدة</button>
+                        <button onclick="setScreen('start')" class="w-full py-4 bg-white/10 text-white rounded-3xl font-black">الرئيسية</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- منطق اللعبة ---
+
+        function setScreen(s) {
+            state.screen = s;
+            render();
+        }
+
+        function changePlayerCount(val) {
+            state.playerCount = Math.min(12, Math.max(3, state.playerCount + val));
+            state.playerNames = Array.from({length: state.playerCount}, (_, i) => state.playerNames[i] || `لاعب ${i+1}`);
+            state.playerPoints = Array.from({length: state.playerCount}, (_, i) => state.playerPoints[i] || 0);
+            render();
+        }
+
+        function updatePlayerName(i, val) {
+            state.playerNames[i] = val;
+        }
+
+        function selectCategory(cat) {
+            state.category = cat;
+            render();
+        }
+
+        function startGame() {
+            const words = CATEGORIES[state.category];
+            state.secretWord = words[Math.floor(Math.random() * words.length)];
+            state.outcastIndex = Math.floor(Math.random() * state.playerCount);
+            state.currentPlayerIndex = 0;
+            state.currentRound = 1;
+            state.showSecret = false;
+            
+            // تحضير خيارات التخمين للدخيل
+            let others = words.filter(w => w !== state.secretWord).sort(() => 0.5 - Math.random()).slice(0, 3);
+            state.options = [state.secretWord, ...others].sort(() => 0.5 - Math.random());
+
+            setScreen('deal');
+        }
+
+        function toggleSecret() {
+            state.showSecret = !state.showSecret;
+            render();
+        }
+
+        function nextPlayerDeal() {
+            if (state.currentPlayerIndex < state.playerCount - 1) {
+                state.currentPlayerIndex++;
+                state.showSecret = false;
+                render();
+            } else {
+                setScreen('discussion');
+            }
+        }
+
+        function keepAsking() {
+            if (state.currentRound < state.maxRounds) {
+                state.currentRound++;
+                setScreen('discussion');
+            } else {
+                setScreen('vote_pass');
+            }
+        }
+
+        function castVote(targetIdx) {
+            state.votes[state.voterIndex] = targetIdx;
+            if (state.voterIndex < state.playerCount - 1) {
+                state.voterIndex++;
+                setScreen('vote_pass');
+            } else {
+                processVotes();
+            }
+        }
+
+        function processVotes() {
+            let counts = {};
+            Object.values(state.votes).forEach(v => counts[v] = (counts[v] || 0) + 1);
+            
+            let suspect = -1;
+            let maxVotes = 0;
+            for (let id in counts) {
+                if (counts[id] > maxVotes) {
+                    maxVotes = counts[id];
+                    suspect = parseInt(id);
+                }
+            }
+
+            if (suspect === state.outcastIndex) {
+                // اللاعبين كشفوا الدخيل
+                state.playerNames.forEach((_, i) => {
+                    if (i !== state.outcastIndex) state.playerPoints[i] += 1;
+                });
+                setScreen('outcast_guess');
+            } else {
+                // الدخيل نجح بالتمويه
+                state.playerPoints[state.outcastIndex] += 2;
+                setScreen('winner');
+            }
+        }
+
+        function checkOutcastGuess(guess) {
+            if (guess === state.secretWord) {
+                state.playerPoints[state.outcastIndex] += 1;
+            }
+            setScreen('winner');
+        }
+
+        function resetGame() {
+            state.playerPoints = state.playerPoints.map(() => 0);
+            state.voterIndex = 0;
+            state.votes = {};
+            setScreen('category');
+        }
+
+        // تشغيل التطبيق
+        render();
+    </script>
+</body>
+</html>

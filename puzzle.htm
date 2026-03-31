@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Puzzle Game - LWKHO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+        :root {
+            --accent: #3b82f6;
+            --bg-page: #02040a;
+            --text-main: #f8fafc;
+            --glass-bg: rgba(13, 17, 23, 0.8);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --radius-board: 40px;
+            --radius-tile: 16px;
+        }
+
+        .light-theme {
+            --bg-page: #f1f5f9;
+            --text-main: #000000;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --card-bg: rgba(0, 0, 0, 0.02);
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
+            margin: 0;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            touch-action: none;
+        }
+
+        .dynamic-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-size: cover;
+            background-position: center;
+            transform: scale(1.1);
+            transition: filter 0.3s ease;
+        }
+
+        .screen {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.05);
+            transition: all 0.6s cubic-bezier(0.2, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        .puzzle-container {
+            position: relative;
+            width: min(85vw, 85vh, 550px);
+            aspect-ratio: 1 / 1;
+            justify-self:center;
+            padding: 12px;
+            background: var(--glass-bg);
+            border-radius: var(--radius-board);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+        }
+
+        .puzzle-grid {
+            display: grid;
+            width: 100%;
+            height: 100%;
+            gap: 8px;
+        }
+
+        .tile {
+            position: relative;
+            border-radius: var(--radius-tile);
+            overflow: hidden;
+            background: #111827;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.3, 1, 0.4, 1.2);
+        }
+
+        .tile:active { transform: scale(0.94); }
+        .tile.empty { opacity: 0; pointer-events: none; }
+
+        .tile-number {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 800;
+            color: white;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+        }
+
+        .tile-number.visible { opacity: 1; transform: translateY(0); }
+
+        #settingsSidebar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            bottom: 20px;
+            width: calc(100% - 40px);
+            max-width: 420px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px);
+            border-radius: 32px;
+            border: 1px solid var(--border-color);
+            z-index: 100;
+            transform: translateX(120%);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: -20px 0 60px rgba(0,0,0,0.2);
+        }
+
+        #settingsSidebar.open { transform: translateX(0); }
+
+        .control-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(100, 116, 139, 0.2);
+            border-radius: 5px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .toggle-btn {
+            width: 50px;
+            height: 26px;
+            border-radius: 13px;
+            background: rgba(100, 116, 139, 0.3);
+            position: relative;
+            transition: background 0.3s;
+        }
+
+        .toggle-btn.active { background: var(--accent); }
+
+        .toggle-thumb {
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+
+        .toggle-btn.active .toggle-thumb { transform: translateX(24px); }
+
+        .order-btn {
+            @apply flex-1 py-3 rounded-xl text-[9px] font-black tracking-widest uppercase transition-all border border-white/5;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .order-btn.active {
+            @apply bg-blue-600 text-white border-blue-400;
+        }
+
+        .currency-badge {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            padding: 6px 16px;
+            border-radius: 24px;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.3); border-radius: 10px; }
+    </style>
+</head>
+<body class="dark-theme">
+    <div id="bgLayer" class="dynamic-bg" style="filter: blur(40px) brightness(0.4);"></div>
+
+    <!-- SFX -->
+    <audio id="sfx-click" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+    <audio id="sfx-slide" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" preload="auto"></audio>
+    <audio id="sfx-win" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
+    <audio id="bg-ambience" src="https://assets.mixkit.co/active_storage/sfx/123/123-preview.mp3" loop preload="auto"></audio>
+
+    <!-- Home Screen -->
+    <div id="homeScreen" class="screen active">
+        <div class="mb-10 relative">
+            <div class="absolute inset-0 bg-blue-500 blur-[60px] opacity-20"></div>
+            <div class="relative w-28 h-28 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[28px] flex items-center justify-center shadow-2xl border border-white/20">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+        </div>
+        <h1 class="text-5xl font-black uppercase tracking-tighter mb-2 italic text-center">Puzzle</h1>
+        <p class="text-blue-500 text-[10px] font-bold tracking-[0.5em] uppercase mb-12">Universal Sync Engine</p>
+        
+        <div class="currency-badge mb-10 scale-110">
+            <span>✧</span>
+            <span id="homeCredits">0</span>
+        </div>
+
+        <button onclick="switchScreen('gameScreen')" class="px-14 py-5 bg-blue-600 text-white rounded-full font-black uppercase tracking-widest text-xs hover:scale-105 active:scale-95 transition-all shadow-blue-500/20 shadow-2xl">
+            Boot System
+        </button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+        <header class="absolute top-0 inset-x-0 p-8 flex justify-between items-center max-w-6xl mx-auto w-full z-10">
+            <button onclick="switchScreen('homeScreen')" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+            </button>
+
+            <div class="flex items-center gap-6 bg-white/5 backdrop-blur-2xl border border-white/10 px-6 py-2 rounded-full">
+                <div class="flex flex-col items-center px-2">
+                    <span class="text-[7px] font-black uppercase opacity-40">Moves</span>
+                    <span id="moveCount" class="font-mono text-base font-bold">00</span>
+                </div>
+                <div class="w-px h-6 bg-white/10"></div>
+                <div class="flex flex-col items-center px-2">
+                    <span class="text-[7px] font-black uppercase opacity-40">Time</span>
+                    <span id="timer" class="font-mono text-base font-bold">00:00</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="currency-badge scale-90">
+                    <span>✧</span>
+                    <span id="gameCredits">0</span>
+                </div>
+                <button onclick="toggleSettings(true)" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="puzzle-container">
+            <div id="puzzleGrid" class="puzzle-grid" ontouchstart="handleTouchStart(event)" ontouchend="handleTouchEnd(event)"></div>
+            <div id="winOverlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-blue-600/30 backdrop-blur-2xl rounded-[40px] z-50 p-8 text-center">
+                <div class="mb-6">
+                    <div class="w-20 h-20 mx-auto bg-white rounded-full flex items-center justify-center shadow-2xl mb-4">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <h2 class="text-4xl font-black italic uppercase text-white drop-shadow-2xl">Matrix Synced</h2>
+                    <p class="text-blue-100 text-[10px] font-bold uppercase tracking-widest mt-2 opacity-80">Encryption Key Restored</p>
+                </div>
+                
+                <div class="currency-badge scale-125 mb-10 text-white">+150 Credits</div>
+                
+                <button onclick="reshuffleFromWin()" class="group relative px-12 py-5 bg-white text-blue-600 rounded-full font-black uppercase tracking-widest text-xs transition-all hover:scale-105 active:scale-95 shadow-2xl">
+                    <span class="relative z-10">Re-engage Matrix</span>
+                    <div class="absolute inset-0 bg-white blur-xl opacity-0 group-hover:opacity-40 transition-opacity"></div>
+                </button>
+            </div>
+        </div>
+
+        <button onclick="shuffleGrid()" class="mt-12 px-10 py-4 rounded-full border border-white/10 bg-white/5 font-bold text-[9px] uppercase tracking-[0.4em] hover:bg-white/10 transition-all">
+            Recalibrate
+        </button>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settingsSidebar" class="custom-scroll">
+        <div class="p-8 flex justify-between items-center border-b border-white/5">
+            <h3 class="text-xl font-black uppercase italic tracking-tighter">OS Preferences</h3>
+            <button onclick="toggleSettings(false)" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/5">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-8 space-y-8 custom-scroll">
+            <!-- Environment Section -->
+            <section class="space-y-4">
+                <label class="text-[9px] font-black uppercase text-blue-500 tracking-widest">Environment</label>
+                <div class="control-card space-y-6">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold">Interface Mode</span>
+                        <div id="themeToggle" onclick="toggleTheme()" class="toggle-btn cursor-pointer">
+                            <div class="toggle-thumb"></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold">Neural Decoders (Numbers)</span>
+                        <div id="labelToggle" onclick="toggleLabels()" class="toggle-btn active cursor-pointer">
+                            <div class="toggle-thumb"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-[9px] font-black uppercase opacity-50">
+                            <span>Brightness</span>
+                            <span id="brightVal">40%</span>
+                        </div>
+                        <input type="range" id="brightRange" min="0.1" max="1" step="0.05" value="0.4" oninput="updateBrightness(this.value)">
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-[9px] font-black uppercase opacity-50">
+                            <span>System Gain</span>
+                            <span id="volVal">50%</span>
+                        </div>
+                        <input type="range" id="volRange" min="0" max="1" step="0.05" value="0.5" oninput="updateVolume(this.value)">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Asset Section -->
+            <section class="space-y-4">
+                <label class="text-[9px] font-black uppercase text-blue-500 tracking-widest">Visual Uplink</label>
+                <div class="control-card space-y-4">
+                    <div id="settingsAssetPreview" class="w-full aspect-video rounded-xl bg-black/20 border border-white/5 overflow-hidden flex items-center justify-center"></div>
+                    <div class="flex gap-2">
+                        <label class="flex-1 py-3 bg-blue-600 rounded-xl flex items-center justify-center cursor-pointer hover:bg-blue-500 transition-all">
+                            <span class="text-[9px] font-black uppercase text-white">Import</span>
+                            <input type="file" id="mediaUpload" accept="image/*,video/*" class="hidden" onchange="handleFile(event)">
+                        </label>
+                        <input type="text" id="assetUrl" placeholder="External URL..." class="flex-[2] bg-black/20 border border-white/5 rounded-xl px-4 text-xs outline-none" oninput="handleUrl(this.value)">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Matrix Entropy -->
+            <section class="space-y-4">
+                <label class="text-[9px] font-black uppercase text-blue-500 tracking-widest">Matrix Entropy</label>
+                <div class="control-card space-y-4">
+                    <div class="flex gap-2">
+                        <button onclick="setOrder('asc')" id="btn-asc" class="order-btn active">Ascending</button>
+                        <button onclick="setOrder('desc')" id="btn-desc" class="order-btn">Descending</button>
+                        <button onclick="setOrder('shuffled')" id="btn-shuffled" class="order-btn">Shuffled</button>
+                    </div>
+                    <textarea id="orderPreview" readonly class="w-full h-20 bg-black/30 border border-white/5 rounded-xl p-4 font-mono text-[10px] text-blue-400 outline-none resize-none custom-scroll"></textarea>
+                </div>
+            </section>
+
+            <!-- Grid Config -->
+            <section class="space-y-4">
+                <label class="text-[9px] font-black uppercase text-blue-500 tracking-widest">How To Play</label>
+                <p>Click on the block next to the gap to switch with it, the goal is to make all elements reach the correct number order, like 1, 2, 3 etc... <br>Have a nice game... :)</p><br>
+                <label class="text-[9px] font-black uppercase text-blue-500 tracking-widest">Topology</label>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="control-card p-4 space-y-2">
+                        <span class="text-[8px] font-bold opacity-40 uppercase">Cols</span>
+                        <input type="number" id="setCols" value="4" min="2" max="10" oninput="updateOrderPreview()" class="w-full bg-transparent font-mono text-lg font-bold outline-none">
+                    </div>
+                    <div class="control-card p-4 space-y-2">
+                        <span class="text-[8px] font-bold opacity-40 uppercase">Rows</span>
+                        <input type="number" id="setRows" value="4" min="2" max="10" oninput="updateOrderPreview()" class="w-full bg-transparent font-mono text-lg font-bold outline-none">
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="p-8 border-t border-white/5 bg-black/20">
+            <button onclick="applySettings()" class="w-full py-5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl font-black text-[10px] uppercase tracking-[0.4em] text-white shadow-xl hover:brightness-110 active:scale-[0.98] transition-all">
+                Finalize Sync
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let cols = 4, rows = 4, tiles = [], moves = 0, seconds = 0, timerId = null;
+        let credits = parseInt(localStorage.getItem('aether-credits')) || 0;
+        let mediaUrl = "https://picsum.photos/seed/aether-core/1200/1200";
+        let isVideo = false;
+        let volume = 0.5;
+        let brightness = 0.4;
+        let currentOrder = 'asc';
+        let isDark = true;
+        let showLabels = true;
+        let touchStart = { x: 0, y: 0 };
+
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            playSfx('sfx-click');
+            if(id === 'gameScreen') {
+                initGame();
+                document.getElementById('bg-ambience').play().catch(() => {});
+            }
+        }
+
+        function toggleSettings(open) {
+            document.getElementById('settingsSidebar').classList.toggle('open', open);
+            playSfx('sfx-click');
+            if(open) updateOrderPreview();
+        }
+
+        function toggleTheme() {
+            isDark = !isDark;
+            document.body.className = isDark ? 'dark-theme' : 'light-theme';
+            document.getElementById('themeToggle').classList.toggle('active', isDark);
+            playSfx('sfx-click');
+        }
+
+        function toggleLabels() {
+            showLabels = !showLabels;
+            document.getElementById('labelToggle').classList.toggle('active', showLabels);
+            document.querySelectorAll('.tile-number').forEach(n => {
+                if(showLabels) n.classList.add('visible');
+                else n.classList.remove('visible');
+            });
+            playSfx('sfx-click');
+        }
+
+        function updateVolume(val) {
+            volume = val;
+            document.getElementById('volVal').innerText = Math.round(val * 100) + '%';
+            document.getElementById('bg-ambience').volume = volume * 0.3;
+        }
+
+        function updateBrightness(val) {
+            brightness = val;
+            document.getElementById('brightVal').innerText = Math.round(val * 100) + '%';
+            document.getElementById('bgLayer').style.filter = `blur(40px) brightness(${val})`;
+        }
+
+        function setOrder(type) {
+            currentOrder = type;
+            document.querySelectorAll('.order-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + type).classList.add('active');
+            updateOrderPreview();
+            playSfx('sfx-click');
+        }
+
+        function updateOrderPreview() {
+            const c = parseInt(document.getElementById('setCols').value) || 4;
+            const r = parseInt(document.getElementById('setRows').value) || 4;
+            const total = c * r;
+            let list = Array.from({length: total}, (_, i) => i + 1);
+            if(currentOrder === 'desc') list.reverse();
+            if(currentOrder === 'shuffled') {
+                for (let i = list.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [list[i], list[j]] = [list[j], list[i]];
+                }
+            }
+            document.getElementById('orderPreview').value = list.join(', ');
+        }
+
+        function updateCredits(amount = 0) {
+            credits += amount;
+            localStorage.setItem('aether-credits', credits);
+            document.getElementById('homeCredits').innerText = credits;
+            document.getElementById('gameCredits').innerText = credits;
+        }
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            mediaUrl = URL.createObjectURL(file);
+            isVideo = file.type.startsWith('video');
+            updateSettingsPreview();
+        }
+
+        function handleUrl(url) {
+            if (!url) return;
+            mediaUrl = url;
+            isVideo = false;
+            updateSettingsPreview();
+        }
+
+        function updateSettingsPreview() {
+            const preview = document.getElementById('settingsAssetPreview');
+            preview.innerHTML = '';
+            const el = isVideo ? document.createElement('video') : document.createElement('img');
+            el.src = mediaUrl;
+            el.className = 'w-full h-full object-cover';
+            if(isVideo) { el.muted = true; el.autoplay = true; el.loop = true; }
+            preview.appendChild(el);
+        }
+
+        function initGame() {
+            cols = parseInt(document.getElementById('setCols').value);
+            rows = parseInt(document.getElementById('setRows').value);
+            const grid = document.getElementById('puzzleGrid');
+            grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+            
+            document.getElementById('bgLayer').style.backgroundImage = isVideo ? 'none' : `url(${mediaUrl})`;
+            
+            resetGame();
+            applyOrder();
+            updateCredits();
+            updateSettingsPreview();
+        }
+
+        function applyOrder() {
+            const total = cols * rows;
+            const seq = document.getElementById('orderPreview').value.split(',').map(n => parseInt(n.trim()) - 1);
+            if(seq.length === total && !seq.some(isNaN)) {
+                tiles = seq;
+            } else {
+                tiles = Array.from({length: total}, (_, i) => i);
+            }
+            renderGrid();
+        }
+
+        function resetGame() {
+            moves = 0; seconds = 0;
+            document.getElementById('moveCount').innerText = '00';
+            document.getElementById('timer').innerText = '00:00';
+            document.getElementById('winOverlay').classList.add('hidden');
+            clearInterval(timerId);
+            timerId = null;
+        }
+
+        function shuffleGrid() {
+            const total = cols * rows;
+            tiles = Array.from({length: total}, (_, i) => i);
+            let emptyIdx = total - 1;
+            // Using a simpler shuffle for instant starts
+            for(let i=0; i < total * 60; i++) {
+                const neighbors = getNeighbors(emptyIdx);
+                const pick = neighbors[Math.floor(Math.random() * neighbors.length)];
+                [tiles[emptyIdx], tiles[pick]] = [tiles[pick], tiles[emptyIdx]];
+                emptyIdx = pick;
+            }
+            renderGrid();
+            playSfx('sfx-click');
+            if(moves === 0) resetGame();
+        }
+
+        function reshuffleFromWin() {
+            document.getElementById('winOverlay').classList.add('hidden');
+            shuffleGrid();
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('puzzleGrid');
+            grid.innerHTML = '';
+            const total = cols * rows;
+            tiles.forEach((val, idx) => {
+                const tile = document.createElement('div');
+                tile.className = `tile ${val === total - 1 ? 'empty' : ''}`;
+                if (val !== total - 1) {
+                    const r = Math.floor(val / cols), c = val % cols;
+                    if (isVideo) {
+                        const v = document.createElement('video');
+                        v.src = mediaUrl; v.muted = true; v.autoplay = true; v.loop = true;
+                        v.className = 'absolute w-full h-full object-cover';
+                        v.style.width = `${cols * 100}%`; v.style.height = `${rows * 100}%`;
+                        v.style.left = `-${c * 100}%`; v.style.top = `-${r * 100}%`;
+                        v.style.maxWidth = 'none';
+                        tile.appendChild(v);
+                    } else {
+                        tile.style.backgroundImage = `url(${mediaUrl})`;
+                        tile.style.backgroundSize = `${cols * 100}% ${rows * 100}%`;
+                        tile.style.backgroundPosition = `${(c / (cols - 1)) * 100}% ${(r / (rows - 1)) * 100}%`;
+                    }
+                    const num = document.createElement('div');
+                    num.className = `tile-number ${showLabels ? 'visible' : ''}`;
+                    num.innerText = val + 1;
+                    tile.appendChild(num);
+                    tile.onclick = () => moveTile(idx);
+                }
+                grid.appendChild(tile);
+            });
+        }
+
+        function moveTile(idx) {
+            const emptyIdx = tiles.indexOf(cols * rows - 1);
+            if (getNeighbors(idx).includes(emptyIdx)) {
+                if (moves === 0) startTimer();
+                [tiles[idx], tiles[emptyIdx]] = [tiles[emptyIdx], tiles[idx]];
+                moves++;
+                document.getElementById('moveCount').innerText = moves.toString().padStart(2, '0');
+                renderGrid();
+                playSfx('sfx-slide');
+                checkWin();
+            }
+        }
+
+        function getNeighbors(idx) {
+            const n = [], r = Math.floor(idx/cols), c = idx % cols;
+            if (r > 0) n.push(idx - cols);
+            if (r < rows - 1) n.push(idx + cols);
+            if (c > 0) n.push(idx - 1);
+            if (c < cols - 1) n.push(idx + 1);
+            return n;
+        }
+
+        function startTimer() {
+            if(timerId) return;
+            timerId = setInterval(() => {
+                seconds++;
+                const m = Math.floor(seconds/60).toString().padStart(2,'0');
+                const s = (seconds%60).toString().padStart(2,'0');
+                document.getElementById('timer').innerText = `${m}:${s}`;
+            }, 1000);
+        }
+
+        function checkWin() {
+            if (tiles.every((v, i) => v === i)) {
+                clearInterval(timerId);
+                document.getElementById('winOverlay').classList.remove('hidden');
+                updateCredits(150);
+                playSfx('sfx-win');
+            }
+        }
+
+        function handleTouchStart(e) {
+            touchStart.x = e.touches[0].clientX;
+            touchStart.y = e.touches[0].clientY;
+        }
+
+        function handleTouchEnd(e) {
+            const dx = e.changedTouches[0].clientX - touchStart.x;
+            const dy = e.changedTouches[0].clientY - touchStart.y;
+            if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
+            const emptyIdx = tiles.indexOf(cols * rows - 1);
+            const er = Math.floor(emptyIdx / cols), ec = emptyIdx % cols;
+            let target = -1;
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > 0 && ec > 0) target = emptyIdx - 1;
+                else if (dx < 0 && ec < cols - 1) target = emptyIdx + 1;
+            } else {
+                if (dy > 0 && er > 0) target = emptyIdx - cols;
+                else if (dy < 0 && er < rows - 1) target = emptyIdx + cols;
+            }
+            if (target !== -1) moveTile(target);
+        }
+
+        function applySettings() {
+            initGame();
+            toggleSettings(false);
+        }
+
+        function playSfx(id) {
+            const el = document.getElementById(id);
+            if (el) { 
+                el.volume = volume;
+                el.currentTime = 0; 
+                el.play().catch(()=>{}); 
+            }
+        }
+
+        window.onload = () => {
+            updateCredits();
+            updateSettingsPreview();
+            document.getElementById('themeToggle').classList.add('active');
+        }
+    </script>
+</body>
+</html>
