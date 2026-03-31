@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Parking Jam Master: Hardcore Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0f172a;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            touch-action: none;
+        }
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        canvas {
+            background: #1e293b;
+            border: 4px solid #334155;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 95vw;
+            max-height: 60vh;
+            touch-action: none;
+        }
+        .ui-panel {
+            position: absolute;
+            top: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        .stat-card {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            min-width: 70px;
+        }
+        .controls-overlay {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .control-btn {
+            background: #3b82f6;
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 0 #1d4ed8;
+            transition: all 0.1s;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .control-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #1d4ed8;
+            background: #2563eb;
+        }
+        .control-btn.disabled {
+            opacity: 0.1;
+            background: #475569;
+            box-shadow: 0 4px 0 #1e293b;
+            pointer-events: none;
+        }
+        .modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            color: #1e293b;
+            padding: 30px;
+            border-radius: 24px;
+            text-align: center;
+            z-index: 100;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 0 100px rgba(0,0,0,0.8);
+            display: none;
+        }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+            width: 100%;
+        }
+        #loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="loading-overlay">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+            <p id="loading-text">Generating Hard Level...</p>
+        </div>
+
+        <div class="ui-panel">
+            <div class="stat-card">
+                <div class="text-[10px] opacity-60 uppercase font-bold tracking-wider">Level</div>
+                <div id="level-display" class="text-xl font-black">1</div>
+            </div>
+            <div class="stat-card">
+                <div class="text-[10px] opacity-60 uppercase font-bold tracking-wider">Moves</div>
+                <div id="moves-display" class="text-xl font-black text-blue-400">0</div>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div class="controls-overlay">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">
+                <span id="car-status">Select a car</span>
+            </div>
+            <div class="flex gap-4">
+                <div id="btn-left" class="control-btn disabled" onclick="moveSelected(-1)">⬅️</div>
+                <div class="flex flex-col gap-2">
+                    <div id="btn-up" class="control-btn disabled" onclick="moveSelected(-1)">⬆️</div>
+                    <div id="btn-down" class="control-btn disabled" onclick="moveSelected(1)">⬇️</div>
+                </div>
+                <div id="btn-right" class="control-btn disabled" onclick="moveSelected(1)">➡️</div>
+            </div>
+            <button onclick="resetLevel()" class="mt-4 text-slate-400 text-sm underline hover:text-white transition-colors">Restart Level</button>
+        </div>
+
+        <div id="win-modal" class="modal">
+            <div class="text-5xl mb-4">🏆</div>
+            <h2 class="text-3xl font-black mb-2">Jam Cleared!</h2>
+            <p class="text-gray-600 mb-4">Total Moves: <span id="final-moves" class="font-bold text-blue-600">0</span></p>
+            <button id="next-level-btn" onclick="generateNextLevel()" class="btn">NEXT LEVEL</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        
+        const GRID_SIZE = 6;
+        const CELL_SIZE = 55;
+        const MARGIN = 60; 
+        
+        canvas.width = (GRID_SIZE * CELL_SIZE) + (MARGIN * 2);
+        canvas.height = (GRID_SIZE * CELL_SIZE) + (MARGIN * 2);
+
+        let state = {
+            level: 1,
+            moves: 0,
+            cars: [],
+            selectedId: null,
+            exit: { x: 5, y: 2 }
+        };
+
+        const COLORS = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6', '#f97316', '#a855f7'];
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'select') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'move') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+            } else if (type === 'win') {
+                const now = audioCtx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = 'sine'; o.frequency.setValueAtTime(f, now + i * 0.1);
+                    o.connect(g); g.connect(audioCtx.destination);
+                    g.gain.setValueAtTime(0.1, now + i * 0.1);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.4);
+                    o.start(now + i * 0.1); o.stop(now + i * 0.1 + 0.4);
+                });
+            }
+        }
+
+        function canMove(car, cars, newPos) {
+            if (newPos < 0 || newPos + car.len > GRID_SIZE) {
+                // Exit condition for red car
+                if (car.id === 1 && car.dir === 'h' && car.y === state.exit.y && newPos + car.len > GRID_SIZE) return true;
+                return false;
+            }
+            for (let other of cars) {
+                if (other.id === car.id) continue;
+                const cX = car.dir === 'h' ? newPos : car.x;
+                const cY = car.dir === 'v' ? newPos : car.y;
+                const oX2 = other.dir === 'h' ? other.x + other.len - 1 : other.x;
+                const oY2 = other.dir === 'v' ? other.y + other.len - 1 : other.y;
+                const cX2 = car.dir === 'h' ? cX + car.len - 1 : cX;
+                const cY2 = car.dir === 'v' ? cY + car.len - 1 : cY;
+                if (!(cX2 < other.x || cX > oX2 || cY2 < other.y || cY > oY2)) return false;
+            }
+            return true;
+        }
+
+        function solve(initialCars) {
+            const queue = [{ cars: initialCars, dist: 0 }];
+            const visited = new Set();
+            let iterations = 0;
+            // Increased iteration limit for harder puzzles
+            while (queue.length > 0 && iterations++ < 4000) {
+                const { cars, dist } = queue.shift();
+                const redCar = cars.find(c => c.id === 1);
+                if (redCar.x + redCar.len > GRID_SIZE - 0.1) return dist;
+                
+                const key = cars.map(c => `${c.id}:${c.x},${c.y}`).join('|');
+                if (visited.has(key)) continue;
+                visited.add(key);
+
+                for (let i = 0; i < cars.length; i++) {
+                    const car = cars[i];
+                    for (let d of [-1, 1]) {
+                        let np = (car.dir === 'h' ? car.x : car.y) + d;
+                        if (canMove(car, cars, np)) {
+                            const next = cars.map((c, idx) => idx === i ? 
+                                { ...c, x: car.dir === 'h' ? np : c.x, y: car.dir === 'v' ? np : c.y } : c);
+                            queue.push({ cars: next, dist: dist + 1 });
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        function generateLevel(num) {
+            const maxCars = Math.min(16, 6 + Math.floor(num / 1.2));
+            const truckChance = Math.min(0.5, 0.1 + (num * 0.05));
+            const minMovesRequired = Math.min(35, 4 + Math.floor(num * 1.5));
+
+            for (let attempt = 0; attempt < 40; attempt++) {
+                const cars = [];
+                const occupied = Array.from({length: GRID_SIZE}, () => Array(GRID_SIZE).fill(false));
+                
+                // Red Car (Target)
+                const tx = (num > 3) ? 0 : Math.floor(Math.random() * 2);
+                cars.push({ x: tx, y: 2, len: 2, dir: 'h', color: COLORS[0], id: 1 });
+                occupied[2][tx] = occupied[2][tx+1] = true;
+
+                // Fill with obstacles
+                for (let i = 0; i < 60 && cars.length < maxCars; i++) {
+                    const dir = Math.random() > 0.5 ? 'h' : 'v';
+                    const len = Math.random() < truckChance ? 3 : 2;
+                    const x = Math.floor(Math.random() * (dir === 'h' ? (GRID_SIZE - len + 1) : GRID_SIZE));
+                    const y = Math.floor(Math.random() * (dir === 'v' ? (GRID_SIZE - len + 1) : GRID_SIZE));
+                    
+                    let ok = true;
+                    for(let l=0; l<len; l++) {
+                        const cy = dir === 'v' ? y + l : y;
+                        const cx = dir === 'h' ? x + l : x;
+                        if(occupied[cy][cx]) ok = false;
+                    }
+                    
+                    if(ok) {
+                        // Avoid blocking the red car's horizontal lane completely without a vertical path
+                        cars.push({ x, y, len, dir, color: COLORS[1 + (cars.length % (COLORS.length-1))], id: cars.length + 1 });
+                        for(let l=0; l<len; l++) occupied[dir === 'v' ? y + l : y][dir === 'h' ? x + l : x] = true;
+                    }
+                }
+
+                const movesNeeded = solve(cars);
+                // If it's solvable and meets difficulty or we are out of tries
+                if (movesNeeded !== null && (movesNeeded >= minMovesRequired || attempt === 39)) {
+                    return { cars };
+                }
+            }
+            // Absolute fallback
+            return { cars: [{ x: 0, y: 2, len: 2, dir: 'h', color: COLORS[0], id: 1 }] };
+        }
+
+        async function loadLevel(idx) {
+            document.getElementById('loading-overlay').style.display = 'flex';
+            // Wait for UI to show loading
+            await new Promise(r => setTimeout(r, 100));
+
+            const l = generateLevel(idx);
+            state.cars = JSON.parse(JSON.stringify(l.cars));
+            state.moves = 0;
+            state.level = idx;
+            state.selectedId = null;
+            
+            document.getElementById('loading-overlay').style.display = 'none';
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('level-display').innerText = state.level;
+            document.getElementById('moves-display').innerText = state.moves;
+            document.getElementById('win-modal').style.display = 'none';
+            
+            const sel = state.cars.find(c => c.id === state.selectedId);
+            const status = document.getElementById('car-status');
+            const bU = document.getElementById('btn-up'), bD = document.getElementById('btn-down');
+            const bL = document.getElementById('btn-left'), bR = document.getElementById('btn-right');
+
+            [bU, bD, bL, bR].forEach(b => b.classList.add('disabled'));
+
+            if (sel) {
+                status.innerText = `${sel.id === 1 ? '🎯 TARGET CAR' : 'Car #' + sel.id}`;
+                status.style.color = sel.color;
+                if (sel.dir === 'v') { bU.classList.remove('disabled'); bD.classList.remove('disabled'); }
+                else { bL.classList.remove('disabled'); bR.classList.remove('disabled'); }
+            } else {
+                status.innerText = "Select a car to move";
+                status.style.color = '#64748b';
+            }
+        }
+
+        function moveSelected(delta) {
+            if (!state.selectedId) return;
+            const carIndex = state.cars.findIndex(c => c.id === state.selectedId);
+            const car = state.cars[carIndex];
+            const currentPos = car.dir === 'h' ? car.x : car.y;
+            const newPos = currentPos + delta;
+
+            if (canMove(car, state.cars, newPos)) {
+                if (car.dir === 'h') car.x = newPos; else car.y = newPos;
+                state.moves++;
+                playSound('move');
+                updateUI();
+                
+                if (car.id === 1 && car.x > GRID_SIZE - 1) {
+                    playSound('win');
+                    setTimeout(() => { 
+                        document.getElementById('final-moves').innerText = state.moves;
+                        document.getElementById('win-modal').style.display = 'block';
+                    }, 400);
+                }
+            }
+        }
+
+        function handleClick(e) {
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const rect = canvas.getBoundingClientRect();
+            const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+            const clientY = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const px = (clientX - rect.left) * scaleX - MARGIN;
+            const py = (clientY - rect.top) * scaleY - MARGIN;
+            const gx = px / CELL_SIZE;
+            const gy = py / CELL_SIZE;
+
+            state.cars.forEach(car => {
+                const hit = car.dir === 'h' ? 
+                    (gx >= car.x && gx <= car.x + car.len && gy >= car.y && gy <= car.y + 1) :
+                    (gy >= car.y && gy <= car.y + car.len && gx >= car.x && gx <= car.x + 1);
+                
+                if (hit) {
+                    state.selectedId = car.id;
+                    playSound('select');
+                    updateUI();
+                }
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Exit Lane Road
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, MARGIN + 2 * CELL_SIZE - 4, canvas.width, CELL_SIZE + 8);
+
+            // Parking Lot Boundary
+            ctx.fillStyle = '#334155';
+            ctx.beginPath(); ctx.roundRect(MARGIN - 6, MARGIN - 6, (GRID_SIZE * CELL_SIZE) + 12, (GRID_SIZE * CELL_SIZE) + 12, 12); ctx.fill();
+
+            // Grid Lines
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 1;
+            for(let i=0; i<=GRID_SIZE; i++) {
+                ctx.beginPath(); ctx.moveTo(MARGIN + i * CELL_SIZE, MARGIN); ctx.lineTo(MARGIN + i * CELL_SIZE, MARGIN + GRID_SIZE * CELL_SIZE); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(MARGIN, MARGIN + i * CELL_SIZE); ctx.lineTo(MARGIN + GRID_SIZE * CELL_SIZE, MARGIN + i * CELL_SIZE); ctx.stroke();
+            }
+
+            // Exit Text
+            ctx.fillStyle = '#f87171'; 
+            ctx.font = 'bold 12px sans-serif'; 
+            ctx.fillText('EXIT GATE', MARGIN + GRID_SIZE * CELL_SIZE + 10, MARGIN + 2.5 * CELL_SIZE + 5);
+
+            // Render Cars
+            state.cars.forEach(car => {
+                const pad = 6;
+                const w = car.dir === 'h' ? car.len * CELL_SIZE - pad*2 : CELL_SIZE - pad*2;
+                const h = car.dir === 'v' ? car.len * CELL_SIZE - pad*2 : CELL_SIZE - pad*2;
+                const x = MARGIN + car.x * CELL_SIZE + pad;
+                const y = MARGIN + car.y * CELL_SIZE + pad;
+
+                if (state.selectedId === car.id) {
+                    ctx.shadowColor = car.color;
+                    ctx.shadowBlur = 20;
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = 'white';
+                } else {
+                    ctx.shadowBlur = 0;
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                }
+
+                ctx.fillStyle = car.color;
+                ctx.beginPath(); ctx.roundRect(x, y, w, h, 10); ctx.fill();
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                // Car details
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                if(car.dir === 'h') {
+                    ctx.fillRect(x + w - 12, y + 6, 6, 6); 
+                    ctx.fillRect(x + w - 12, y + h - 12, 6, 6);
+                } else {
+                    ctx.fillRect(x + 6, y + h - 12, 6, 6);
+                    ctx.fillRect(x + w - 12, y + h - 12, 6, 6);
+                }
+            });
+            requestAnimationFrame(draw);
+        }
+
+        async function generateNextLevel() { await loadLevel(state.level + 1); }
+        async function resetLevel() { await loadLevel(state.level); }
+
+        canvas.addEventListener('mousedown', handleClick);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleClick(e);
+        }, { passive: false });
+
+        loadLevel(1);
+        draw();
+    </script>
+</body>
+</html>
