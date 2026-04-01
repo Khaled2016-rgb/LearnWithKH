@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tower of Tome</title>
+    <style>
+        :root {
+            --accent: #d35400;
+            --text-color: #f39c12;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHGtkm-MbSexmdlzLVpo0reCEt4dv_xRFSAw&s');
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Prevent all default touch behaviors */
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            transition: background 1.5s ease;
+        }
+
+        #game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            color: var(--text-color);
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            backdrop-filter: blur(10px);
+        }
+
+        .hidden { display: none !important; }
+
+        h1 { 
+            font-size: 3.5rem; 
+            margin-bottom: 5px; 
+            text-shadow: 0 0 30px rgba(243, 156, 18, 0.4);
+            letter-spacing: 6px;
+            font-weight: 900;
+        }
+
+        .menu-btn {
+            background: rgba(243, 156, 18, 0.1);
+            color: var(--text-color);
+            border: 1px solid var(--text-color);
+            padding: 15px 40px;
+            margin: 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 280px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            border-radius: 4px;
+        }
+
+        .menu-btn:hover {
+            background: var(--text-color);
+            color: #000;
+            box-shadow: 0 0 20px var(--text-color);
+            transform: translateY(-2px);
+        }
+
+        #stats-bar {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            color: var(--text-color);
+            z-index: 5;
+            display: flex;
+            gap: 15px;
+            pointer-events: none;
+        }
+
+        .stat-box {
+            background: rgba(0,0,0,0.5);
+            padding: 8px 15px;
+            border-radius: 8px;
+            border-left: 3px solid var(--text-color);
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-label { font-size: 0.6rem; opacity: 0.7; letter-spacing: 1px; text-transform: uppercase; }
+        .stat-value { font-size: 1.2rem; font-weight: bold; font-family: monospace; }
+
+        #touch-controls {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 25px;
+            box-sizing: border-box;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 15px;
+            pointer-events: none;
+        }
+
+        .t-btn {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+            pointer-events: auto;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            backdrop-filter: blur(4px);
+            transition: transform 0.1s, background 0.1s;
+        }
+        
+        .t-btn:active { 
+            background: rgba(243, 156, 18, 0.4); 
+            border-color: var(--text-color);
+            transform: scale(0.9); 
+        }
+
+        .jump-btn {
+            width: 110px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1rem;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="game-canvas"></canvas>
+    
+    <div id="stats-bar">
+        <div class="stat-box">
+            <div class="stat-label">Floor</div>
+            <div class="stat-value" id="lvl-val">1</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Books</div>
+            <div class="stat-value" id="height-val">0</div>
+        </div>
+    </div>
+
+    <div id="main-menu" class="overlay">
+        <h1>TOWER OF TOME</h1>
+        <p style="font-style: italic; margin-bottom: 30px; opacity: 0.6; letter-spacing: 1px;">Keep climbing. Don't look down.</p>
+        <button class="menu-btn" onclick="startGame()">Start Climb</button>
+    </div>
+
+    <div id="level-complete" class="overlay hidden">
+        <h1 style="color: #2ecc71;">FLOOR SECURED</h1>
+        <p id="level-msg">You've ascended higher into the library.</p>
+        <button class="menu-btn" onclick="nextLevel()">Next Floor</button>
+    </div>
+
+    <div id="game-over" class="overlay hidden">
+        <h1 id="death-reason" style="color: #e74c3c;">LOST</h1>
+        <p id="final-score" style="margin-bottom: 20px;"></p>
+        <button class="menu-btn" onclick="startGame()">Restart</button>
+    </div>
+
+    <div id="touch-controls">
+        <div class="control-group">
+            <div class="t-btn" id="btn-left" aria-label="Move Left">←</div>
+            <div class="t-btn" id="btn-right" aria-label="Move Right">→</div>
+        </div>
+        <div class="t-btn jump-btn" id="btn-jump">JUMP</div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    const heightVal = document.getElementById('height-val');
+    const lvlVal = document.getElementById('lvl-val');
+
+    let width, height;
+    let gameActive = false;
+    let score = 0;
+    let currentLevel = 1;
+    let heightThisLevel = 0;
+    const heightPerLevel = 10;
+    
+    const GRAVITY = 0.6;
+    const FRICTION = 0.85;
+    
+    const WALL_WIDTH = 70; 
+    const BOOK_W = 210;    
+    const BOOK_H = 55;     
+
+    const player = {
+        x: 0, y: 0, w: 28, h: 42,
+        vx: 0, vy: 0,
+        speed: 6.5,
+        jumpPower: -13.5,
+        grounded: false,
+        hasTouchedFirstBook: false,
+        stretch: 1,
+        tilt: 0
+    };
+
+    let books = [];
+    let particles = [];
+    let cameraY = 0;
+    let bgPulse = 0;
+    const keys = {};
+    const touchState = { left: false, right: false, jump: false };
+
+    function init() {
+        resize();
+        window.addEventListener('resize', resize);
+        
+        // Keyboard Setup
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
+        
+        // Touch Setup with dedicated logic
+        bindTouch('btn-left', 'left');
+        bindTouch('btn-right', 'right');
+        bindTouch('btn-jump', 'jump');
+
+        for(let i=0; i<40; i++) spawnParticle(true);
+        requestAnimationFrame(gameLoop);
+    }
+
+    function bindTouch(id, action) {
+        const el = document.getElementById(id);
+        
+        const start = (e) => {
+            e.preventDefault();
+            touchState[action] = true;
+        };
+        
+        const end = (e) => {
+            e.preventDefault();
+            touchState[action] = false;
+        };
+
+        el.addEventListener('touchstart', start, { passive: false });
+        el.addEventListener('touchend', end, { passive: false });
+        el.addEventListener('touchcancel', end, { passive: false });
+        
+        // Support mouse for testing on desktop browser with touch emulation
+        el.addEventListener('mousedown', start);
+        window.addEventListener('mouseup', () => touchState[action] = false);
+    }
+
+    function spawnParticle(randomPos = false) {
+        particles.push({
+            x: Math.random() * width,
+            y: randomPos ? Math.random() * height : height + 20,
+            size: Math.random() * 2 + 1,
+            speed: Math.random() * 0.5 + 0.2,
+            life: 1,
+            drift: (Math.random() - 0.5) * 0.5
+        });
+    }
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+
+    function startGame() {
+        document.querySelectorAll('.overlay').forEach(o => o.classList.add('hidden'));
+        gameActive = true;
+        score = 0;
+        currentLevel = 1;
+        heightThisLevel = 0;
+        books = [];
+        player.x = width / 2 - player.w / 2;
+        player.y = height - 120;
+        player.vx = 0;
+        player.vy = 0;
+        player.hasTouchedFirstBook = false;
+        cameraY = 0;
+        
+        books.push({
+            id: 'floor',
+            x: 0, y: height - 60, w: width, h: 200,
+            vx: 0, color: themes[0].book, isFloor: true,
+            landed: true, isSpike: false
+        });
+
+        spawnNextBook();
+        updateUI();
+    }
+
+    function updateUI() {
+        heightVal.innerText = score;
+        lvlVal.innerText = currentLevel;
+    }
+
+    const themes = [
+        { bg: '#0f0a09', wall: '#1a1210', book: '#3d2b1f' },
+        { bg: '#0a101a', wall: '#121a2b', book: '#1f2b3d' },
+        { bg: '#0a1a0f', wall: '#122b1a', book: '#1f3d2b' },
+        { bg: '#1a0a1a', wall: '#2b122b', book: '#3d1f3d' },
+        { bg: '#1a100a', wall: '#2b1a12', book: '#3d2b1f' }
+    ];
+
+    function spawnNextBook() {
+        const side = Math.random() > 0.5 ? 'left' : 'right';
+        const bookY = (height - 60) - (score + 1) * BOOK_H;
+        const speed = 4.5 + (currentLevel * 0.7);
+        const targetX = (width / 2) - (BOOK_W / 2);
+        
+        const themeIdx = (currentLevel - 1) % themes.length;
+        const baseHue = 20 + (themeIdx * 60);
+        
+        books.push({
+            id: Math.random(),
+            x: side === 'left' ? -BOOK_W : width,
+            y: bookY, w: BOOK_W, h: BOOK_H,
+            vx: side === 'left' ? speed : -speed,
+            color: `hsl(${baseHue + Math.random() * 20}, 30%, ${20 + Math.random() * 10}%)`,
+            landed: false, targetX: targetX,
+            isSpike: false,
+            opacity: 0
+        });
+    }
+
+    function gameLoop() {
+        update();
+        render();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function update() {
+        if (!gameActive) {
+            updateParticles();
+            return;
+        }
+
+        // Combined Input (Keyboard + Touch)
+        if (keys['ArrowLeft'] || keys['KeyA'] || touchState.left) {
+            player.vx = -player.speed;
+            player.tilt += (-0.15 - player.tilt) * 0.1;
+        } else if (keys['ArrowRight'] || keys['KeyD'] || touchState.right) {
+            player.vx = player.speed;
+            player.tilt += (0.15 - player.tilt) * 0.1;
+        } else {
+            player.vx *= FRICTION;
+            player.tilt *= 0.85;
+        }
+
+        if ((keys['Space'] || keys['ArrowUp'] || keys['KeyW'] || touchState.jump) && player.grounded) {
+            player.vy = player.jumpPower;
+            player.grounded = false;
+            player.stretch = 1.4;
+        }
+        
+        player.stretch += (1 - player.stretch) * 0.12;
+
+        player.vy += GRAVITY;
+        player.x += player.vx;
+        player.y += player.vy;
+
+        let targetCam = -(player.y - height * 0.65);
+        cameraY += (targetCam - cameraY) * 0.08;
+
+        if (player.x < WALL_WIDTH) player.x = WALL_WIDTH;
+        if (player.x + player.w > width - WALL_WIDTH) player.x = width - WALL_WIDTH - player.w;
+
+        player.grounded = false;
+
+        for (let book of books) {
+            if (player.hasTouchedFirstBook && book.isFloor) {
+                book.isSpike = true;
+            }
+
+            if (!book.landed) {
+                book.x += book.vx;
+                book.opacity = Math.min(1, book.opacity + 0.1);
+                
+                if (player.x + player.w > book.x && player.x < book.x + book.w &&
+                    player.y + player.h > book.y && player.y < book.y + book.h) {
+                    if (player.y + player.h > book.y + 10) {
+                        player.x += book.vx;
+                    }
+                }
+
+                if ((book.vx > 0 && book.x >= book.targetX) || (book.vx < 0 && book.x <= book.targetX)) {
+                    book.x = book.targetX;
+                    book.vx = 0;
+                    book.landed = true;
+                    score++;
+                    heightThisLevel++;
+                    updateUI();
+                    if (heightThisLevel >= heightPerLevel) completeLevel();
+                    else spawnNextBook();
+                }
+            }
+
+            if (player.x + player.w > book.x && player.x < book.x + book.w &&
+                player.y + player.h > book.y && player.y < book.y + book.h) {
+                
+                if (book.isSpike) {
+                    gameOver("CONSUMED BY SHADOWS");
+                    return;
+                }
+
+                if (player.vy >= 0 && player.y + player.h - player.vy <= book.y + 15) {
+                    if (!player.grounded) player.stretch = 0.7; 
+                    player.y = book.y - player.h;
+                    player.vy = 0;
+                    player.grounded = true;
+                    if (!book.isFloor) player.hasTouchedFirstBook = true;
+                }
+            }
+        }
+
+        updateParticles();
+
+        if (player.y + cameraY > height + 150) {
+            gameOver("FALLEN INTO OBLIVION");
+        }
+    }
+
+    function updateParticles() {
+        particles.forEach((p, index) => {
+            p.y -= p.speed;
+            p.x += p.drift;
+            if (p.y < -50) {
+                particles.splice(index, 1);
+                spawnParticle();
+            }
+        });
+        bgPulse += 0.02;
+    }
+
+    function render() {
+        const themeIdx = (currentLevel - 1) % themes.length;
+        const currentTheme = themes[themeIdx];
+        
+        ctx.fillStyle = currentTheme.bg;
+        ctx.fillRect(0, 0, width, height);
+        
+        const glow = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width);
+        glow.addColorStop(0, 'rgba(243, 156, 18, 0.05)');
+        glow.addColorStop(1, 'transparent');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, width, height);
+
+        particles.forEach(p => {
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.1 + Math.sin(bgPulse + p.x) * 0.05})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        ctx.fillStyle = currentTheme.wall;
+        ctx.fillRect(0, 0, WALL_WIDTH, height);
+        ctx.fillRect(width - WALL_WIDTH, 0, WALL_WIDTH, height);
+        
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.lineWidth = 1;
+        for(let i=0; i<height; i+=40) {
+            ctx.beginPath();
+            ctx.moveTo(0, i); ctx.lineTo(WALL_WIDTH, i);
+            ctx.moveTo(width-WALL_WIDTH, i); ctx.lineTo(width, i);
+            ctx.stroke();
+        }
+
+        ctx.save();
+        ctx.translate(0, cameraY);
+
+        books.forEach(book => {
+            if (book.isSpike) renderSpikes(book);
+            else renderBook(book);
+        });
+
+        ctx.save();
+        ctx.translate(player.x + player.w/2, player.y + player.h);
+        ctx.rotate(player.tilt);
+        ctx.scale(2 - player.stretch, player.stretch);
+        
+        ctx.fillStyle = '#f39c12';
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = 'rgba(243, 156, 18, 0.5)';
+        ctx.fillRect(-player.w/2, -player.h, player.w, player.h);
+        
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#000';
+        const blink = Math.sin(Date.now() * 0.005) > 0.98 ? 0.1 : 1;
+        ctx.fillRect(-8, -30, 4, 6 * blink);
+        ctx.fillRect(4, -30, 4, 6 * blink);
+        
+        ctx.restore();
+        ctx.restore();
+    }
+
+    function renderBook(book) {
+        ctx.save();
+        ctx.globalAlpha = book.opacity || 1;
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        ctx.fillRect(book.x + 8, book.y + 8, book.w, book.h);
+        ctx.fillStyle = book.color;
+        ctx.fillRect(book.x, book.y, book.w, book.h);
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.fillRect(book.x, book.y, 12, book.h);
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(book.x + 12, book.y + 5, book.w - 20, book.h - 10);
+        ctx.strokeStyle = 'rgba(243, 156, 18, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(book.x + 3, book.y + 3, book.w - 6, book.h - 6);
+        ctx.restore();
+    }
+
+    function renderSpikes(book) {
+        ctx.fillStyle = '#1a0a0a';
+        ctx.fillRect(book.x, book.y, book.w, book.h);
+        const pulse = Math.sin(Date.now() * 0.01) * 6;
+        ctx.fillStyle = '#e74c3c';
+        const sw = 22;
+        const count = Math.ceil(book.w / sw);
+        for(let i=0; i<count; i++) {
+            ctx.beginPath();
+            ctx.moveTo(book.x + i * sw, book.y + book.h);
+            ctx.lineTo(book.x + i * sw + sw/2, book.y - 25 + pulse);
+            ctx.lineTo(book.x + (i+1) * sw, book.y + book.h);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(231, 76, 60, 0.2)';
+            ctx.beginPath();
+            ctx.arc(book.x + i * sw + sw/2, book.y - 10, 15, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = '#e74c3c';
+        }
+    }
+
+    function completeLevel() {
+        gameActive = false;
+        showOverlay('level-complete');
+    }
+
+    function nextLevel() {
+        currentLevel++;
+        heightThisLevel = 0;
+        gameActive = true;
+        document.getElementById('level-complete').classList.add('hidden');
+        updateUI();
+        spawnNextBook();
+    }
+
+    function gameOver(reason) {
+        gameActive = false;
+        document.getElementById('death-reason').innerText = reason;
+        document.getElementById('final-score').innerText = `You ascended ${score} books.`;
+        showOverlay('game-over');
+    }
+
+    function showOverlay(id) {
+        document.querySelectorAll('.overlay').forEach(o => o.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>

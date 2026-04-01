@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guessing Challenge Helper</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+            user-select: none;
+        }
+        .hidden-content {
+            opacity: 0;
+            pointer-events: none;
+            filter: blur(20px);
+            transform: scale(0.95);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .visible-content {
+            opacity: 1;
+            filter: blur(0);
+            transform: scale(1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .img-container {
+            max-width: 100%;
+            max-height: 60vh;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            border: 4px solid rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="w-full max-w-2xl bg-slate-800 p-8 rounded-2xl shadow-2xl">
+        <h1 class="text-3xl font-bold mb-2 text-center text-blue-400">Challenge Setup</h1>
+        <p class="text-slate-400 text-center mb-8 text-sm">Set your images. They will cycle every 10s until you solve them.</p>
+        
+        <div id="setup-container">
+            <!-- Round 1 -->
+            <div class="mb-6 p-4 border border-slate-700 rounded-xl bg-slate-900/50">
+                <h2 class="text-xl font-semibold mb-4 text-blue-300">Round 1</h2>
+                <input type="text" id="title-1" placeholder="Challenge Title" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg mb-4 text-white">
+                <input type="text" id="url-1" placeholder="Image URL" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg mb-2">
+                <input type="file" id="file-1" accept="image/*" class="text-xs text-slate-400">
+            </div>
+
+            <!-- Round 2 -->
+            <div class="mb-8 p-4 border border-slate-700 rounded-xl bg-slate-900/50">
+                <h2 class="text-xl font-semibold mb-4 text-blue-300">Round 2</h2>
+                <input type="text" id="title-2" placeholder="Challenge Title" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg mb-4 text-white">
+                <input type="text" id="url-2" placeholder="Image URL" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg mb-2">
+                <input type="file" id="file-2" accept="image/*" class="text-xs text-slate-400">
+            </div>
+        </div>
+
+        <button id="start-btn" class="w-full py-4 bg-blue-600 hover:bg-blue-500 font-bold rounded-xl text-xl transition-all">INITIALIZE</button>
+    </div>
+
+    <!-- Challenge Screen -->
+    <div id="challenge-screen" class="hidden fixed inset-0 flex flex-col items-center justify-center text-center cursor-pointer overflow-hidden">
+        
+        <!-- Hiding Mask Background -->
+        <div id="hide-mask" class="absolute inset-0 bg-slate-950 z-10 opacity-0 pointer-events-none flex items-center justify-center transition-opacity duration-300">
+            <div class="text-6xl font-black text-slate-800 uppercase tracking-widest">Hiding Content</div>
+        </div>
+
+        <div id="content-wrapper" class="visible-content flex flex-col items-center justify-center space-y-8 p-6 z-0">
+            <h1 id="display-title" class="text-4xl md:text-6xl font-bold tracking-tight text-white drop-shadow-md"></h1>
+            <img id="display-image" class="img-container" src="" alt="Challenge">
+        </div>
+
+        <!-- UI Overlay -->
+        <div class="fixed bottom-12 left-0 right-0 flex justify-center items-center gap-8 z-20">
+            <button id="skip-btn" class="px-10 py-4 bg-slate-700 hover:bg-slate-600 rounded-full font-bold shadow-2xl transition-all active:scale-90 border border-slate-500">SKIP</button>
+            <button id="correct-btn" class="px-10 py-4 bg-blue-500 hover:bg-blue-400 rounded-full font-bold shadow-2xl transition-all active:scale-90 text-white">I KNOW IT! ✓</button>
+        </div>
+
+        <div id="timer-display" class="fixed top-12 text-2xl font-mono text-blue-400 font-bold drop-shadow-lg z-30 pointer-events-none"></div>
+    </div>
+
+    <script>
+        const AudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            const osc = AudioCtx.createOscillator();
+            const gain = AudioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(AudioCtx.destination);
+
+            if (type === 'hide') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, AudioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, AudioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.2, AudioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, AudioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(AudioCtx.currentTime + 0.3);
+            } else if (type === 'skip') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, AudioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, AudioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, AudioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(AudioCtx.currentTime + 0.1);
+            } else if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, AudioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, AudioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.2, AudioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, AudioCtx.currentTime + 0.5);
+                osc.start(); osc.stop(AudioCtx.currentTime + 0.5);
+            }
+        }
+
+        const setupScreen = document.getElementById('setup-screen');
+        const challengeScreen = document.getElementById('challenge-screen');
+        const startBtn = document.getElementById('start-btn');
+        const contentWrapper = document.getElementById('content-wrapper');
+        const displayTitle = document.getElementById('display-title');
+        const displayImage = document.getElementById('display-image');
+        const skipBtn = document.getElementById('skip-btn');
+        const correctBtn = document.getElementById('correct-btn');
+        const timerDisplay = document.getElementById('timer-display');
+        const hideMask = document.getElementById('hide-mask');
+
+        let rounds = [];
+        let currentRound = 0;
+        let isHiding = false;
+        let isVictoryState = false;
+        let cycleInterval = null;
+        let countdownInterval = null;
+
+        async function getImgData(roundIndex) {
+            const urlInput = document.getElementById(`url-${roundIndex + 1}`).value;
+            const fileInput = document.getElementById(`file-${roundIndex + 1}`).files[0];
+            if (fileInput) {
+                return new Promise((r) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => r(e.target.result);
+                    reader.readAsDataURL(fileInput);
+                });
+            }
+            return urlInput || `https://picsum.photos/seed/${Math.random()}/800/600`;
+        }
+
+        startBtn.onclick = async () => {
+            AudioCtx.resume();
+            const r1Img = await getImgData(0);
+            const r2Img = await getImgData(1);
+
+            rounds = [
+                { title: document.getElementById('title-1').value || 'Round 1', image: r1Img },
+                { title: document.getElementById('title-2').value || 'Round 2', image: r2Img }
+            ];
+
+            setupScreen.classList.add('hidden');
+            challengeScreen.classList.remove('hidden');
+            startAutoCycle();
+        };
+
+        function loadRound() {
+            if (currentRound >= rounds.length) currentRound = 0; // Loop rounds per "until solved"
+            displayTitle.innerText = rounds[currentRound].title;
+            displayImage.src = rounds[currentRound].image;
+        }
+
+        function startAutoCycle() {
+            if (isVictoryState) return;
+            loadRound();
+            
+            let timeLeft = 10;
+            timerDisplay.innerText = `${timeLeft}s`;
+
+            clearInterval(cycleInterval);
+            clearInterval(countdownInterval);
+
+            countdownInterval = setInterval(() => {
+                if (isHiding || isVictoryState) return;
+                timeLeft--;
+                timerDisplay.innerText = `${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    currentRound = (currentRound + 1) % rounds.length;
+                    startAutoCycle();
+                    playSound('skip');
+                }
+            }, 1000);
+        }
+
+        function triggerHide() {
+            if (isHiding || isVictoryState) return;
+            isHiding = true;
+            playSound('hide');
+            contentWrapper.classList.replace('visible-content', 'hidden-content');
+            hideMask.classList.replace('opacity-0', 'opacity-100');
+            
+            let hideLeft = 10;
+            timerDisplay.innerText = `LOCKED: ${hideLeft}s`;
+            
+            const localCounter = setInterval(() => {
+                hideLeft--;
+                timerDisplay.innerText = `LOCKED: ${hideLeft}s`;
+                if (hideLeft <= 0) clearInterval(localCounter);
+            }, 1000);
+
+            setTimeout(() => {
+                isHiding = false;
+                contentWrapper.classList.replace('hidden-content', 'visible-content');
+                hideMask.classList.replace('opacity-100', 'opacity-0');
+                startAutoCycle(); // Restart cycle timing
+            }, 10000);
+        }
+
+        challengeScreen.onclick = (e) => {
+            if (e.target.closest('button') || isVictoryState) return;
+            triggerHide();
+        };
+
+        skipBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (isVictoryState) return;
+            currentRound = (currentRound + 1) % rounds.length;
+            playSound('skip');
+            startAutoCycle();
+        };
+
+        correctBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (isVictoryState) return;
+            
+            isVictoryState = true;
+            playSound('correct');
+            clearInterval(countdownInterval);
+            clearInterval(cycleInterval);
+            
+            // Highlight result
+            contentWrapper.classList.replace('hidden-content', 'visible-content');
+            hideMask.classList.replace('opacity-100', 'opacity-0');
+            displayTitle.innerText = "CORRECT!";
+            displayTitle.classList.add('text-green-400');
+            
+            let finalTime = 10;
+            timerDisplay.innerText = `Refreshing in ${finalTime}s...`;
+            
+            const finalInterval = setInterval(() => {
+                finalTime--;
+                timerDisplay.innerText = `Refreshing in ${finalTime}s...`;
+                if (finalTime <= 0) {
+                    clearInterval(finalInterval);
+                    location.reload();
+                }
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
