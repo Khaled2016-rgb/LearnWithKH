@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Labyrinthine: Liquid Glass</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+ 
+        :root {
+            --bg-color: #05070a;
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --neon-accent: #00f2ff;
+            --danger-accent: #ff0055;
+            --success-accent: #00ff95;
+        }
+ 
+        body {
+            background-color: var(--bg-color);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            touch-action: none;
+        }
+ 
+        .glass-panel {
+            background: rgba(15, 20, 30, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        }
+ 
+        canvas {
+            display: block;
+            touch-action: none;
+        }
+ 
+        .status-pill {
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+ 
+        .glitch-text {
+            text-shadow: 2px 0 var(--danger-accent), -2px 0 var(--neon-accent);
+            animation: glitch 3s infinite;
+        }
+ 
+        @keyframes glitch {
+            0% { text-shadow: 2px 0 var(--danger-accent), -2px 0 var(--neon-accent); }
+            50% { text-shadow: -1px 0 var(--danger-accent), 1px 0 var(--neon-accent); }
+            100% { text-shadow: 2px 0 var(--danger-accent), -2px 0 var(--neon-accent); }
+        }
+ 
+        #game-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            transition: opacity 0.5s ease;
+        }
+ 
+        .btn-primary {
+            background: linear-gradient(135deg, #00f2ff 0%, #006aff 100%);
+            color: black;
+            font-weight: 600;
+            padding: 12px 32px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            cursor: pointer;
+        }
+ 
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+        }
+ 
+        /* Virtual Joystick */
+        .joystick-container {
+            position: fixed;
+            bottom: 50px;
+            left: 50px;
+            width: 140px;
+            height: 140px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            z-index: 60;
+            touch-action: none;
+        }
+ 
+        .joystick-handle {
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle at 30% 30%, #00f2ff, #006aff);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.5);
+            cursor: pointer;
+            touch-action: none;
+            pointer-events: none;
+        }
+ 
+        @media (min-width: 1025px) {
+            /* Keep joystick visible for testing but style subtly */
+            .joystick-container { opacity: 0.6; }
+        }
+    </style>
+</head>
+<body>
+ 
+    <div id="ui-layer" class="fixed top-0 left-0 w-full p-6 flex justify-between items-start pointer-events-none z-50">
+        <div class="flex flex-col gap-2">
+            <h1 class="text-xl font-light tracking-widest uppercase glitch-text">Labyrinthine</h1>
+            <div class="flex gap-2">
+                <div id="level-display" class="status-pill">Sector: 01</div>
+                <div id="time-display" class="status-pill">Thermal: 100%</div>
+            </div>
+        </div>
+        <div class="flex flex-col items-end gap-2">
+            <div id="death-count" class="status-pill">Failures: 0</div>
+            <div class="text-[10px] text-gray-500 max-w-[180px] text-right uppercase">Exit Sequence helper enabled. Follow the signal line.</div>
+        </div>
+    </div>
+ 
+    <div id="game-overlay">
+        <div class="glass-panel p-10 max-w-md w-full text-center space-y-6 mx-4">
+            <h2 id="overlay-title" class="text-3xl font-light tracking-tighter uppercase">Initializing...</h2>
+            <p id="overlay-desc" class="text-gray-400 text-sm leading-relaxed">
+                Liquid Glass Maze Protocol. A faint signal line will guide you to the exit node. Speed is efficiency.
+            </p>
+            <div class="space-y-2">
+                <button id="start-btn" class="btn-primary w-full">Begin Sequence</button>
+                <div class="text-[10px] text-gray-600 mt-4 uppercase">Use WASD or Virtual Stick</div>
+            </div>
+        </div>
+    </div>
+ 
+    <canvas id="gameCanvas"></canvas>
+ 
+    <div id="joystick-base" class="joystick-container">
+        <div id="joystick-knob" class="joystick-handle"></div>
+    </div>
+ 
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('game-overlay');
+        const startBtn = document.getElementById('start-btn');
+        const levelDisplay = document.getElementById('level-display');
+        const timeDisplay = document.getElementById('time-display');
+        const deathDisplay = document.getElementById('death-count');
+        const overlayTitle = document.getElementById('overlay-title');
+       
+        const CELL_SIZE = 40;
+        const PLAYER_RADIUS = 8;
+        const INITIAL_THERMAL = 100;
+       
+        let state = {
+            isPlaying: false,
+            level: 1,
+            failures: 0,
+            thermal: INITIAL_THERMAL,
+            maze: [],
+            cols: 0,
+            rows: 0,
+            player: { x: 0, y: 0, vx: 0, vy: 0 },
+            exit: { r: 0, c: 0 },
+            keys: {},
+            touchInput: { dx: 0, dy: 0, active: false },
+            lastTime: 0,
+            gridOffset: { x: 0, y: 0 }
+        };
+ 
+        class Cell {
+            constructor(r, c) {
+                this.r = r;
+                this.c = c;
+                this.walls = [true, true, true, true];
+                this.visited = false;
+            }
+        }
+ 
+        function initMaze(level) {
+            const sizeMod = Math.min(20, Math.floor(level / 2) * 2);
+            state.cols = 15 + sizeMod;
+            state.rows = 15 + sizeMod;
+           
+            state.maze = [];
+            for (let r = 0; r < state.rows; r++) {
+                let row = [];
+                for (let c = 0; c < state.cols; c++) {
+                    row.push(new Cell(r, c));
+                }
+                state.maze.push(row);
+            }
+ 
+            let stack = [];
+            let current = state.maze[0][0];
+            current.visited = true;
+ 
+            const getNeighbors = (cell) => {
+                let neighbors = [];
+                let { r, c } = cell;
+                if (r > 0 && !state.maze[r-1][c].visited) neighbors.push(state.maze[r-1][c]);
+                if (r < state.rows - 1 && !state.maze[r+1][c].visited) neighbors.push(state.maze[r+1][c]);
+                if (c > 0 && !state.maze[r][c-1].visited) neighbors.push(state.maze[r][c-1]);
+                if (c < state.cols - 1 && !state.maze[r][c+1].visited) neighbors.push(state.maze[r][c+1]);
+                return neighbors;
+            };
+ 
+            while (true) {
+                let nexts = getNeighbors(current);
+                if (nexts.length > 0) {
+                    let next = nexts[Math.floor(Math.random() * nexts.length)];
+                    if (current.r > next.r) { current.walls[0] = false; next.walls[2] = false; }
+                    else if (current.r < next.r) { current.walls[2] = false; next.walls[0] = false; }
+                    else if (current.c > next.c) { current.walls[3] = false; next.walls[1] = false; }
+                    else if (current.c < next.c) { current.walls[1] = false; next.walls[3] = false; }
+                    stack.push(current);
+                    next.visited = true;
+                    current = next;
+                } else if (stack.length > 0) {
+                    current = stack.pop();
+                } else {
+                    break;
+                }
+            }
+ 
+            state.player.x = CELL_SIZE / 2;
+            state.player.y = CELL_SIZE / 2;
+            state.player.vx = 0;
+            state.player.vy = 0;
+            state.exit = { r: state.rows - 1, c: state.cols - 1 };
+            state.thermal = INITIAL_THERMAL;
+            resize();
+        }
+ 
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            state.gridOffset.x = (canvas.width - state.cols * CELL_SIZE) / 2;
+            state.gridOffset.y = (canvas.height - state.rows * CELL_SIZE) / 2;
+        }
+ 
+        window.addEventListener('resize', resize);
+        window.addEventListener('keydown', e => state.keys[e.code] = true);
+        window.addEventListener('keyup', e => state.keys[e.code] = false);
+ 
+        function update(deltaTime) {
+            if (!state.isPlaying) return;
+ 
+            const speed = 0.25 * (deltaTime / 16);
+            const friction = 0.85;
+ 
+            // Movement Logic
+            if (state.keys['ArrowUp'] || state.keys['KeyW']) state.player.vy -= speed;
+            if (state.keys['ArrowDown'] || state.keys['KeyS']) state.player.vy += speed;
+            if (state.keys['ArrowLeft'] || state.keys['KeyA']) state.player.vx -= speed;
+            if (state.keys['ArrowRight'] || state.keys['KeyD']) state.player.vx += speed;
+ 
+            if (state.touchInput.active) {
+                state.player.vx += state.touchInput.dx * speed;
+                state.player.vy += state.touchInput.dy * speed;
+            }
+ 
+            state.player.vx *= friction;
+            state.player.vy *= friction;
+ 
+            let nextX = state.player.x + state.player.vx;
+            let nextY = state.player.y + state.player.vy;
+ 
+            if (!checkCollision(nextX, state.player.y)) {
+                state.player.x = nextX;
+            } else {
+                state.player.vx *= -0.3;
+                state.thermal -= 0.15;
+            }
+ 
+            if (!checkCollision(state.player.x, nextY)) {
+                state.player.y = nextY;
+            } else {
+                state.player.vy *= -0.3;
+                state.thermal -= 0.15;
+            }
+ 
+            state.thermal -= 0.02 * (1 + state.level * 0.1);
+            timeDisplay.innerText = `Thermal: ${Math.max(0, Math.floor(state.thermal))}%`;
+            if (state.thermal <= 0) gameOver("Thermal Exhaustion");
+ 
+            const exitX = state.exit.c * CELL_SIZE + CELL_SIZE/2;
+            const exitY = state.exit.r * CELL_SIZE + CELL_SIZE/2;
+            const distToExit = Math.hypot(state.player.x - exitX, state.player.y - exitY);
+            if (distToExit < 20) nextLevel();
+ 
+            // Dynamic Camera Follow
+            const targetX = (canvas.width / 2) - state.player.x;
+            const targetY = (canvas.height / 2) - state.player.y;
+            state.gridOffset.x += (targetX - state.gridOffset.x) * 0.1;
+            state.gridOffset.y += (targetY - state.gridOffset.y) * 0.1;
+        }
+ 
+        function checkCollision(px, py) {
+            const c = Math.floor(px / CELL_SIZE);
+            const r = Math.floor(py / CELL_SIZE);
+            if (r < 0 || r >= state.rows || c < 0 || c >= state.cols) return true;
+            const cell = state.maze[r][c];
+            const b = PLAYER_RADIUS + 2;
+            const lx = px % CELL_SIZE;
+            const ly = py % CELL_SIZE;
+            if (cell.walls[0] && ly < b) return true;
+            if (cell.walls[1] && lx > CELL_SIZE - b) return true;
+            if (cell.walls[2] && ly > CELL_SIZE - b) return true;
+            if (cell.walls[3] && lx < b) return true;
+            return false;
+        }
+ 
+        function draw() {
+            ctx.fillStyle = '#05070a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+           
+            ctx.save();
+            ctx.translate(state.gridOffset.x, state.gridOffset.y);
+ 
+            const exitX = state.exit.c * CELL_SIZE + CELL_SIZE/2;
+            const exitY = state.exit.r * CELL_SIZE + CELL_SIZE/2;
+ 
+            // Signal Helper (Exit Guide)
+            const guidePulse = (Math.sin(Date.now() / 400) + 1) / 2;
+            ctx.beginPath();
+            ctx.setLineDash([10, 15]);
+            ctx.strokeStyle = `rgba(0, 255, 149, ${0.1 + guidePulse * 0.2})`;
+            ctx.lineWidth = 1;
+            ctx.moveTo(state.player.x, state.player.y);
+            ctx.lineTo(exitX, exitY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+ 
+            // Winning Square
+            const exX = state.exit.c * CELL_SIZE;
+            const exY = state.exit.r * CELL_SIZE;
+            ctx.fillStyle = 'rgba(0, 255, 149, 0.15)';
+            ctx.fillRect(exX + 2, exY + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+            ctx.strokeStyle = '#00ff95';
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00ff95';
+            ctx.strokeRect(exX + 5, exY + 5, CELL_SIZE - 10, CELL_SIZE - 10);
+            ctx.shadowBlur = 0;
+ 
+            // Maze Architecture
+            ctx.strokeStyle = 'rgba(0, 242, 255, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            for (let r = 0; r < state.rows; r++) {
+                for (let c = 0; c < state.cols; c++) {
+                    const cell = state.maze[r][c];
+                    const x = c * CELL_SIZE;
+                    const y = r * CELL_SIZE;
+                    ctx.beginPath();
+                    if (cell.walls[0]) { ctx.moveTo(x, y); ctx.lineTo(x + CELL_SIZE, y); }
+                    if (cell.walls[1]) { ctx.moveTo(x + CELL_SIZE, y); ctx.lineTo(x + CELL_SIZE, y + CELL_SIZE); }
+                    if (cell.walls[2]) { ctx.moveTo(x + CELL_SIZE, y + CELL_SIZE); ctx.lineTo(x, y + CELL_SIZE); }
+                    if (cell.walls[3]) { ctx.moveTo(x, y + CELL_SIZE); ctx.lineTo(x, y); }
+                    ctx.stroke();
+                }
+            }
+ 
+            // Player Entity
+            const pPulse = 2 + Math.sin(Date.now() / 150) * 2;
+            ctx.fillStyle = 'white';
+            ctx.shadowBlur = 10 + pPulse;
+            ctx.shadowColor = 'white';
+            ctx.beginPath();
+            ctx.arc(state.player.x, state.player.y, PLAYER_RADIUS, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+ 
+            ctx.restore();
+        }
+ 
+        function loop(timestamp) {
+            const deltaTime = timestamp - state.lastTime;
+            state.lastTime = timestamp;
+            update(deltaTime);
+            draw();
+            requestAnimationFrame(loop);
+        }
+ 
+        function gameOver(reason) {
+            state.isPlaying = false;
+            state.failures++;
+            deathDisplay.innerText = `Failures: ${state.failures}`;
+            overlayTitle.innerText = "System Failure";
+            overlayTitle.style.color = "var(--danger-accent)";
+            document.getElementById('overlay-desc').innerText = `Logic Loop Interrupted: ${reason}.`;
+            startBtn.innerText = "Reset Buffer";
+            overlay.style.opacity = '1';
+            overlay.style.pointerEvents = 'auto';
+        }
+ 
+        function nextLevel() {
+            state.level++;
+            levelDisplay.innerText = `Sector: ${state.level.toString().padStart(2, '0')}`;
+            initMaze(state.level);
+            canvas.style.filter = 'invert(1) brightness(2)';
+            setTimeout(() => canvas.style.filter = 'none', 100);
+        }
+ 
+        startBtn.onclick = () => {
+            overlay.style.opacity = '0';
+            overlay.style.pointerEvents = 'none';
+            if (state.level === 1) initMaze(1);
+            else {
+                state.player.x = CELL_SIZE / 2;
+                state.player.y = CELL_SIZE / 2;
+                state.player.vx = 0;
+                state.player.vy = 0;
+                state.thermal = INITIAL_THERMAL;
+            }
+            state.isPlaying = true;
+        };
+ 
+        // Touch Input Logic
+        const jBase = document.getElementById('joystick-base');
+        const jKnob = document.getElementById('joystick-knob');
+        let tId = null;
+ 
+        jBase.addEventListener('touchstart', e => {
+            if (tId === null) {
+                tId = e.changedTouches[0].identifier;
+                state.touchInput.active = true;
+                handleJ(e.changedTouches[0]);
+            }
+        }, { passive: false });
+ 
+        window.addEventListener('touchmove', e => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === tId) handleJ(e.changedTouches[i]);
+            }
+        }, { passive: false });
+ 
+        window.addEventListener('touchend', e => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === tId) {
+                    tId = null;
+                    state.touchInput.active = false;
+                    jKnob.style.transform = `translate(0px, 0px)`;
+                }
+            }
+        });
+ 
+        function handleJ(t) {
+            const r = jBase.getBoundingClientRect();
+            const cx = r.left + r.width / 2;
+            const cy = r.top + r.height / 2;
+            const md = r.width / 2;
+            const dx = t.clientX - cx;
+            const dy = t.clientY - cy;
+            const dist = Math.hypot(dx, dy);
+            const ang = Math.atan2(dy, dx);
+            const ld = Math.min(dist, md);
+            jKnob.style.transform = `translate(${Math.cos(ang) * ld}px, ${Math.sin(ang) * ld}px)`;
+            state.touchInput.dx = Math.cos(ang) * (ld / md);
+            state.touchInput.dy = Math.sin(ang) * (ld / md);
+        }
+ 
+        resize();
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>
+ 
