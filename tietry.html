@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tower of Tome: Solid Ground</title>
+    <title>Tower of Tome: Continuing Ascent</title>
     <style>
         :root {
             --accent: #d35400;
@@ -158,7 +158,7 @@
 
     <div id="level-complete" class="overlay hidden">
         <h1 style="color: #2ecc71;">FLOOR SECURED</h1>
-        <p>The flood has claimed the lower levels.</p>
+        <p>You have reached a safe plateau.</p>
         <button class="menu-btn" onclick="nextLevel()">Go Higher</button>
     </div>
 
@@ -192,7 +192,6 @@
     let currentWeather = 'CALM';
     let weatherTimer = 0;
     let floodY = 20000; 
-    let targetFloodY = 20000;
     let windForce = 0;
     let lightningStrike = null;
 
@@ -221,12 +220,14 @@
         window.addEventListener('resize', resize);
         window.addEventListener('keydown', e => keys[e.code] = true);
         window.addEventListener('keyup', e => keys[e.code] = false);
+
         canvas.addEventListener('touchstart', handleStart, {passive: false});
         canvas.addEventListener('touchmove', handleMove, {passive: false});
         canvas.addEventListener('touchend', handleEnd, {passive: false});
         canvas.addEventListener('mousedown', handleStart);
         window.addEventListener('mousemove', handleMove);
         window.addEventListener('mouseup', handleEnd);
+
         requestAnimationFrame(gameLoop);
     }
 
@@ -283,7 +284,6 @@
         player.vx = 0; player.vy = 0;
         cameraY = 0;
         floodY = height + 500; 
-        targetFloodY = height + 500;
         currentWeather = 'CALM';
         weatherTimer = 0;
         
@@ -306,6 +306,7 @@
 
     function spawnNextBook() {
         const side = Math.random() > 0.5 ? 'left' : 'right';
+        // Position relative to current cumulative score
         const bookY = (height - 60) - (score + 1) * BOOK_H;
         const targetX = (width / 2) - (BOOK_W / 2) + (Math.random() * 80 - 40);
         
@@ -357,23 +358,15 @@
         if (player.x < WALL_WIDTH) player.x = WALL_WIDTH;
         if (player.x + player.w > width - WALL_WIDTH) player.x = width - WALL_WIDTH - player.w;
 
-        // --- FLOOD SURGE LOGIC ---
-        
-        // 1. When 2nd block reaches the middle (heightThisLevel becomes 2)
-        if (heightThisLevel >= 2 && targetFloodY > books[0].y) {
-            targetFloodY = books[0].y + 10; // Flood covers the ground floor
-        }
-
-        // 2. Step on 11th block -> Flood reaches 10th block
+        // Flood Surge: Triggered at block 11 of the CURRENT floor
         if (heightThisLevel >= 11) {
+            // Target the block 10 of current floor (which is the 11th item in 'books' array for current floor)
+            // Since we clean books on nextLevel, we can find the 10th index
             if (books[10]) {
-                const surgePos = books[10].y + 10;
-                if (surgePos < targetFloodY) targetFloodY = surgePos;
+                const targetFloodY = books[10].y + 10;
+                floodY += (targetFloodY - floodY) * 0.05;
             }
         }
-
-        // Smoothly animate flood position
-        floodY += (targetFloodY - floodY) * 0.05;
 
         player.grounded = false;
         for (let i = books.length - 1; i >= 0; i--) {
@@ -414,8 +407,13 @@
                 } 
                 else if (!player.grounded || player.y + player.h > b.y + 10) {
                     const fromLeft = player.x + player.w/2 < b.x + b.w/2;
-                    if (fromLeft) { player.x = b.x - player.w; player.vx = Math.min(0, player.vx); }
-                    else { player.x = b.x + b.w; player.vx = Math.max(0, player.vx); }
+                    if (fromLeft) {
+                        player.x = b.x - player.w;
+                        player.vx = Math.min(0, player.vx);
+                    } else {
+                        player.x = b.x + b.w;
+                        player.vx = Math.max(0, player.vx);
+                    }
                 }
             }
         }
@@ -426,7 +424,7 @@
             }
         }
 
-        if (player.y + cameraY > height + 100) gameOver("FELL INTO OBLIVION");
+        if (player.y + cameraY > height + 200) gameOver("FELL INTO OBLIVION");
         if (player.y > floodY) gameOver("DROWNED IN THE SURGE");
 
         updateParticles();
@@ -445,12 +443,12 @@
 
     function updateParticles() {
         if (currentWeather === 'RAINY' && weatherParticles.length < 80) {
-            weatherParticles.push({ x: Math.random() * width, y: -20, vy: 12, type: 'rain' });
+            weatherParticles.push({ x: Math.random() * width, y: -20 - cameraY, vy: 12, type: 'rain' });
         }
         for (let i = weatherParticles.length - 1; i >= 0; i--) {
             let p = weatherParticles[i];
             p.y += p.vy;
-            if (p.y > height) weatherParticles.splice(i, 1);
+            if (p.y > height - cameraY) weatherParticles.splice(i, 1);
         }
     }
 
@@ -458,17 +456,13 @@
         ctx.fillStyle = '#050505';
         ctx.fillRect(0, 0, width, height);
 
+        ctx.save();
+        ctx.translate(0, cameraY);
+
         weatherParticles.forEach(p => {
             ctx.strokeStyle = '#3498db';
             ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x, p.y + 15); ctx.stroke();
         });
-
-        ctx.fillStyle = '#111';
-        ctx.fillRect(0, 0, WALL_WIDTH, height);
-        ctx.fillRect(width - WALL_WIDTH, 0, WALL_WIDTH, height);
-
-        ctx.save();
-        ctx.translate(0, cameraY);
 
         books.forEach(b => {
             ctx.globalAlpha = b.opacity;
@@ -479,6 +473,7 @@
             ctx.globalAlpha = 1;
         });
 
+        // Flood
         ctx.fillStyle = 'rgba(20, 40, 80, 0.7)';
         ctx.fillRect(0, floodY, width, 5000);
         ctx.fillStyle = '#3498db';
@@ -488,7 +483,7 @@
             ctx.strokeStyle = lightningStrike.active ? '#fff' : 'rgba(255,255,0,0.2)';
             ctx.lineWidth = lightningStrike.active ? 4 : 1;
             ctx.beginPath(); ctx.moveTo(lightningStrike.x, -cameraY); 
-            ctx.lineTo(lightningStrike.x, height - cameraY); ctx.stroke();
+            ctx.lineTo(lightningStrike.x, floodY + 1000); ctx.stroke();
         }
 
         ctx.save();
@@ -501,16 +496,15 @@
         ctx.fillRect(-6, -28, 3, 5); ctx.fillRect(3, -28, 3, 5);
         ctx.restore();
         ctx.restore();
+
+        // Overlay static elements
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, WALL_WIDTH, height);
+        ctx.fillRect(width - WALL_WIDTH, 0, WALL_WIDTH, height);
     }
 
     function completeLevel() {
         gameActive = false;
-        // Floor secured -> Flood reaches top block of the current floor
-        const topBlock = books[books.length - 1];
-        if (topBlock) {
-            targetFloodY = topBlock.y + 10;
-            floodY = targetFloodY; // Snap instantly for floor completion
-        }
         showOverlay('level-complete');
     }
 
@@ -519,17 +513,39 @@
         heightThisLevel = 0;
         gameActive = true;
         document.getElementById('level-complete').classList.add('hidden');
-        // We don't call startGame() because we want to keep climbing from current Y
-        score = 0;
-        books = [books[books.length-1]]; // Keep only the top block to stand on
-        spawnNextBook();
+        
+        // Find the platform the player is currently on
+        const currentPlatform = books.find(b => 
+            player.y + player.h <= b.y + 5 && 
+            player.x + player.w > b.x && 
+            player.x < b.x + b.w
+        );
+
+        // Keep only the platform you are on as the new base
+        books = [];
+        if (currentPlatform) {
+            currentPlatform.isFloor = true; // Mark it as floor so it doesn't erode in rain
+            books.push(currentPlatform);
+        } else {
+            // Safety fallback if player is mid-air
+            books.push({
+                id: 'new-base',
+                x: player.x - 50, y: player.y + player.h, w: player.w + 100, h: BOOK_H,
+                color: '#1a1a1a', isFloor: true, landed: true, opacity: 1
+            });
+        }
+
+        // Reset the flood to be safely below the new base
+        floodY = player.y + 800;
+        
         updateUI();
+        spawnNextBook();
     }
 
     function gameOver(reason) {
         gameActive = false;
         document.getElementById('death-reason').innerText = reason;
-        document.getElementById('final-score').innerText = `Reached Block ${heightThisLevel} on Floor ${currentLevel}`;
+        document.getElementById('final-score').innerText = `Floor: ${currentLevel} | Total Blocks: ${score}`;
         showOverlay('game-over');
     }
 
