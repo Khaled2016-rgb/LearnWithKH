@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wave Path: Customizable Edition</title>
+    <style>
+        :root {
+            --primary: #00ffff;
+            --danger: #ff0000;
+            --success: #44ff44;
+            --panel: rgba(0, 0, 0, 0.9);
+        }
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+            background-color: #000; font-family: 'Arial Black', sans-serif;
+            touch-action: none; user-select: none;
+        }
+        #game-container {
+            position: relative; width: 100vw; height: 100vh;
+            overflow: hidden;
+        }
+        canvas { display: block; }
+        .ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            pointer-events: none; z-index: 30; color: white; text-align: center;
+        }
+        .hidden { display: none !important; }
+        .menu-card {
+            background: var(--panel); padding: 30px; border: 4px solid white;
+            pointer-events: auto; box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            min-width: 320px;
+        }
+        h1 { margin: 0 0 10px 0; font-size: 2.5rem; -webkit-text-stroke: 1.5px black; text-shadow: 2px 2px 0px #000; }
+        p { margin: 5px 0; }
+        
+        .btn {
+            background: var(--success); color: #fff; border: 3px solid #000;
+            padding: 12px 40px; font-size: 1.2rem; font-weight: bold;
+            cursor: pointer; text-transform: uppercase;
+            box-shadow: 0 5px 0 #228822; margin-top: 15px;
+        }
+        .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #228822; }
+        
+        /* Settings Styles */
+        .settings-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin: 15px 0; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;
+        }
+        .settings-row label { font-size: 0.9rem; color: var(--primary); }
+        .settings-row input {
+            background: #222; border: 2px solid #fff; color: white;
+            padding: 5px; width: 80px; text-align: center; font-family: 'Arial Black';
+        }
+
+        #stats {
+            position: absolute; top: 20px; left: 0; width: 100%;
+            display: flex; justify-content: space-between; padding: 0 30px;
+            box-sizing: border-box; pointer-events: none; z-index: 20;
+            text-shadow: 2px 2px #000; font-size: 1.2rem;
+        }
+        
+        #progress-container {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 60%; height: 12px; background: rgba(255,255,255,0.2);
+            border: 2px solid white; border-radius: 6px; z-index: 20; overflow: hidden;
+        }
+        #progress-bar {
+            width: 0%; height: 100%; background: var(--primary);
+            transition: width 0.3s ease-out;
+        }
+        .level-text {
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            color: white; font-size: 1rem; text-transform: uppercase; z-index: 20;
+            text-shadow: 2px 2px #000;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="stats">
+        <div id="speed-tag">SPEED: 1.0x</div>
+        <div id="level-tag">LEVEL 1</div>
+    </div>
+
+    <div class="level-text" id="progress-text">Challenges: 0 / 1</div>
+    <div id="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+    
+    <div id="main-menu" class="ui-layer">
+        <div class="menu-card">
+            <h1 style="color: var(--primary);">WAVE CONFIG</h1>
+            
+            <div class="settings-row">
+                <label>START LEVEL:</label>
+                <input type="number" id="input-level" min="1" value="1">
+            </div>
+            
+            <div class="settings-row">
+                <label>BASE SPEED:</label>
+                <input type="number" id="input-speed" step="0.5" min="5" value="7.5">
+            </div>
+
+            <p style="font-size: 0.7rem; opacity: 0.6;">Settings auto-saved</p>
+            
+            <button class="btn" onclick="startGame()">START GAME</button>
+        </div>
+    </div>
+
+    <div id="game-over" class="ui-layer hidden">
+        <div class="menu-card">
+            <h1 style="color: var(--danger);">CRASHED</h1>
+            <p id="final-level">REACHED LEVEL 1</p>
+            <button class="btn" style="background: var(--primary); box-shadow: 0 5px 0 #008888;" onclick="toggleMenu()">SETTINGS</button>
+            <br>
+            <button class="btn" onclick="startGame()">QUICK RETRY</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let gameActive = false;
+    let frameCount = 0;
+    let currentLevel = 1;
+    let challengesInCurrentLevel = 0;
+    let speed = 7.5;
+    let baseSpeed = 7.5;
+    let pulse = 0;
+
+    const player = {
+        x: 150, y: 0,
+        size: 14,
+        isUp: false,
+        trail: []
+    };
+
+    let obstacles = [];
+    let pathTimer = 0;
+    const SPAWN_DELAY = 7000; 
+
+    // Load saved settings on startup
+    function loadSettings() {
+        const savedLevel = localStorage.getItem('wave_startLevel');
+        const savedSpeed = localStorage.getItem('wave_baseSpeed');
+        
+        if (savedLevel) {
+            document.getElementById('input-level').value = savedLevel;
+            currentLevel = parseInt(savedLevel);
+        }
+        if (savedSpeed) {
+            document.getElementById('input-speed').value = savedSpeed;
+            baseSpeed = parseFloat(savedSpeed);
+        }
+    }
+
+    // Save settings to localStorage
+    function saveSettings() {
+        localStorage.setItem('wave_startLevel', document.getElementById('input-level').value);
+        localStorage.setItem('wave_baseSpeed', document.getElementById('input-speed').value);
+    }
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        player.y = height / 2;
+    }
+
+    function init() {
+        resize();
+        loadSettings();
+        window.addEventListener('resize', resize);
+        
+        const startInput = (e) => { 
+            if(e.cancelable) e.preventDefault();
+            if(gameActive) player.isUp = true; 
+        };
+        const endInput = () => { player.isUp = false; };
+        
+        canvas.addEventListener('mousedown', startInput);
+        window.addEventListener('mouseup', endInput);
+        canvas.addEventListener('touchstart', startInput, {passive: false});
+        window.addEventListener('touchend', endInput);
+        window.addEventListener('keydown', (e) => { if(e.code === 'Space' || e.code === 'ArrowUp') startInput(e); });
+        window.addEventListener('keyup', (e) => { if(e.code === 'Space' || e.code === 'ArrowUp') endInput(); });
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    function toggleMenu() {
+        document.getElementById('game-over').classList.add('hidden');
+        document.getElementById('main-menu').classList.remove('hidden');
+    }
+
+    function startGame() {
+        saveSettings();
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('game-over').classList.add('hidden');
+        
+        // Read from inputs
+        currentLevel = parseInt(document.getElementById('input-level').value) || 1;
+        baseSpeed = parseFloat(document.getElementById('input-speed').value) || 7.5;
+        
+        // Initial speed scales with starting level
+        speed = baseSpeed + ((currentLevel - 1) * 0.7);
+        
+        gameActive = true;
+        challengesInCurrentLevel = 0;
+        player.y = height / 2;
+        player.trail = [];
+        obstacles = [];
+        pathTimer = SPAWN_DELAY - 1000; 
+        frameCount = 0;
+        updateUI();
+    }
+
+    function gameOver() {
+        if (!gameActive) return;
+        gameActive = false;
+        document.getElementById('game-over').classList.remove('hidden');
+        document.getElementById('final-level').innerText = `REACHED LEVEL ${currentLevel}`;
+    }
+
+    function updateUI() {
+        document.getElementById('level-tag').innerText = `LEVEL ${currentLevel}`;
+        document.getElementById('speed-tag').innerText = `SPEED: ${(speed/7.5).toFixed(1)}x`;
+        
+        const required = currentLevel;
+        const percent = (challengesInCurrentLevel / required) * 100;
+        document.getElementById('progress-bar').style.width = `${percent}%`;
+        document.getElementById('progress-text').innerText = `Challenges: ${challengesInCurrentLevel} / ${required}`;
+    }
+
+    function createTriplePath() {
+        const safeIndex = Math.floor(Math.random() * 3);
+        const sectionLength = 1300; 
+        const laneH = height / 3; 
+
+        obstacles.push({ type: 'portal', x: width, y: 0, w: 80, h: height });
+
+        for (let i = 0; i < 3; i++) {
+            const pY = (i * laneH) + laneH / 2;
+            const isSafe = (i === safeIndex);
+            let label = i === 0 ? "$1" : (i === 1 ? "$2,000" : "$6,000");
+
+            obstacles.push({ 
+                type: 'wall', 
+                x: width + 80, 
+                y: i * laneH, 
+                w: sectionLength, 
+                h: 20, 
+                label: i === 0 ? "" : label
+            });
+            
+            obstacles.push({ 
+                type: 'wall', 
+                x: width + 80, 
+                y: (i + 1) * laneH - 20, 
+                w: sectionLength, 
+                h: 20,
+                label: i === 0 ? label : ""
+            });
+
+            if (!isSafe) {
+                obstacles.push({ 
+                    type: 'hazard', 
+                    x: width + 80, 
+                    w: sectionLength, 
+                    laneY: pY, 
+                    laneH: laneH 
+                });
+            }
+        }
+
+        challengesInCurrentLevel++;
+        if (challengesInCurrentLevel >= currentLevel) {
+            currentLevel++;
+            challengesInCurrentLevel = 0;
+            speed += 0.7; 
+            // Save progress automatically
+            document.getElementById('input-level').value = currentLevel;
+            saveSettings();
+        }
+        updateUI();
+    }
+
+    function update() {
+        if (!gameActive) return;
+
+        frameCount++;
+        pulse = Math.sin(frameCount * 0.08) * 10;
+        
+        if (player.isUp) player.y -= speed;
+        else player.y += speed;
+
+        // SLIDING BOUNDARIES
+        const margin = 15;
+        if (player.y < margin) player.y = margin;
+        if (player.y > height - margin) player.y = height - margin;
+
+        player.trail.push({x: player.x, y: player.y});
+        if (player.trail.length > 40) player.trail.shift();
+
+        pathTimer += speed;
+        if (pathTimer > SPAWN_DELAY) {
+            createTriplePath();
+            pathTimer = 0;
+        }
+
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+            let o = obstacles[i];
+            o.x -= speed;
+
+            if (o.type === 'wall') {
+                const px = player.x;
+                const py = player.y;
+                const r = player.size * 0.7;
+
+                if (px + r > o.x && px - r < o.x + o.w && py + r > o.y && py - r < o.y + o.h) {
+                    if (px < o.x + speed * 1.5) {
+                        gameOver();
+                    } else {
+                        // Frictionless sliding on internal wall tops/bottoms
+                        if (py < o.y + o.h/2) player.y = o.y - r;
+                        else player.y = o.y + o.h + r;
+                    }
+                }
+            } else if (o.type === 'hazard') {
+                if (player.x + player.size > o.x && player.x - player.size < o.x + o.w &&
+                    Math.abs(player.y - o.laneY) < o.laneH / 2.3) {
+                    gameOver();
+                }
+            }
+
+            if (o.x + (o.w || 0) < -2000) obstacles.splice(i, 1);
+        }
+    }
+
+    function drawSpikes(x, y, w, h, invert = false) {
+        const step = 45;
+        ctx.fillStyle = "#fff";
+        for(let sx = 0; sx < w; sx += step) {
+            ctx.beginPath();
+            if(!invert) {
+                ctx.moveTo(x + sx, y + h); ctx.lineTo(x + sx + step/2, y); ctx.lineTo(x + sx + step, y + h);
+            } else {
+                ctx.moveTo(x + sx, y); ctx.lineTo(x + sx + step/2, y + h); ctx.lineTo(x + sx + step, y);
+            }
+            ctx.fill();
+        }
+    }
+
+    function render() {
+        const hue = (210 + currentLevel * 15) % 360;
+        const bgB = 10 + (pulse > 0 ? pulse/2 : 0);
+        ctx.fillStyle = `hsl(${hue}, 40%, ${bgB}%)`;
+        ctx.fillRect(0, 0, width, height);
+
+        const tileSize = 100;
+        const offset = (frameCount * speed) % tileSize;
+        ctx.strokeStyle = "rgba(255,255,255,0.04)";
+        ctx.lineWidth = 1;
+        for(let x = -offset; x < width; x += tileSize) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+        }
+        for(let y = 0; y < height; y += tileSize) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+        }
+
+        ctx.fillStyle = "rgba(255,255,255,0.2)";
+        ctx.fillRect(0, 0, width, 10);
+        ctx.fillRect(0, height-10, width, 10);
+
+        if (!gameActive) return;
+
+        obstacles.forEach(o => {
+            if (o.type === 'portal') {
+                const grad = ctx.createLinearGradient(o.x, 0, o.x + o.w, 0);
+                grad.addColorStop(0, 'rgba(255,255,255,0)');
+                grad.addColorStop(0.5, 'rgba(255,255,255,0.7)');
+                grad.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(o.x, o.y, o.w, o.h);
+            } else if (o.type === 'wall') {
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(o.x, o.y, o.w, o.h);
+                if (o.label) {
+                    ctx.fillStyle = "#44ff44";
+                    ctx.font = "bold 32px Arial";
+                    ctx.textAlign = "right";
+                    ctx.fillText(o.label, o.x - 30, o.y + (o.y < height/2 ? 55 : -25));
+                }
+            } else if (o.type === 'hazard') {
+                drawSpikes(o.x, o.laneY - o.laneH/2 + 20, o.w, 55, true);
+                drawSpikes(o.x, o.laneY + o.laneH/2 - 75, o.w, 55, false);
+                ctx.fillStyle = "rgba(255, 0, 0, 0.08)";
+                ctx.fillRect(o.x, o.laneY - o.laneH/2, o.w, o.laneH);
+            }
+        });
+
+        if (player.trail.length > 1) {
+            ctx.beginPath();
+            ctx.strokeStyle = "#00ffff";
+            ctx.lineWidth = 7;
+            ctx.lineJoin = "round";
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "#00ffff";
+            const last = player.trail[player.trail.length-1];
+            ctx.moveTo(last.x, last.y);
+            for(let i = player.trail.length - 2; i >= 0; i--) {
+                const p = player.trail[i];
+                const age = player.trail.length - i;
+                ctx.lineTo(player.x - (age * speed), p.y);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        ctx.save();
+        ctx.translate(player.x, player.y);
+        ctx.rotate(player.isUp ? -Math.PI/4 : Math.PI/4);
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#00ffff";
+        ctx.fillStyle = "#00ffff";
+        ctx.beginPath();
+        ctx.moveTo(player.size * 1.5, 0);
+        ctx.lineTo(-player.size, -player.size);
+        ctx.lineTo(-player.size, player.size);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function gameLoop() {
+        update();
+        render();
+        requestAnimationFrame(gameLoop);
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>
