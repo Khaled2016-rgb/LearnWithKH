@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Wave: Ultimate Edition</title>
+    <style>
+        :root {
+            --primary: #00ffff;
+            --secondary: #bd00ff;
+            --danger: #ff2d55;
+            --success: #00ffa3;
+            --panel: rgba(5, 8, 15, 0.95);
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Rajdhani:wght@500;700&display=swap');
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+            background-color: #010103; font-family: 'Rajdhani', sans-serif;
+            touch-action: none; user-select: none;
+        }
+        #game-container {
+            position: relative; width: 100vw; height: 100vh;
+            overflow: hidden;
+        }
+        canvas { display: block; filter: contrast(1.1) saturate(1.2); transition: filter 0.5s; }
+        
+        .ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            pointer-events: none; z-index: 100; color: white; text-align: center;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .hidden { opacity: 0; transform: scale(0.9); pointer-events: none !important; visibility: hidden; }
+
+        .menu-card {
+            background: var(--panel); 
+            padding: 40px; 
+            border: 1px solid rgba(0, 255, 255, 0.3); 
+            pointer-events: auto; 
+            box-shadow: 0 0 80px rgba(0, 0, 0, 0.9);
+            border-radius: 24px;
+            min-width: 340px;
+            backdrop-filter: blur(20px);
+        }
+
+        h1 { 
+            margin: 0; 
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem; 
+            font-weight: 900;
+            background: linear-gradient(to bottom, #fff 40%, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sync-btn {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 18px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            border-radius: 12px;
+            width: 100%;
+            font-family: 'Orbitron', sans-serif;
+            margin: 20px 0;
+            transition: 0.2s;
+        }
+        .sync-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .shop-item {
+            aspect-ratio: 1;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            position: relative;
+        }
+        .shop-item.selected { border-color: var(--primary); background: rgba(0,255,255,0.1); }
+        .shop-item.locked::after { content: '🔒'; font-size: 0.7rem; position: absolute; }
+
+        #stats-bar {
+            position: absolute; top: 0; left: 0; width: 100%;
+            display: flex; justify-content: space-between; padding: 20px 30px;
+            box-sizing: border-box; pointer-events: none; z-index: 50;
+        }
+        .stat-item b { color: var(--primary); font-size: 1.4rem; font-family: 'Orbitron'; }
+
+        #progress-container {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            width: 200px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;
+        }
+        #progress-fill { width: 0%; height: 100%; background: var(--primary); border-radius: 3px; transition: 0.1s; }
+
+        .orb-counter {
+            position: absolute; top: 70px; right: 30px;
+            font-family: 'Orbitron'; color: #ffd700; font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="stats-bar">
+        <div class="stat-item">LVL <b id="ui-level">1</b></div>
+        <div class="stat-item">BEST <b id="ui-best">0%</b></div>
+    </div>
+
+    <div id="progress-container"><div id="progress-fill"></div></div>
+    <div class="orb-counter">ORBS: <span id="ui-orbs">0</span></div>
+    
+    <!-- Main Menu -->
+    <div id="main-menu" class="ui-layer">
+        <div class="menu-card">
+            <h1>WAVE</h1>
+            <div style="color: #aaa; letter-spacing: 4px; margin-bottom: 20px;">NEURAL PROTOCOL</div>
+            
+            <button class="sync-btn" onclick="startGame()">Start Attempt</button>
+            
+            <div style="text-align: left; margin-top: 20px;">
+                <label style="font-size: 0.7rem; color: #666; text-transform: uppercase;">Neon Customization</label>
+                <div class="shop-grid" id="shop-colors">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over -->
+    <div id="game-over" class="ui-layer hidden">
+        <div class="menu-card">
+            <h1 style="background: linear-gradient(to bottom, #fff, var(--danger)); -webkit-background-clip: text;">CRASHED</h1>
+            <div id="fail-percent" style="font-size: 2rem; font-family: Orbitron; margin: 10px 0;">45%</div>
+            <button class="sync-btn" onclick="startGame()">Retry</button>
+            <button class="btn-std" onclick="toggleMenu()" style="width:100%; padding: 10px; background: none; border: 1px solid #444; color: #888; cursor: pointer; border-radius: 8px;">Main Terminal</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let gameActive = false;
+    let frameCount = 0;
+    let currentLevel = 1;
+    let bestPercent = 0;
+    let orbs = parseInt(localStorage.getItem('wave_orbs')) || 0;
+    let speed = 9;
+    let themeColor = localStorage.getItem('wave_theme') || '#00ffff';
+
+    const colors = [
+        { hex: '#00ffff', cost: 0 },
+        { hex: '#bd00ff', cost: 50 },
+        { hex: '#ff2d55', cost: 100 },
+        { hex: '#00ffa3', cost: 200 },
+        { hex: '#ffff00', cost: 500 },
+        { hex: '#ffffff', cost: 1000 }
+    ];
+
+    const player = {
+        x: 200, y: 0,
+        size: 16,
+        isUp: false,
+        trail: [],
+        angle: 0
+    };
+
+    let obstacles = [];
+    let terrainPoints = [];
+    let collectibleOrbs = [];
+    let caveWidth = 350;
+    let caveY = 0;
+
+    function init() {
+        resize();
+        window.addEventListener('resize', resize);
+        
+        // Input Listeners
+        const startInput = (e) => { 
+            if(gameActive) {
+                if(e.cancelable) e.preventDefault();
+                player.isUp = true; 
+            }
+        };
+        const endInput = () => { player.isUp = false; };
+        
+        window.addEventListener('mousedown', startInput);
+        window.addEventListener('mouseup', endInput);
+        window.addEventListener('touchstart', startInput, {passive: false});
+        window.addEventListener('touchend', endInput);
+        window.addEventListener('keydown', (e) => { 
+            if(['Space', 'ArrowUp', 'KeyW'].includes(e.code)) startInput(e); 
+        });
+        window.addEventListener('keyup', (e) => { endInput(); });
+
+        renderShop();
+        updateUI();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function renderShop() {
+        const grid = document.getElementById('shop-colors');
+        grid.innerHTML = '';
+        colors.forEach(c => {
+            const item = document.createElement('div');
+            item.className = `shop-item ${themeColor === c.hex ? 'selected' : ''}`;
+            item.style.backgroundColor = c.hex;
+            item.onclick = () => {
+                if (orbs >= c.cost) {
+                    themeColor = c.hex;
+                    localStorage.setItem('wave_theme', themeColor);
+                    renderShop();
+                }
+            };
+            if (orbs < c.cost) item.classList.add('locked');
+            grid.appendChild(item);
+        });
+    }
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        if(!gameActive) player.y = height / 2;
+    }
+
+    function toggleMenu() {
+        document.getElementById('game-over').classList.add('hidden');
+        document.getElementById('main-menu').classList.remove('hidden');
+    }
+
+    function startGame() {
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('game-over').classList.add('hidden');
+        
+        gameActive = true;
+        frameCount = 0;
+        speed = 8.5 + (currentLevel * 0.5);
+        player.y = height / 2;
+        player.trail = [];
+        obstacles = [];
+        terrainPoints = [];
+        collectibleOrbs = [];
+        caveY = height / 2;
+        caveWidth = height * 0.5;
+
+        // Pre-generate starting terrain
+        for(let i=0; i<width/20 + 5; i++) {
+            generateTerrainStep();
+        }
+    }
+
+    function gameOver() {
+        if (!gameActive) return;
+        gameActive = false;
+        
+        const percent = Math.min(100, Math.floor((frameCount / (2000 + currentLevel * 500)) * 100));
+        if (percent > bestPercent) bestPercent = percent;
+        
+        document.getElementById('fail-percent').innerText = `${percent}%`;
+        document.getElementById('game-over').classList.remove('hidden');
+        
+        localStorage.setItem('wave_orbs', orbs);
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('ui-level').innerText = currentLevel;
+        document.getElementById('ui-best').innerText = `${bestPercent}%`;
+        document.getElementById('ui-orbs').innerText = orbs;
+    }
+
+    function generateTerrainStep() {
+        const step = 40;
+        const lastPoint = terrainPoints.length > 0 ? terrainPoints[terrainPoints.length-1] : { x: 0, y: height/2, w: caveWidth };
+        
+        const nextX = lastPoint.x + step;
+        
+        // Smoother cave movement
+        const drift = (Math.random() - 0.5) * 60;
+        let nextY = lastPoint.y + drift;
+        
+        // Keep in bounds
+        const margin = 100;
+        if (nextY < margin) nextY = margin;
+        if (nextY > height - margin) nextY = height - margin;
+
+        // Tighten cave over time
+        const targetWidth = Math.max(180, height * 0.4 - (frameCount * 0.02));
+        
+        terrainPoints.push({ x: nextX, y: nextY, w: targetWidth });
+
+        // Occasional Obstacles
+        if (frameCount > 200 && Math.random() > 0.96) {
+            const isTop = Math.random() > 0.5;
+            obstacles.push({
+                x: nextX,
+                y: isTop ? nextY - targetWidth/2 : nextY + targetWidth/2 - 80,
+                w: 40,
+                h: 80
+            });
+        }
+
+        // Add Collectibles
+        if (Math.random() > 0.98) {
+            collectibleOrbs.push({ x: nextX, y: nextY + (Math.random()-0.5)*100, collected: false });
+        }
+    }
+
+    function update() {
+        if (!gameActive) return;
+
+        frameCount++;
+        
+        // Wave Physics (45 degree movement)
+        const moveStep = speed * 0.9; 
+        if (player.isUp) {
+            player.y -= moveStep;
+            player.angle = -Math.PI / 4;
+        } else {
+            player.y += moveStep;
+            player.angle = Math.PI / 4;
+        }
+
+        // Progress
+        const levelGoal = 2000 + (currentLevel * 500);
+        const progress = Math.min(1, frameCount / levelGoal);
+        document.getElementById('progress-fill').style.width = `${progress * 100}%`;
+        
+        if (progress >= 1) {
+            currentLevel++;
+            gameActive = false;
+            startGame(); // Auto-next level
+            return;
+        }
+
+        // Update trail
+        player.trail.push({x: player.x, y: player.y});
+        if (player.trail.length > 60) player.trail.shift();
+
+        // Terrain logic
+        terrainPoints.forEach(p => p.x -= speed);
+        obstacles.forEach(o => o.x -= speed);
+        collectibleOrbs.forEach(o => o.x -= speed);
+
+        if (terrainPoints[0] && terrainPoints[0].x < -50) {
+            terrainPoints.shift();
+            generateTerrainStep();
+        }
+
+        // Collision Check
+        const pY = player.y;
+        const pX = player.x;
+        
+        // Find terrain slice at player X
+        const slice = terrainPoints.find(p => p.x >= pX && p.x <= pX + 50) || terrainPoints[0];
+        if (slice) {
+            const topBound = slice.y - slice.w/2;
+            const bottomBound = slice.y + slice.w/2;
+            if (pY < topBound || pY > bottomBound) {
+                gameOver();
+            }
+        }
+
+        // Block collisions
+        obstacles.forEach(o => {
+            if (pX + 10 > o.x && pX - 10 < o.x + o.w && pY + 10 > o.y && pY - 10 < o.y + o.h) {
+                gameOver();
+            }
+        });
+
+        // Collectibles
+        collectibleOrbs.forEach(o => {
+            if (!o.collected && Math.hypot(pX - o.x, pY - o.y) < 30) {
+                o.collected = true;
+                orbs += 2;
+                document.getElementById('ui-orbs').innerText = orbs;
+            }
+        });
+    }
+
+    function render() {
+        // Clear with background color
+        ctx.fillStyle = '#05080f';
+        ctx.fillRect(0, 0, width, height);
+
+        // Draw Grid
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.lineWidth = 1;
+        const gridOffset = (frameCount * speed) % 60;
+        for(let x = -gridOffset; x < width; x += 60) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+        }
+
+        // Draw Cave Terrain
+        if (terrainPoints.length > 1) {
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(20, 25, 40, 1)';
+            
+            // Top ceiling path
+            ctx.moveTo(terrainPoints[0].x, 0);
+            terrainPoints.forEach(p => ctx.lineTo(p.x, p.y - p.w/2));
+            ctx.lineTo(width, 0);
+            ctx.fill();
+
+            // Bottom floor path
+            ctx.beginPath();
+            ctx.moveTo(terrainPoints[0].x, height);
+            terrainPoints.forEach(p => ctx.lineTo(p.x, p.y + p.w/2));
+            ctx.lineTo(width, height);
+            ctx.fill();
+
+            // Neon edges
+            ctx.strokeStyle = themeColor;
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 10; ctx.shadowColor = themeColor;
+            
+            ctx.beginPath();
+            ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y - terrainPoints[0].w/2);
+            terrainPoints.forEach(p => ctx.lineTo(p.x, p.y - p.w/2));
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y + terrainPoints[0].w/2);
+            terrainPoints.forEach(p => ctx.lineTo(p.x, p.y + p.w/2));
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        // Draw Obstacles
+        obstacles.forEach(o => {
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(o.x, o.y, o.w, o.h);
+            ctx.strokeStyle = themeColor;
+            ctx.strokeRect(o.x, o.y, o.w, o.h);
+        });
+
+        // Draw Collectibles
+        collectibleOrbs.forEach(o => {
+            if (!o.collected) {
+                ctx.fillStyle = '#ffd700';
+                ctx.shadowBlur = 15; ctx.shadowColor = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(o.x, o.y, 6, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        });
+
+        // Draw Trail
+        if (player.trail.length > 1) {
+            ctx.beginPath();
+            ctx.strokeStyle = themeColor;
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.moveTo(player.x, player.y);
+            
+            let tx = player.x;
+            for(let i = player.trail.length - 1; i >= 0; i--) {
+                tx -= speed;
+                ctx.lineTo(tx, player.trail[i].y);
+            }
+            ctx.stroke();
+        }
+
+        // Draw Player
+        if (gameActive || frameCount === 0) {
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            ctx.rotate(player.angle);
+            ctx.fillStyle = '#fff';
+            ctx.shadowBlur = 15; ctx.shadowColor = themeColor;
+            ctx.beginPath();
+            ctx.moveTo(15, 0);
+            ctx.lineTo(-12, -12);
+            ctx.lineTo(-12, 12);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    function gameLoop() {
+        update();
+        render();
+        requestAnimationFrame(gameLoop);
+    }
+
+    init();
+</script>
+</body>
+</html>
