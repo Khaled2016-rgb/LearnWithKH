@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tower of Tome</title>
+    <title>Tower of Tome: Solid Ground</title>
     <style>
         :root {
             --accent: #d35400;
             --text-color: #f39c12;
+            --danger: #e74c3c;
         }
 
         body, html {
@@ -16,12 +17,11 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHGtkm-MbSexmdlzLVpo0reCEt4dv_xRFSAw&s');
+            background-color: #050505;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /* Prevent all default touch behaviors */
             touch-action: none;
-            -webkit-user-select: none;
             user-select: none;
+            -webkit-user-select: none;
         }
 
         #game-container {
@@ -29,7 +29,7 @@
             width: 100vw;
             height: 100vh;
             overflow: hidden;
-            transition: background 1.5s ease;
+            background: #000;
         }
 
         #game-canvas {
@@ -49,123 +49,95 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 10;
+            z-index: 50;
             color: var(--text-color);
             text-align: center;
             padding: 20px;
             box-sizing: border-box;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.8);
         }
 
         .hidden { display: none !important; }
 
         h1 { 
-            font-size: 3.5rem; 
+            font-size: 2.5rem; 
             margin-bottom: 5px; 
-            text-shadow: 0 0 30px rgba(243, 156, 18, 0.4);
-            letter-spacing: 6px;
+            text-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
+            letter-spacing: 4px;
             font-weight: 900;
         }
 
         .menu-btn {
             background: rgba(243, 156, 18, 0.1);
             color: var(--text-color);
-            border: 1px solid var(--text-color);
-            padding: 15px 40px;
+            border: 2px solid var(--text-color);
+            padding: 12px 30px;
             margin: 10px;
-            font-size: 1.2rem;
+            font-size: 1rem;
             cursor: pointer;
-            width: 280px;
-            transition: all 0.3s;
+            width: 250px;
+            transition: all 0.2s;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            border-radius: 4px;
+            letter-spacing: 2px;
+            border-radius: 8px;
+            font-weight: bold;
         }
 
         .menu-btn:hover {
             background: var(--text-color);
             color: #000;
-            box-shadow: 0 0 20px var(--text-color);
-            transform: translateY(-2px);
+            box-shadow: 0 0 25px var(--text-color);
         }
 
         #stats-bar {
             position: absolute;
-            top: 25px;
-            left: 25px;
+            top: 20px;
+            left: 20px;
             color: var(--text-color);
-            z-index: 5;
+            z-index: 10;
             display: flex;
-            gap: 15px;
+            gap: 10px;
             pointer-events: none;
         }
 
         .stat-box {
-            background: rgba(0,0,0,0.5);
-            padding: 8px 15px;
-            border-radius: 8px;
-            border-left: 3px solid var(--text-color);
-            backdrop-filter: blur(5px);
-        }
-
-        .stat-label { font-size: 0.6rem; opacity: 0.7; letter-spacing: 1px; text-transform: uppercase; }
-        .stat-value { font-size: 1.2rem; font-weight: bold; font-family: monospace; }
-
-        #touch-controls {
-            position: absolute;
-            bottom: 30px;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 25px;
-            box-sizing: border-box;
-            z-index: 5;
-            pointer-events: none;
-        }
-
-        .control-group {
-            display: flex;
-            gap: 15px;
-            pointer-events: none;
-        }
-
-        .t-btn {
-            width: 80px;
-            height: 80px;
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 1.5rem;
-            pointer-events: auto;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border-bottom: 2px solid var(--text-color);
             backdrop-filter: blur(4px);
-            transition: transform 0.1s, background 0.1s;
-        }
-        
-        .t-btn:active { 
-            background: rgba(243, 156, 18, 0.4); 
-            border-color: var(--text-color);
-            transform: scale(0.9); 
         }
 
-        .jump-btn {
-            width: 110px;
-            border-radius: 25px;
-            font-weight: bold;
-            font-size: 1rem;
-            letter-spacing: 1px;
+        .stat-label { font-size: 0.6rem; opacity: 0.7; text-transform: uppercase; }
+        .stat-value { font-size: 1rem; font-weight: bold; font-family: monospace; }
+
+        #weather-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 15px;
+            border-radius: 20px;
+            color: #fff;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        #flash {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; opacity: 0; pointer-events: none; z-index: 100;
         }
     </style>
 </head>
 <body>
 
 <div id="game-container">
+    <div id="flash"></div>
     <canvas id="game-canvas"></canvas>
+    <div id="weather-indicator">Weather: Calm</div>
     
     <div id="stats-bar">
         <div class="stat-box">
@@ -173,124 +145,124 @@
             <div class="stat-value" id="lvl-val">1</div>
         </div>
         <div class="stat-box">
-            <div class="stat-label">Books</div>
+            <div class="stat-label">Block</div>
             <div class="stat-value" id="height-val">0</div>
         </div>
     </div>
 
     <div id="main-menu" class="overlay">
         <h1>TOWER OF TOME</h1>
-        <p style="font-style: italic; margin-bottom: 30px; opacity: 0.6; letter-spacing: 1px;">Keep climbing. Don't look down.</p>
-        <button class="menu-btn" onclick="startGame()">Start Climb</button>
+        <p>Step on the 11th block to trigger the surge.</p>
+        <button class="menu-btn" onclick="startGame()">Ascend</button>
     </div>
 
     <div id="level-complete" class="overlay hidden">
         <h1 style="color: #2ecc71;">FLOOR SECURED</h1>
-        <p id="level-msg">You've ascended higher into the library.</p>
-        <button class="menu-btn" onclick="nextLevel()">Next Floor</button>
+        <p>The flood has claimed the lower levels.</p>
+        <button class="menu-btn" onclick="nextLevel()">Go Higher</button>
     </div>
 
     <div id="game-over" class="overlay hidden">
-        <h1 id="death-reason" style="color: #e74c3c;">LOST</h1>
-        <p id="final-score" style="margin-bottom: 20px;"></p>
-        <button class="menu-btn" onclick="startGame()">Restart</button>
-    </div>
-
-    <div id="touch-controls">
-        <div class="control-group">
-            <div class="t-btn" id="btn-left" aria-label="Move Left">←</div>
-            <div class="t-btn" id="btn-right" aria-label="Move Right">→</div>
-        </div>
-        <div class="t-btn jump-btn" id="btn-jump">JUMP</div>
+        <h1 id="death-reason" style="color: var(--danger);">LOST</h1>
+        <p id="final-score"></p>
+        <button class="menu-btn" onclick="startGame()">Try Again</button>
     </div>
 </div>
 
 <script>
     const canvas = document.getElementById('game-canvas');
     const ctx = canvas.getContext('2d');
-    const heightVal = document.getElementById('height-val');
-    const lvlVal = document.getElementById('lvl-val');
-
+    const flashEl = document.getElementById('flash');
+    const weatherIndicator = document.getElementById('weather-indicator');
+    
     let width, height;
     let gameActive = false;
     let score = 0;
     let currentLevel = 1;
     let heightThisLevel = 0;
-    const heightPerLevel = 10;
+    const heightPerLevel = 15;
     
-    const GRAVITY = 0.6;
-    const FRICTION = 0.85;
+    const GRAVITY = 0.55;
+    const FRICTION = 0.8;
+    const WALL_WIDTH = 60; 
+    const BOOK_W = 180;
+    const BOOK_H = 45; 
     
-    const WALL_WIDTH = 70; 
-    const BOOK_W = 210;    
-    const BOOK_H = 55;     
+    const WEATHER_TYPES = ['CALM', 'WINDY', 'RAINY', 'THUNDER'];
+    let currentWeather = 'CALM';
+    let weatherTimer = 0;
+    let floodY = 20000; 
+    let targetFloodY = 20000;
+    let windForce = 0;
+    let lightningStrike = null;
 
     const player = {
-        x: 0, y: 0, w: 28, h: 42,
+        x: 0, y: 0, w: 26, h: 38,
         vx: 0, vy: 0,
         speed: 6.5,
-        jumpPower: -13.5,
+        jumpPower: -12.5,
         grounded: false,
-        hasTouchedFirstBook: false,
         stretch: 1,
         tilt: 0
     };
 
     let books = [];
-    let particles = [];
+    let weatherParticles = [];
     let cameraY = 0;
-    let bgPulse = 0;
+    let frameCount = 0;
     const keys = {};
-    const touchState = { left: false, right: false, jump: false };
+
+    let touchX = null;
+    let touchY = null;
+    let isSwiping = false;
 
     function init() {
         resize();
         window.addEventListener('resize', resize);
-        
-        // Keyboard Setup
         window.addEventListener('keydown', e => keys[e.code] = true);
         window.addEventListener('keyup', e => keys[e.code] = false);
-        
-        // Touch Setup with dedicated logic
-        bindTouch('btn-left', 'left');
-        bindTouch('btn-right', 'right');
-        bindTouch('btn-jump', 'jump');
-
-        for(let i=0; i<40; i++) spawnParticle(true);
+        canvas.addEventListener('touchstart', handleStart, {passive: false});
+        canvas.addEventListener('touchmove', handleMove, {passive: false});
+        canvas.addEventListener('touchend', handleEnd, {passive: false});
+        canvas.addEventListener('mousedown', handleStart);
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', handleEnd);
         requestAnimationFrame(gameLoop);
     }
 
-    function bindTouch(id, action) {
-        const el = document.getElementById(id);
-        
-        const start = (e) => {
-            e.preventDefault();
-            touchState[action] = true;
-        };
-        
-        const end = (e) => {
-            e.preventDefault();
-            touchState[action] = false;
-        };
-
-        el.addEventListener('touchstart', start, { passive: false });
-        el.addEventListener('touchend', end, { passive: false });
-        el.addEventListener('touchcancel', end, { passive: false });
-        
-        // Support mouse for testing on desktop browser with touch emulation
-        el.addEventListener('mousedown', start);
-        window.addEventListener('mouseup', () => touchState[action] = false);
+    function handleStart(e) {
+        if (!gameActive) return;
+        const pos = e.touches ? e.touches[0] : e;
+        touchX = pos.clientX;
+        touchY = pos.clientY;
+        isSwiping = true;
     }
 
-    function spawnParticle(randomPos = false) {
-        particles.push({
-            x: Math.random() * width,
-            y: randomPos ? Math.random() * height : height + 20,
-            size: Math.random() * 2 + 1,
-            speed: Math.random() * 0.5 + 0.2,
-            life: 1,
-            drift: (Math.random() - 0.5) * 0.5
-        });
+    function handleMove(e) {
+        if (!isSwiping || !gameActive) return;
+        if (e.cancelable) e.preventDefault();
+        const pos = e.touches ? e.touches[0] : e;
+        const dx = pos.clientX - touchX;
+        const dy = pos.clientY - touchY;
+        if (Math.abs(dx) > 10) player.vx = (dx > 0 ? 1 : -1) * player.speed;
+        if (dy < -30) { triggerJump(); isSwiping = false; }
+    }
+
+    function handleEnd(e) {
+        if (isSwiping && gameActive) {
+            const pos = e.changedTouches ? e.changedTouches[0] : e;
+            const dist = Math.hypot(pos.clientX - touchX, pos.clientY - touchY);
+            if (dist < 10) triggerJump();
+        }
+        isSwiping = false;
+    }
+
+    function triggerJump() {
+        if (player.grounded && gameActive) {
+            player.vy = player.jumpPower;
+            player.grounded = false;
+            player.stretch = 1.4;
+        }
     }
 
     function resize() {
@@ -305,18 +277,21 @@
         currentLevel = 1;
         heightThisLevel = 0;
         books = [];
+        weatherParticles = [];
         player.x = width / 2 - player.w / 2;
-        player.y = height - 120;
-        player.vx = 0;
-        player.vy = 0;
-        player.hasTouchedFirstBook = false;
+        player.y = height - 150;
+        player.vx = 0; player.vy = 0;
         cameraY = 0;
+        floodY = height + 500; 
+        targetFloodY = height + 500;
+        currentWeather = 'CALM';
+        weatherTimer = 0;
         
         books.push({
             id: 'floor',
-            x: 0, y: height - 60, w: width, h: 200,
-            vx: 0, color: themes[0].book, isFloor: true,
-            landed: true, isSpike: false
+            x: 0, y: height - 60, w: width, h: 600,
+            color: '#1a1a1a', isFloor: true,
+            landed: true, opacity: 1, originalW: width
         });
 
         spawnNextBook();
@@ -324,36 +299,23 @@
     }
 
     function updateUI() {
-        heightVal.innerText = score;
-        lvlVal.innerText = currentLevel;
+        document.getElementById('height-val').innerText = heightThisLevel;
+        document.getElementById('lvl-val').innerText = currentLevel;
+        weatherIndicator.innerText = `Weather: ${currentWeather}`;
     }
-
-    const themes = [
-        { bg: '#0f0a09', wall: '#1a1210', book: '#3d2b1f' },
-        { bg: '#0a101a', wall: '#121a2b', book: '#1f2b3d' },
-        { bg: '#0a1a0f', wall: '#122b1a', book: '#1f3d2b' },
-        { bg: '#1a0a1a', wall: '#2b122b', book: '#3d1f3d' },
-        { bg: '#1a100a', wall: '#2b1a12', book: '#3d2b1f' }
-    ];
 
     function spawnNextBook() {
         const side = Math.random() > 0.5 ? 'left' : 'right';
         const bookY = (height - 60) - (score + 1) * BOOK_H;
-        const speed = 4.5 + (currentLevel * 0.7);
-        const targetX = (width / 2) - (BOOK_W / 2);
-        
-        const themeIdx = (currentLevel - 1) % themes.length;
-        const baseHue = 20 + (themeIdx * 60);
+        const targetX = (width / 2) - (BOOK_W / 2) + (Math.random() * 80 - 40);
         
         books.push({
             id: Math.random(),
             x: side === 'left' ? -BOOK_W : width,
-            y: bookY, w: BOOK_W, h: BOOK_H,
-            vx: side === 'left' ? speed : -speed,
-            color: `hsl(${baseHue + Math.random() * 20}, 30%, ${20 + Math.random() * 10}%)`,
-            landed: false, targetX: targetX,
-            isSpike: false,
-            opacity: 0
+            y: bookY, w: BOOK_W, h: BOOK_H, originalW: BOOK_W,
+            vx: side === 'left' ? 4.5 : -4.5,
+            color: `hsl(${20 + (currentLevel * 45)}, 40%, 30%)`,
+            landed: false, targetX: targetX, opacity: 0
         });
     }
 
@@ -364,209 +326,191 @@
     }
 
     function update() {
-        if (!gameActive) {
-            updateParticles();
-            return;
+        if (!gameActive) return;
+        frameCount++;
+
+        weatherTimer++;
+        if (weatherTimer > 500) {
+            weatherTimer = 0;
+            currentWeather = WEATHER_TYPES[(WEATHER_TYPES.indexOf(currentWeather) + 1) % WEATHER_TYPES.length];
+            updateUI();
         }
 
-        // Combined Input (Keyboard + Touch)
-        if (keys['ArrowLeft'] || keys['KeyA'] || touchState.left) {
-            player.vx = -player.speed;
-            player.tilt += (-0.15 - player.tilt) * 0.1;
-        } else if (keys['ArrowRight'] || keys['KeyD'] || touchState.right) {
-            player.vx = player.speed;
-            player.tilt += (0.15 - player.tilt) * 0.1;
-        } else {
-            player.vx *= FRICTION;
-            player.tilt *= 0.85;
-        }
+        if (currentWeather === 'WINDY') player.vx += Math.sin(frameCount * 0.05) * 0.3;
+        if (currentWeather === 'THUNDER' && frameCount % 150 === 0) triggerLightning();
 
-        if ((keys['Space'] || keys['ArrowUp'] || keys['KeyW'] || touchState.jump) && player.grounded) {
-            player.vy = player.jumpPower;
-            player.grounded = false;
-            player.stretch = 1.4;
-        }
-        
-        player.stretch += (1 - player.stretch) * 0.12;
+        if (keys['ArrowLeft'] || keys['KeyA']) player.vx -= 1;
+        if (keys['ArrowRight'] || keys['KeyD']) player.vx += 1;
+        if (keys['Space'] || keys['ArrowUp'] || keys['KeyW']) triggerJump();
 
+        player.vx *= FRICTION;
         player.vy += GRAVITY;
         player.x += player.vx;
         player.y += player.vy;
+        
+        player.stretch += (1 - player.stretch) * 0.1;
+        player.tilt = player.vx * 0.05;
 
-        let targetCam = -(player.y - height * 0.65);
-        cameraY += (targetCam - cameraY) * 0.08;
+        let targetCam = -(player.y - height * 0.6);
+        cameraY += (targetCam - cameraY) * 0.1;
 
         if (player.x < WALL_WIDTH) player.x = WALL_WIDTH;
         if (player.x + player.w > width - WALL_WIDTH) player.x = width - WALL_WIDTH - player.w;
 
-        player.grounded = false;
+        // --- FLOOD SURGE LOGIC ---
+        
+        // 1. When 2nd block reaches the middle (heightThisLevel becomes 2)
+        if (heightThisLevel >= 2 && targetFloodY > books[0].y) {
+            targetFloodY = books[0].y + 10; // Flood covers the ground floor
+        }
 
-        for (let book of books) {
-            if (player.hasTouchedFirstBook && book.isFloor) {
-                book.isSpike = true;
+        // 2. Step on 11th block -> Flood reaches 10th block
+        if (heightThisLevel >= 11) {
+            if (books[10]) {
+                const surgePos = books[10].y + 10;
+                if (surgePos < targetFloodY) targetFloodY = surgePos;
+            }
+        }
+
+        // Smoothly animate flood position
+        floodY += (targetFloodY - floodY) * 0.05;
+
+        player.grounded = false;
+        for (let i = books.length - 1; i >= 0; i--) {
+            let b = books[i];
+
+            if (currentWeather === 'RAINY' && b.landed && !b.isFloor) {
+                b.w -= 0.15;
+                b.x += 0.075;
+                if (b.w < 15) { books.splice(i, 1); continue; }
             }
 
-            if (!book.landed) {
-                book.x += book.vx;
-                book.opacity = Math.min(1, book.opacity + 0.1);
+            if (!b.landed) {
+                b.x += b.vx;
+                b.opacity = Math.min(1, b.opacity + 0.1);
                 
-                if (player.x + player.w > book.x && player.x < book.x + book.w &&
-                    player.y + player.h > book.y && player.y < book.y + book.h) {
-                    if (player.y + player.h > book.y + 10) {
-                        player.x += book.vx;
+                if (player.y + player.h > b.y + 5 && player.y < b.y + b.h - 5) {
+                    if (player.x + player.w > b.x && player.x < b.x + b.w) {
+                        player.x += b.vx;
                     }
                 }
 
-                if ((book.vx > 0 && book.x >= book.targetX) || (book.vx < 0 && book.x <= book.targetX)) {
-                    book.x = book.targetX;
-                    book.vx = 0;
-                    book.landed = true;
-                    score++;
-                    heightThisLevel++;
-                    updateUI();
+                if ((b.vx > 0 && b.x >= b.targetX) || (b.vx < 0 && b.x <= b.targetX)) {
+                    b.x = b.targetX; b.vx = 0; b.landed = true;
+                    score++; heightThisLevel++; updateUI();
                     if (heightThisLevel >= heightPerLevel) completeLevel();
                     else spawnNextBook();
                 }
             }
 
-            if (player.x + player.w > book.x && player.x < book.x + book.w &&
-                player.y + player.h > book.y && player.y < book.y + book.h) {
-                
-                if (book.isSpike) {
-                    gameOver("CONSUMED BY SHADOWS");
-                    return;
-                }
+            const overlapX = (player.x + player.w > b.x) && (player.x < b.x + b.w);
+            const overlapY = (player.y + player.h > b.y) && (player.y < b.y + b.h);
 
-                if (player.vy >= 0 && player.y + player.h - player.vy <= book.y + 15) {
-                    if (!player.grounded) player.stretch = 0.7; 
-                    player.y = book.y - player.h;
+            if (overlapX && overlapY) {
+                if (player.vy >= 0 && player.y + player.h - player.vy <= b.y + 15) {
+                    player.y = b.y - player.h;
                     player.vy = 0;
                     player.grounded = true;
-                    if (!book.isFloor) player.hasTouchedFirstBook = true;
+                } 
+                else if (!player.grounded || player.y + player.h > b.y + 10) {
+                    const fromLeft = player.x + player.w/2 < b.x + b.w/2;
+                    if (fromLeft) { player.x = b.x - player.w; player.vx = Math.min(0, player.vx); }
+                    else { player.x = b.x + b.w; player.vx = Math.max(0, player.vx); }
                 }
             }
         }
 
-        updateParticles();
-
-        if (player.y + cameraY > height + 150) {
-            gameOver("FALLEN INTO OBLIVION");
+        if (lightningStrike && lightningStrike.active) {
+            if (player.x + player.w > lightningStrike.x - 20 && player.x < lightningStrike.x + 20) {
+                gameOver("STRUCK BY LIGHTNING");
+            }
         }
+
+        if (player.y + cameraY > height + 100) gameOver("FELL INTO OBLIVION");
+        if (player.y > floodY) gameOver("DROWNED IN THE SURGE");
+
+        updateParticles();
+    }
+
+    function triggerLightning() {
+        const lx = WALL_WIDTH + Math.random() * (width - WALL_WIDTH * 2);
+        lightningStrike = { x: lx, timer: 30, active: false };
+        setTimeout(() => {
+            if (!gameActive) return;
+            lightningStrike.active = true;
+            flashEl.style.opacity = "0.5";
+            setTimeout(() => { flashEl.style.opacity = "0"; lightningStrike = null; }, 100);
+        }, 600);
     }
 
     function updateParticles() {
-        particles.forEach((p, index) => {
-            p.y -= p.speed;
-            p.x += p.drift;
-            if (p.y < -50) {
-                particles.splice(index, 1);
-                spawnParticle();
-            }
-        });
-        bgPulse += 0.02;
+        if (currentWeather === 'RAINY' && weatherParticles.length < 80) {
+            weatherParticles.push({ x: Math.random() * width, y: -20, vy: 12, type: 'rain' });
+        }
+        for (let i = weatherParticles.length - 1; i >= 0; i--) {
+            let p = weatherParticles[i];
+            p.y += p.vy;
+            if (p.y > height) weatherParticles.splice(i, 1);
+        }
     }
 
     function render() {
-        const themeIdx = (currentLevel - 1) % themes.length;
-        const currentTheme = themes[themeIdx];
-        
-        ctx.fillStyle = currentTheme.bg;
-        ctx.fillRect(0, 0, width, height);
-        
-        const glow = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width);
-        glow.addColorStop(0, 'rgba(243, 156, 18, 0.05)');
-        glow.addColorStop(1, 'transparent');
-        ctx.fillStyle = glow;
+        ctx.fillStyle = '#050505';
         ctx.fillRect(0, 0, width, height);
 
-        particles.forEach(p => {
-            ctx.fillStyle = `rgba(255, 255, 255, ${0.1 + Math.sin(bgPulse + p.x) * 0.05})`;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
+        weatherParticles.forEach(p => {
+            ctx.strokeStyle = '#3498db';
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x, p.y + 15); ctx.stroke();
         });
 
-        ctx.fillStyle = currentTheme.wall;
+        ctx.fillStyle = '#111';
         ctx.fillRect(0, 0, WALL_WIDTH, height);
         ctx.fillRect(width - WALL_WIDTH, 0, WALL_WIDTH, height);
-        
-        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
-        ctx.lineWidth = 1;
-        for(let i=0; i<height; i+=40) {
-            ctx.beginPath();
-            ctx.moveTo(0, i); ctx.lineTo(WALL_WIDTH, i);
-            ctx.moveTo(width-WALL_WIDTH, i); ctx.lineTo(width, i);
-            ctx.stroke();
-        }
 
         ctx.save();
         ctx.translate(0, cameraY);
 
-        books.forEach(book => {
-            if (book.isSpike) renderSpikes(book);
-            else renderBook(book);
+        books.forEach(b => {
+            ctx.globalAlpha = b.opacity;
+            ctx.fillStyle = b.color;
+            ctx.fillRect(b.x, b.y, b.w, b.h);
+            ctx.fillStyle = 'rgba(255,255,255,0.05)';
+            ctx.fillRect(b.x, b.y, b.w, 4);
+            ctx.globalAlpha = 1;
         });
+
+        ctx.fillStyle = 'rgba(20, 40, 80, 0.7)';
+        ctx.fillRect(0, floodY, width, 5000);
+        ctx.fillStyle = '#3498db';
+        ctx.fillRect(0, floodY, width, 4);
+
+        if (lightningStrike) {
+            ctx.strokeStyle = lightningStrike.active ? '#fff' : 'rgba(255,255,0,0.2)';
+            ctx.lineWidth = lightningStrike.active ? 4 : 1;
+            ctx.beginPath(); ctx.moveTo(lightningStrike.x, -cameraY); 
+            ctx.lineTo(lightningStrike.x, height - cameraY); ctx.stroke();
+        }
 
         ctx.save();
         ctx.translate(player.x + player.w/2, player.y + player.h);
         ctx.rotate(player.tilt);
         ctx.scale(2 - player.stretch, player.stretch);
-        
         ctx.fillStyle = '#f39c12';
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = 'rgba(243, 156, 18, 0.5)';
         ctx.fillRect(-player.w/2, -player.h, player.w, player.h);
-        
-        ctx.shadowBlur = 0;
         ctx.fillStyle = '#000';
-        const blink = Math.sin(Date.now() * 0.005) > 0.98 ? 0.1 : 1;
-        ctx.fillRect(-8, -30, 4, 6 * blink);
-        ctx.fillRect(4, -30, 4, 6 * blink);
-        
+        ctx.fillRect(-6, -28, 3, 5); ctx.fillRect(3, -28, 3, 5);
         ctx.restore();
         ctx.restore();
-    }
-
-    function renderBook(book) {
-        ctx.save();
-        ctx.globalAlpha = book.opacity || 1;
-        ctx.fillStyle = 'rgba(0,0,0,0.4)';
-        ctx.fillRect(book.x + 8, book.y + 8, book.w, book.h);
-        ctx.fillStyle = book.color;
-        ctx.fillRect(book.x, book.y, book.w, book.h);
-        ctx.fillStyle = 'rgba(0,0,0,0.2)';
-        ctx.fillRect(book.x, book.y, 12, book.h);
-        ctx.fillStyle = 'rgba(255,255,255,0.1)';
-        ctx.fillRect(book.x + 12, book.y + 5, book.w - 20, book.h - 10);
-        ctx.strokeStyle = 'rgba(243, 156, 18, 0.2)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(book.x + 3, book.y + 3, book.w - 6, book.h - 6);
-        ctx.restore();
-    }
-
-    function renderSpikes(book) {
-        ctx.fillStyle = '#1a0a0a';
-        ctx.fillRect(book.x, book.y, book.w, book.h);
-        const pulse = Math.sin(Date.now() * 0.01) * 6;
-        ctx.fillStyle = '#e74c3c';
-        const sw = 22;
-        const count = Math.ceil(book.w / sw);
-        for(let i=0; i<count; i++) {
-            ctx.beginPath();
-            ctx.moveTo(book.x + i * sw, book.y + book.h);
-            ctx.lineTo(book.x + i * sw + sw/2, book.y - 25 + pulse);
-            ctx.lineTo(book.x + (i+1) * sw, book.y + book.h);
-            ctx.fill();
-            ctx.fillStyle = 'rgba(231, 76, 60, 0.2)';
-            ctx.beginPath();
-            ctx.arc(book.x + i * sw + sw/2, book.y - 10, 15, 0, Math.PI*2);
-            ctx.fill();
-            ctx.fillStyle = '#e74c3c';
-        }
     }
 
     function completeLevel() {
         gameActive = false;
+        // Floor secured -> Flood reaches top block of the current floor
+        const topBlock = books[books.length - 1];
+        if (topBlock) {
+            targetFloodY = topBlock.y + 10;
+            floodY = targetFloodY; // Snap instantly for floor completion
+        }
         showOverlay('level-complete');
     }
 
@@ -575,14 +519,17 @@
         heightThisLevel = 0;
         gameActive = true;
         document.getElementById('level-complete').classList.add('hidden');
-        updateUI();
+        // We don't call startGame() because we want to keep climbing from current Y
+        score = 0;
+        books = [books[books.length-1]]; // Keep only the top block to stand on
         spawnNextBook();
+        updateUI();
     }
 
     function gameOver(reason) {
         gameActive = false;
         document.getElementById('death-reason').innerText = reason;
-        document.getElementById('final-score').innerText = `You ascended ${score} books.`;
+        document.getElementById('final-score').innerText = `Reached Block ${heightThisLevel} on Floor ${currentLevel}`;
         showOverlay('game-over');
     }
 
@@ -593,6 +540,5 @@
 
     window.onload = init;
 </script>
-
 </body>
 </html>
