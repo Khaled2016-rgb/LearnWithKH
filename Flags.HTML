@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flag Rush: Legend Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glass-bg: rgba(15, 23, 42, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent-primary: #00f2fe;
+            --accent-secondary: #4facfe;
+            --impossible-glow: #ff004c;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #020617;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- LEGENDARY BACKGROUND --- */
+        .flag-bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            z-index: -2;
+            display: grid;
+            grid-template-columns: repeat(20, 1fr);
+            opacity: 0.15;
+            transform: rotate(-15deg) translateY(-10%);
+            animation: bgScroll 120s linear infinite;
+            pointer-events: none;
+        }
+
+        .bg-flag-item {
+            width: 100px;
+            height: 60px;
+            margin: 20px;
+            filter: grayscale(0.5) blur(1px);
+        }
+
+        @keyframes bgScroll {
+            0% { transform: rotate(-15deg) translate(0, 0); }
+            100% { transform: rotate(-15deg) translate(-20%, -20%); }
+        }
+
+        .overlay-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent, #020617 90%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* --- UI COMPONENTS --- */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 3.5rem;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+            width: 95%;
+            max-width: 480px;
+            padding: 3rem 2.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timer-bar-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        #timer-bar {
+            height: 100%;
+            width: 100%;
+            background: var(--impossible-glow);
+            transition: width 0.1s linear;
+            box-shadow: 0 0 20px var(--impossible-glow);
+        }
+
+        .flag-img {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));
+            margin: 2rem 0;
+            border-radius: 1.5rem;
+            animation: flagEntry 0.6s cubic-bezier(0.2, 1, 0.3, 1);
+        }
+
+        @keyframes flagEntry {
+            from { opacity: 0; transform: scale(0.8) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .choice-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .choice-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+            border-color: var(--accent-primary);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .level-btn {
+            padding: 1.2rem;
+            border-radius: 1.5rem;
+            font-weight: 800;
+            transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .btn-easy { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+        .btn-medium { background: rgba(234, 179, 8, 0.15); color: #facc15; }
+        .btn-hard { 
+            background: rgba(239, 68, 68, 0.15); 
+            color: #f87171; 
+            border-color: #ef4444;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.2);
+        }
+
+        .choice-btn.correct { background: #22c55e !important; color: white; box-shadow: 0 0 25px rgba(34, 197, 94, 0.5); }
+        .choice-btn.wrong { background: #ef4444 !important; color: white; animation: shake 0.4s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .score-change {
+            position: absolute;
+            font-weight: 800;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            font-size: 1.5rem;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 50;
+        }
+
+        @keyframes floatUp {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-60px); }
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <!-- Flag Mosaic Background -->
+    <div class="flag-bg-container" id="flag-mosaic"></div>
+    <div class="overlay-gradient"></div>
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="glass-card">
+        <div class="mb-6 inline-block p-5 bg-white/5 rounded-full">
+            <svg class="w-12 h-12 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2 2 2 0 012 2v.1c0 .3.135.58.354.77l.533.465M16.445 18.155L15.5 17.5a2 2 0 00-1-2h-1a2 2 0 01-2-2v-1.5a2 2 0 012-2h.5a2 2 0 002-2V8a2 2 0 012-2h.5a2 2 0 012 2v1.5a2.5 2.5 0 01-2.5 2.5H18"></path></svg>
+        </div>
+        <h1 class="text-6xl font-black mb-3 tracking-tighter italic">FLAG<span class="text-cyan-400">RUSH</span></h1>
+        <p class="text-slate-400 mb-10 font-medium tracking-wide">ENTER THE GLOBAL ARENA</p>
+        
+        <div class="grid grid-cols-1 gap-4">
+            <button onclick="startGame('easy')" class="level-btn btn-easy hover:scale-105 active:scale-95">Easy Mode</button>
+            <button onclick="startGame('medium')" class="level-btn btn-medium hover:scale-105 active:scale-95">Medium Mode</button>
+            <button onclick="startGame('hard')" class="level-btn btn-hard hover:scale-110 active:scale-95">Impossible Mode</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="glass-card hidden">
+        <div class="timer-bar-container" id="timer-container">
+            <div id="timer-bar"></div>
+        </div>
+        <div class="flex justify-between items-end mb-2 mt-4">
+            <div id="score" class="font-black text-white text-4xl">0</div>
+            <div id="difficulty-badge" class="px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest border border-white/20"></div>
+        </div>
+        
+        <img id="main-flag" src="" alt="Flag" class="flag-img">
+        
+        <div id="message" class="mb-5 font-black uppercase text-sm tracking-widest h-5 transition-all duration-300"></div>
+
+        <div id="choices-grid" class="grid grid-cols-2 gap-4 mb-8"></div>
+
+        <button onclick="endGame(true)" class="text-[11px] uppercase font-black tracking-widest text-slate-500 hover:text-cyan-400 transition-colors">
+            Finalize Quest
+        </button>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="glass-card hidden">
+        <h2 id="result-title" class="text-4xl font-black mb-4 uppercase tracking-tighter">QUEST COMPLETE</h2>
+        <div class="text-slate-400 text-xs font-black uppercase mb-1 tracking-widest">Global Mastery Rating</div>
+        <div id="final-score" class="text-9xl font-black mb-12 text-transparent bg-clip-text bg-gradient-to-br from-white to-cyan-500">0</div>
+        
+        <button onclick="location.reload()" class="w-full bg-white text-slate-900 font-black py-6 rounded-3xl hover:scale-105 transition-transform shadow-2xl uppercase tracking-widest text-lg">
+            New Journey
+        </button>
+    </div>
+
+    <script>
+        const allFlags = [
+            { name: "USA", code: "us", difficulty: "easy" },
+            { name: "United Kingdom", code: "gb", difficulty: "easy" },
+            { name: "Japan", code: "jp", difficulty: "easy" },
+            { name: "France", code: "fr", difficulty: "easy" },
+            { name: "Germany", code: "de", difficulty: "easy" },
+            { name: "Brazil", code: "br", difficulty: "easy" },
+            { name: "Canada", code: "ca", difficulty: "easy" },
+            { name: "Italy", code: "it" , difficulty: "easy"},
+            { name: "China", code: "cn", difficulty: "easy" },
+            { name: "India", code: "in", difficulty: "easy" },
+            { name: "Argentina", code: "ar", difficulty: "medium" },
+            { name: "Switzerland", code: "ch", difficulty: "medium" },
+            { name: "Australia", code: "au", difficulty: "medium" },
+            { name: "South Korea", code: "kr", difficulty: "medium" },
+            { name: "Mexico", code: "mx", difficulty: "medium" },
+            { name: "Spain", code: "es", difficulty: "medium" },
+            { name: "Turkey", code: "tr", difficulty: "medium" },
+            { name: "Thailand", code: "th", difficulty: "medium" },
+            { name: "Luxembourg", code: "lu", difficulty: "hard" },
+            { name: "Netherlands", code: "nl", difficulty: "hard" },
+            { name: "Monaco", code: "mc", difficulty: "hard" },
+            { name: "Indonesia", code: "id", difficulty: "hard" },
+            { name: "Poland", code: "pl", difficulty: "hard" },
+            { name: "Ivory Coast", code: "ci", difficulty: "hard" },
+            { name: "Ireland", code: "ie", difficulty: "hard" },
+            { name: "Chad", code: "td", difficulty: "hard" },
+            { name: "Romania", code: "ro", difficulty: "hard" },
+            { name: "Mali", code: "ml", difficulty: "hard" },
+            { name: "Senegal", code: "sn", difficulty: "hard" },
+            { name: "Slovenia", code: "si", difficulty: "hard" },
+            { name: "Slovakia", code: "sk", difficulty: "hard" },
+            { name: "Russia", code: "ru", difficulty: "hard" },
+            { name: "New Zealand", code: "nz", difficulty: "hard" },
+            { name: "Norway", code: "no", difficulty: "hard" },
+            { name: "Denmark", code: "dk", difficulty: "hard" },
+            { name: "Jordan", code: "jo", difficulty: "hard" },
+            { name: "Palestine", code: "ps", difficulty: "hard" },
+            { name: "Venezuela", code: "ve", difficulty: "hard" },
+            { name: "Colombia", code: "co", difficulty: "hard" },
+            { name: "Ecuador", code: "ec", difficulty: "hard" },
+            { name: "Qatar", code: "qa", difficulty: "hard" },
+            { name: "Bahrain", code: "bh", difficulty: "hard" }
+        ];
+
+        // Create Mosaic Background
+        const mosaic = document.getElementById('flag-mosaic');
+        const bgFlagCodes = [...allFlags].sort(() => Math.random() - 0.5);
+        for(let i=0; i<400; i++) {
+            const f = bgFlagCodes[i % bgFlagCodes.length];
+            const img = document.createElement('img');
+            img.src = `https://flagcdn.com/w160/${f.code.toLowerCase()}.png`;
+            img.className = 'bg-flag-item';
+            mosaic.appendChild(img);
+        }
+
+        let score = 0;
+        let currentFlag = null;
+        let gameFlagsPool = [];
+        let canAnswer = true;
+        let currentDifficulty = 'easy';
+        let timerInterval = null;
+        let timeLeft = 100;
+        let timeLimit = 3500; // Impossible is now very tight
+
+        function startGame(level) {
+            currentDifficulty = level;
+            score = 0;
+            
+            if(level === 'hard') {
+                document.body.style.background = "#1a0208";
+                gameFlagsPool = allFlags.filter(f => f.difficulty === 'hard');
+            } else if (level === 'medium') {
+                document.body.style.background = "#020617";
+                gameFlagsPool = allFlags.filter(f => f.difficulty === 'easy' || f.difficulty === 'medium');
+            } else {
+                document.body.style.background = "#020617";
+                gameFlagsPool = allFlags.filter(f => f.difficulty === 'easy');
+            }
+
+            gameFlagsPool.sort(() => Math.random() - 0.5);
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            
+            const badge = document.getElementById('difficulty-badge');
+            badge.innerText = level === 'hard' ? 'IMPOSSIBLE' : level;
+            badge.className = `px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest border ${level === 'hard' ? 'border-red-500 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'border-cyan-500 text-cyan-500 shadow-[0_0_15px_rgba(34,211,238,0.4)]'}`;
+
+            if(level === 'hard') {
+                document.getElementById('timer-container').classList.remove('hidden');
+            } else {
+                document.getElementById('timer-container').classList.add('hidden');
+            }
+
+            nextQuestion();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            if(currentDifficulty !== 'hard') return;
+            
+            const start = Date.now();
+            timerInterval = setInterval(() => {
+                const delta = Date.now() - start;
+                timeLeft = 100 - (delta / timeLimit * 100);
+                document.getElementById('timer-bar').style.width = timeLeft + '%';
+                
+                if(timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleWrongAnswer(null, "TIME DEPLETED!");
+                }
+            }, 10);
+        }
+
+        function nextQuestion() {
+            if(gameFlagsPool.length === 0) {
+                // If the user clears the deck, shuffle it back in to keep it infinite
+                gameFlagsPool = allFlags.filter(f => {
+                    if(currentDifficulty === 'hard') return f.difficulty === 'hard';
+                    if(currentDifficulty === 'medium') return true;
+                    return f.difficulty === 'easy';
+                }).sort(() => Math.random() - 0.5);
+            }
+
+            canAnswer = true;
+            document.getElementById('message').innerText = "";
+            currentFlag = gameFlagsPool.shift(); 
+            
+            const flagImg = document.getElementById('main-flag');
+            flagImg.src = `https://flagcdn.com/w640/${currentFlag.code.toLowerCase()}.png`;
+
+            // Setup Options
+            let options = [currentFlag.name];
+            let distractors = allFlags.filter(f => f.name !== currentFlag.name);
+            if(currentDifficulty === 'hard') distractors = distractors.filter(f => f.difficulty === 'hard');
+            
+            distractors.sort(() => Math.random() - 0.5);
+            for(let i=0; i<3; i++) options.push(distractors[i].name);
+            options.sort(() => Math.random() - 0.5);
+
+            const grid = document.getElementById('choices-grid');
+            grid.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(opt, btn);
+                grid.appendChild(btn);
+            });
+
+            if(currentDifficulty === 'hard') startTimer();
+        }
+
+        function showScoreChange(value, isPositive) {
+            const scoreEl = document.getElementById('score');
+            const rect = scoreEl.getBoundingClientRect();
+            const change = document.createElement('div');
+            change.className = 'score-change';
+            change.style.left = (rect.left + 20) + 'px';
+            change.style.top = (rect.top - 20) + 'px';
+            change.style.color = isPositive ? '#4ade80' : '#ef4444';
+            change.innerText = (isPositive ? '+' : '') + value;
+            document.body.appendChild(change);
+            setTimeout(() => change.remove(), 1000);
+        }
+
+        function checkAnswer(selected, btn) {
+            if (!canAnswer) return;
+            canAnswer = false;
+            clearInterval(timerInterval);
+
+            if (selected === currentFlag.name) {
+                const gain = (currentDifficulty === 'hard' ? 75 : currentDifficulty === 'medium' ? 30 : 15);
+                score += gain;
+                showScoreChange(gain, true);
+                document.getElementById('score').innerText = score;
+                btn.classList.add('correct');
+                document.getElementById('message').innerText = "WORLD CLASS!";
+                document.getElementById('message').style.color = "#4ade80";
+                setTimeout(nextQuestion, 700);
+            } else {
+                handleWrongAnswer(btn, `CORRECT: ${currentFlag.name}`);
+            }
+        }
+
+        function handleWrongAnswer(btn, text) {
+            canAnswer = false;
+            clearInterval(timerInterval);
+            if(btn) btn.classList.add('wrong');
+            
+            const msg = document.getElementById('message');
+            msg.innerText = text;
+            msg.style.color = "#f87171";
+
+            const penalty = (currentDifficulty === 'hard' ? 40 : currentDifficulty === 'medium' ? 20 : 10);
+            score = Math.max(0, score - penalty);
+            showScoreChange(-penalty, false);
+            document.getElementById('score').innerText = score;
+
+            document.querySelectorAll('.choice-btn').forEach(b => {
+                if(b.innerText === currentFlag.name) b.classList.add('correct');
+            });
+
+            setTimeout(nextQuestion, 1500);
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = score;
+            
+            const title = document.getElementById('result-title');
+            if(score > 1000) { title.innerText = "GRAND LEGEND"; title.style.color = "#00f2fe"; }
+            else if(score > 500) { title.innerText = "EXPERT VOYAGER"; title.style.color = "#4ade80"; }
+            else { title.innerText = "JOURNEY ENDED"; title.style.color = "#facc15"; }
+        }
+    </script>
+</body>
+</html>
